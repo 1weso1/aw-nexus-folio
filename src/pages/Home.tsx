@@ -62,7 +62,7 @@ export default function Home() {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8">
+      <section className="relative min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8 pt-20">
         <div className="absolute inset-0 gradient-hero opacity-90" />
         <div className="relative z-10 max-w-6xl mx-auto text-center">
           {/* Hero Logo */}
