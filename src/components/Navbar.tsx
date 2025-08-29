@@ -29,11 +29,11 @@ export function Navbar() {
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
             <img 
-              src="/lovable-uploads/a78f79f3-edc1-4836-9207-2cb792ed0d49.png" 
-              alt="AW Logo" 
+              src="/lovable-uploads/d565c3d6-458e-41eb-8e16-a1ddcfbdc719.png" 
+              alt="Ahmed Wesam Logo" 
               className="h-8 w-8 neon-glow"
             />
-            <span className="font-sora font-bold text-xl neon-text">AW</span>
+            <span className="font-sora font-bold text-xl neon-text">Ahmed Wesam</span>
           </Link>
 
           {/* Desktop Navigation */}

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Mail, Linkedin, Github, Send, MapPin, Calendar } from "lucide-react";
+import { Mail, Linkedin, Instagram, Send, MapPin, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 
@@ -67,7 +67,7 @@ export default function Contact() {
                 </a>
 
                 <a
-                  href="https://linkedin.com/in/ahmedwesam"
+                  href="https://www.linkedin.com/in/ahmed-wesam-3b57bb1b1?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=ios_app"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center space-x-3 text-text-secondary hover:text-neon-primary transition-colors group"
@@ -82,17 +82,32 @@ export default function Contact() {
                 </a>
 
                 <a
-                  href="https://github.com/ahmedwesam"
+                  href="https://www.instagram.com/movebue?igsh=d2ppOWFnNHM1cmdi"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center space-x-3 text-text-secondary hover:text-neon-primary transition-colors group"
                 >
                   <div className="p-2 bg-neon-primary/20 rounded-lg group-hover:bg-neon-primary/30 transition-colors">
-                    <Github className="h-5 w-5 text-neon-primary" />
+                    <Instagram className="h-5 w-5 text-neon-primary" />
                   </div>
                   <div>
-                    <p className="font-medium">GitHub</p>
-                    <p className="text-sm">Code & projects</p>
+                    <p className="font-medium">Move Instagram</p>
+                    <p className="text-sm">Sports club activities</p>
+                  </div>
+                </a>
+
+                <a
+                  href="https://www.instagram.com/buerotaract?igsh=dTJ0emh5eXRsNzM5"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center space-x-3 text-text-secondary hover:text-neon-primary transition-colors group"
+                >
+                  <div className="p-2 bg-neon-primary/20 rounded-lg group-hover:bg-neon-primary/30 transition-colors">
+                    <Instagram className="h-5 w-5 text-neon-primary" />
+                  </div>
+                  <div>
+                    <p className="font-medium">Rotaract Instagram</p>
+                    <p className="text-sm">Community service projects</p>
                   </div>
                 </a>
               </div>

@@ -13,7 +13,7 @@ const highlights = [
 import heroImage from "/src/assets/student-cafe-concept.jpg";
 import couplesAppImage from "/src/assets/couples-app-mockup.jpg";
 import crmDashboardImage from "/src/assets/crm-automation-dashboard.jpg";
-import sportsClubImage from "/src/assets/sports-club-community.jpg";
+import moveTeamImage from "/lovable-uploads/f9f1defa-84d4-4e38-910e-933f050d0cad.png";
 
 const featuredProjects = [
   {
@@ -54,7 +54,7 @@ const featuredProjects = [
     date: "2023-Present", 
     tags: ["Leadership", "Community Building", "Sports Management"],
     link: "/projects/move",
-    image: sportsClubImage
+    image: moveTeamImage
   }
 ];
 
@@ -68,8 +68,8 @@ export default function Home() {
           {/* Hero Logo */}
           <div className="mb-8 animate-fade-in">
             <img 
-              src="/lovable-uploads/a78f79f3-edc1-4836-9207-2cb792ed0d49.png" 
-              alt="AW Logo" 
+              src="/lovable-uploads/d565c3d6-458e-41eb-8e16-a1ddcfbdc719.png" 
+              alt="Ahmed Wesam Logo" 
               className="h-24 w-24 mx-auto neon-glow animate-glow-pulse"
             />
           </div>
@@ -166,8 +166,12 @@ export default function Home() {
                 </div>
               </div>
               <div className="flex justify-center">
-                <div className="w-48 h-48 rounded-2xl bg-gradient-surface border border-neon-primary/20 flex items-center justify-center">
-                  <span className="text-6xl font-sora font-bold neon-text">AW</span>
+                <div className="w-48 h-48 rounded-2xl bg-gradient-surface border border-neon-primary/20 flex items-center justify-center p-8">
+                  <img 
+                    src="/lovable-uploads/d565c3d6-458e-41eb-8e16-a1ddcfbdc719.png" 
+                    alt="Ahmed Wesam Logo" 
+                    className="w-full h-full object-contain neon-glow"
+                  />
                 </div>
               </div>
             </div>

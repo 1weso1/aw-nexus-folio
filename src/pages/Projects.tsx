@@ -5,8 +5,9 @@ import { ProjectCard } from "@/components/ProjectCard";
 
 import couplesAppImage from "/src/assets/couples-app-mockup.jpg";
 import crmDashboardImage from "/src/assets/crm-automation-dashboard.jpg";
-import sportsClubImage from "/src/assets/sports-club-community.jpg";
+import moveTeamImage from "/lovable-uploads/f9f1defa-84d4-4e38-910e-933f050d0cad.png";
 import heroImage from "/src/assets/student-cafe-concept.jpg";
+import rotaractImage from "/lovable-uploads/3d3cfa69-a6dc-4a58-8aaf-ec6ba9295513.png";
 
 const projects = [
   // Tech Projects
@@ -54,7 +55,7 @@ const projects = [
     tags: ["Leadership", "Community Building", "Sports Management", "Partnership Development"],
     link: "/projects/move",
     category: "leadership", 
-    image: sportsClubImage
+    image: moveTeamImage
   },
   {
     title: "Rotaract Vice Presidency",
@@ -65,7 +66,7 @@ const projects = [
     tags: ["Leadership", "Community Service", "Event Management", "International Relations"],
     link: "/projects/rotaract",
     category: "leadership",
-    image: sportsClubImage
+    image: rotaractImage
   },
   {
     title: "GRACE Research Competition",

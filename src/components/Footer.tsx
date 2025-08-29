@@ -1,4 +1,4 @@
-import { Mail, Linkedin, Github } from "lucide-react";
+import { Mail, Linkedin, Instagram } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export function Footer() {
@@ -12,8 +12,8 @@ export function Footer() {
           <div className="space-y-4">
             <div className="flex items-center space-x-2">
               <img 
-                src="/lovable-uploads/a78f79f3-edc1-4836-9207-2cb792ed0d49.png" 
-                alt="AW Logo" 
+                src="/lovable-uploads/d565c3d6-458e-41eb-8e16-a1ddcfbdc719.png" 
+                alt="Ahmed Wesam Logo" 
                 className="h-8 w-8 neon-glow"
               />
               <span className="font-sora font-bold text-xl neon-text">Ahmed Wesam</span>
@@ -57,7 +57,7 @@ export function Footer() {
                 contact@ahmedwesam.com
               </a>
               <a
-                href="https://linkedin.com/in/ahmedwesam"
+                href="https://www.linkedin.com/in/ahmed-wesam-3b57bb1b1?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=ios_app"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center text-text-secondary hover:text-neon-primary transition-colors duration-300"
@@ -66,13 +66,22 @@ export function Footer() {
                 LinkedIn
               </a>
               <a
-                href="https://github.com/ahmedwesam"
+                href="https://www.instagram.com/movebue?igsh=d2ppOWFnNHM1cmdi"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center text-text-secondary hover:text-neon-primary transition-colors duration-300"
               >
-                <Github className="h-4 w-4 mr-2" />
-                GitHub
+                <Instagram className="h-4 w-4 mr-2" />
+                Move Instagram
+              </a>
+              <a
+                href="https://www.instagram.com/buerotaract?igsh=dTJ0emh5eXRsNzM5"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center text-text-secondary hover:text-neon-primary transition-colors duration-300"
+              >
+                <Instagram className="h-4 w-4 mr-2" />
+                Rotaract Instagram
               </a>
             </div>
           </div>
