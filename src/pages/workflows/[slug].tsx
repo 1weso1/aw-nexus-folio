@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import { loadManifest, fetchWorkflowRaw, getRelatedWorkflows } from "@/lib/workflows";
+import { getWorkflowBySlug, fetchWorkflowRaw, getRelatedWorkflows } from "@/lib/workflows";
 import type { WorkflowItem, N8nWorkflow } from "@/types/workflow";
 import { WorkflowVisualization } from "@/components/WorkflowVisualization";
 
@@ -26,9 +26,8 @@ export default function WorkflowDetail() {
         setLoading(true);
         setError(null);
         
-        // Load manifest to find workflow
-        const manifest = await loadManifest();
-        const foundWorkflow = manifest.find(w => w.id === slug);
+        // Load workflow by slug
+        const foundWorkflow = await getWorkflowBySlug(slug);
         
         if (!foundWorkflow) {
           setError('Workflow not found');
@@ -47,7 +46,7 @@ export default function WorkflowDetail() {
         }
         
         // Load related workflows
-        const related = getRelatedWorkflows(manifest, foundWorkflow, 6);
+        const related = await getRelatedWorkflows(slug, 6);
         setRelatedWorkflows(related);
         
       } catch (err) {

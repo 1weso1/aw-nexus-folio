@@ -1,160 +1,389 @@
-import { MANIFEST_URL } from '@/config/workflows';
-import type { WorkflowItem, WorkflowManifest, N8nWorkflow, WorkflowStats } from '@/types/workflow';
+import { supabase } from "@/integrations/supabase/client";
+import { WorkflowManifest, WorkflowItem, N8nWorkflow, WorkflowStats, WorkflowComplexity } from "@/types/workflow";
+import { MANIFEST_URL } from "@/config/workflows";
 
-// Cache for manifest data
-let manifestCache: WorkflowManifest | null = null;
-let cacheExpiry: number = 0;
+// Supabase-based workflow data layer with static fallback
+
+export interface WorkflowFilters {
+  query?: string;
+  categories?: string[];
+  tags?: string[];
+  complexity?: WorkflowComplexity[];
+  hasCredentials?: boolean;
+}
+
+export interface WorkflowSort {
+  field: 'name' | 'node_count' | 'updated_at' | 'complexity';
+  direction: 'asc' | 'desc';
+}
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  total: number;
+  page: number;
+  pageSize: number;
+  hasMore: boolean;
+}
+
+// Memory cache for categories and tags
+const cache = new Map<string, { data: any; timestamp: number }>();
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
-// IndexedDB/localStorage cache key
-const CACHE_KEY = 'workflows_manifest_v1';
-const CACHE_TIMESTAMP_KEY = 'workflows_manifest_timestamp_v1';
-
-// Load manifest from cache or server
-export async function loadManifest(): Promise<WorkflowManifest> {
-  // Check memory cache
-  if (manifestCache && Date.now() < cacheExpiry) {
-    return manifestCache;
+function getFromCache<T>(key: string): T | null {
+  const item = cache.get(key);
+  if (!item || Date.now() - item.timestamp > CACHE_TTL) {
+    cache.delete(key);
+    return null;
   }
+  return item.data;
+}
 
+function setCache<T>(key: string, data: T): void {
+  cache.set(key, { data, timestamp: Date.now() });
+}
+
+// Static fallback for when Supabase is unavailable
+async function loadStaticManifest(): Promise<WorkflowManifest> {
   try {
-    // Try to fetch from server
     const response = await fetch(MANIFEST_URL);
-    
-    if (!response.ok) {
-      throw new Error(`Failed to fetch manifest: ${response.status}`);
-    }
-    
-    const manifest: WorkflowManifest = await response.json();
-    
-    // Update cache
-    manifestCache = manifest;
-    cacheExpiry = Date.now() + CACHE_TTL;
-    
-    // Store in localStorage as fallback
-    try {
-      localStorage.setItem(CACHE_KEY, JSON.stringify(manifest));
-      localStorage.setItem(CACHE_TIMESTAMP_KEY, Date.now().toString());
-    } catch (e) {
-      console.warn('Failed to cache manifest in localStorage:', e);
-    }
-    
-    return manifest;
-    
+    if (!response.ok) throw new Error('Manifest not found');
+    return await response.json();
   } catch (error) {
-    console.error('Failed to load manifest from server:', error);
-    
-    // Try to load from localStorage cache
-    try {
-      const cached = localStorage.getItem(CACHE_KEY);
-      const cachedTime = localStorage.getItem(CACHE_TIMESTAMP_KEY);
-      
-      if (cached && cachedTime) {
-        const age = Date.now() - parseInt(cachedTime);
-        if (age < 24 * 60 * 60 * 1000) { // Use cache if less than 24 hours old
-          const manifest = JSON.parse(cached);
-          manifestCache = manifest;
-          cacheExpiry = Date.now() + CACHE_TTL;
-          console.log('Using cached manifest (offline mode)');
-          return manifest;
-        }
-      }
-    } catch (e) {
-      console.error('Failed to load cached manifest:', e);
-    }
-    
-    // Return empty array as last resort
-    console.error('No manifest available - returning empty array');
+    console.warn('Failed to load static manifest:', error);
     return [];
   }
 }
 
-// Fetch raw workflow JSON
-export async function fetchWorkflowRaw(rawUrl: string): Promise<N8nWorkflow> {
+// Primary data access functions using Supabase
+export async function listWorkflows({
+  query,
+  categories = [],
+  tags = [],
+  complexity = [],
+  hasCredentials,
+  sort = { field: 'name', direction: 'asc' },
+  page = 1,
+  pageSize = 50
+}: {
+  query?: string;
+  categories?: string[];
+  tags?: string[];
+  complexity?: WorkflowComplexity[];
+  hasCredentials?: boolean;
+  sort?: WorkflowSort;
+  page?: number;
+  pageSize?: number;
+} = {}): Promise<PaginatedResponse<WorkflowItem>> {
   try {
-    const response = await fetch(rawUrl);
-    
-    if (!response.ok) {
-      throw new Error(`Failed to fetch workflow: ${response.status} ${response.statusText}`);
+    let supabaseQuery = supabase
+      .from('workflows')
+      .select(`
+        *,
+        workflow_tags(
+          tags(name)
+        )
+      `, { count: 'exact' });
+
+    // Apply filters
+    if (query) {
+      supabaseQuery = supabaseQuery.or(`name.ilike.%${query}%,category.ilike.%${query}%`);
     }
-    
-    const workflow = await response.json();
-    
-    // Validate n8n workflow structure
-    if (!workflow.nodes || !Array.isArray(workflow.nodes)) {
-      throw new Error('Invalid n8n workflow structure');
+
+    if (categories.length > 0) {
+      supabaseQuery = supabaseQuery.in('category', categories);
     }
+
+    if (complexity.length > 0) {
+      supabaseQuery = supabaseQuery.in('complexity', complexity);
+    }
+
+    if (hasCredentials !== undefined) {
+      supabaseQuery = supabaseQuery.eq('has_credentials', hasCredentials);
+    }
+
+    // Apply sorting
+    const orderColumn = sort.field === 'name' ? 'name' : 
+                       sort.field === 'node_count' ? 'node_count' : 
+                       sort.field === 'updated_at' ? 'updated_at' : 'name';
     
-    return workflow;
-    
+    supabaseQuery = supabaseQuery.order(orderColumn, { ascending: sort.direction === 'asc' });
+
+    // Apply pagination
+    const from = (page - 1) * pageSize;
+    const to = from + pageSize - 1;
+    supabaseQuery = supabaseQuery.range(from, to);
+
+    const { data, count, error } = await supabaseQuery;
+
+    if (error) throw error;
+
+    // Transform data to match expected format
+    const workflows: WorkflowItem[] = (data || []).map(row => ({
+      id: row.slug,
+      name: row.name,
+      path: row.path,
+      rawUrl: row.raw_url,
+      size: row.size_bytes || 0,
+      updatedAt: row.updated_at,
+      category: row.category,
+      tags: row.workflow_tags?.map((wt: any) => wt.tags?.name).filter(Boolean) || [],
+      nodeCount: row.node_count || 0,
+      hasCredentials: row.has_credentials || false,
+      complexity: row.complexity as WorkflowComplexity
+    }));
+
+    // Filter by tags if specified (post-processing due to complex join)
+    const filteredWorkflows = tags.length > 0 
+      ? workflows.filter(w => tags.some(tag => w.tags.includes(tag)))
+      : workflows;
+
+    return {
+      data: filteredWorkflows,
+      total: count || 0,
+      page,
+      pageSize,
+      hasMore: (page * pageSize) < (count || 0)
+    };
+
   } catch (error) {
-    console.error('Failed to fetch workflow:', error);
-    throw new Error(`Unable to load workflow: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    console.error('Supabase query failed, falling back to static data:', error);
+    
+    // Fallback to static manifest
+    const staticData = await loadStaticManifest();
+    const filtered = filterStaticWorkflows(staticData, { query, categories, tags, complexity, hasCredentials });
+    const sorted = sortStaticWorkflows(filtered, sort);
+    
+    const from = (page - 1) * pageSize;
+    const to = from + pageSize;
+    
+    return {
+      data: sorted.slice(from, to),
+      total: sorted.length,
+      page,
+      pageSize,
+      hasMore: to < sorted.length
+    };
   }
 }
 
-// Filter workflows by category
-export function filterByCategory(workflows: WorkflowManifest, categories: string[]): WorkflowManifest {
-  if (categories.length === 0) return workflows;
-  return workflows.filter(workflow => categories.includes(workflow.category));
-}
+export async function getWorkflowBySlug(slug: string): Promise<WorkflowItem | null> {
+  try {
+    const { data, error } = await supabase
+      .from('workflows')
+      .select(`
+        *,
+        workflow_tags(
+          tags(name)
+        )
+      `)
+      .eq('slug', slug)
+      .single();
 
-// Filter workflows by tags
-export function filterByTags(workflows: WorkflowManifest, tags: string[]): WorkflowManifest {
-  if (tags.length === 0) return workflows;
-  return workflows.filter(workflow => 
-    tags.some(tag => workflow.tags.includes(tag))
-  );
-}
+    if (error) throw error;
+    if (!data) return null;
 
-// Filter workflows by complexity
-export function filterByComplexity(workflows: WorkflowManifest, complexities: string[]): WorkflowManifest {
-  if (complexities.length === 0) return workflows;
-  return workflows.filter(workflow => complexities.includes(workflow.complexity));
-}
-
-// Filter workflows that have credentials
-export function filterByCredentials(workflows: WorkflowManifest, hasCredentials?: boolean): WorkflowManifest {
-  if (hasCredentials === undefined) return workflows;
-  return workflows.filter(workflow => workflow.hasCredentials === hasCredentials);
-}
-
-// Search workflows by name, description, tags, or integrations
-export function searchWorkflows(workflows: WorkflowManifest, query: string): WorkflowManifest {
-  if (!query.trim()) return workflows;
-  
-  const searchTerm = query.toLowerCase().trim();
-  
-  return workflows.filter(workflow =>
-    workflow.name.toLowerCase().includes(searchTerm) ||
-    workflow.description?.toLowerCase().includes(searchTerm) ||
-    workflow.category.toLowerCase().includes(searchTerm) ||
-    workflow.tags.some(tag => tag.toLowerCase().includes(searchTerm)) ||
-    workflow.folderName?.toLowerCase().includes(searchTerm)
-  );
-}
-
-// Sort workflows
-export function sortWorkflows(
-  workflows: WorkflowManifest, 
-  sortBy: 'name' | 'nodeCount' | 'updatedAt' | 'complexity',
-  direction: 'asc' | 'desc' = 'asc'
-): WorkflowManifest {
-  const sorted = [...workflows].sort((a, b) => {
-    let aVal, bVal;
+    return {
+      id: data.slug,
+      name: data.name,
+      path: data.path,
+      rawUrl: data.raw_url,
+      size: data.size_bytes || 0,
+      updatedAt: data.updated_at,
+      category: data.category,
+      tags: data.workflow_tags?.map((wt: any) => wt.tags?.name).filter(Boolean) || [],
+      nodeCount: data.node_count || 0,
+      hasCredentials: data.has_credentials || false,
+      complexity: data.complexity as WorkflowComplexity
+    };
+  } catch (error) {
+    console.error('Failed to fetch workflow by slug:', error);
     
-    switch (sortBy) {
+    // Fallback to static data
+    const staticData = await loadStaticManifest();
+    return staticData.find(w => w.id === slug) || null;
+  }
+}
+
+export async function getRelatedWorkflows(slug: string, limit: number = 6): Promise<WorkflowItem[]> {
+  try {
+    const workflow = await getWorkflowBySlug(slug);
+    if (!workflow) return [];
+
+    const { data, error } = await supabase
+      .from('workflows')
+      .select(`
+        *,
+        workflow_tags(
+          tags(name)
+        )
+      `)
+      .eq('category', workflow.category)
+      .neq('slug', slug)
+      .limit(limit);
+
+    if (error) throw error;
+
+    return (data || []).map(row => ({
+      id: row.slug,
+      name: row.name,
+      path: row.path,
+      rawUrl: row.raw_url,
+      size: row.size_bytes || 0,
+      updatedAt: row.updated_at,
+      category: row.category,
+      tags: row.workflow_tags?.map((wt: any) => wt.tags?.name).filter(Boolean) || [],
+      nodeCount: row.node_count || 0,
+      hasCredentials: row.has_credentials || false,
+      complexity: row.complexity as WorkflowComplexity
+    }));
+  } catch (error) {
+    console.error('Failed to fetch related workflows:', error);
+    return [];
+  }
+}
+
+export async function getCategories(): Promise<string[]> {
+  const cached = getFromCache<string[]>('categories');
+  if (cached) return cached;
+
+  try {
+    const { data, error } = await supabase
+      .from('workflows')
+      .select('category')
+      .order('category');
+
+    if (error) throw error;
+
+    const categories = [...new Set(data?.map(row => row.category).filter(Boolean) || [])];
+    setCache('categories', categories);
+    return categories;
+  } catch (error) {
+    console.error('Failed to fetch categories:', error);
+    return [];
+  }
+}
+
+export async function getTags(): Promise<string[]> {
+  const cached = getFromCache<string[]>('tags');
+  if (cached) return cached;
+
+  try {
+    const { data, error } = await supabase
+      .from('tags')
+      .select('name')
+      .order('name');
+
+    if (error) throw error;
+
+    const tags = data?.map(row => row.name) || [];
+    setCache('tags', tags);
+    return tags;
+  } catch (error) {
+    console.error('Failed to fetch tags:', error);
+    return [];
+  }
+}
+
+export async function getWorkflowStats(): Promise<WorkflowStats> {
+  try {
+    const [workflowsResult, categoriesResult, tagsResult] = await Promise.all([
+      supabase.from('workflows').select('complexity', { count: 'exact', head: true }),
+      getCategories(),
+      getTags()
+    ]);
+
+    const totalWorkflows = workflowsResult.count || 0;
+
+    return {
+      totalWorkflows,
+      totalCategories: categoriesResult.length,
+      totalIntegrations: tagsResult.length,
+      averageSetupTime: 15 // Static estimate
+    };
+  } catch (error) {
+    console.error('Failed to fetch workflow stats:', error);
+    return {
+      totalWorkflows: 0,
+      totalCategories: 0,
+      totalIntegrations: 0,
+      averageSetupTime: 15
+    };
+  }
+}
+
+export async function fetchWorkflowRaw(rawUrl: string): Promise<N8nWorkflow> {
+  const response = await fetch(rawUrl);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch workflow: ${response.status} ${response.statusText}`);
+  }
+  
+  const data = await response.json();
+  
+  if (!data.nodes || !Array.isArray(data.nodes)) {
+    throw new Error('Invalid workflow format: missing nodes array');
+  }
+  
+  return data;
+}
+
+// Static data fallback helpers
+function filterStaticWorkflows(workflows: WorkflowManifest, filters: WorkflowFilters): WorkflowManifest {
+  return workflows.filter(workflow => {
+    if (filters.query) {
+      const query = filters.query.toLowerCase();
+      if (
+        !workflow.name.toLowerCase().includes(query) &&
+        !workflow.category.toLowerCase().includes(query) &&
+        !workflow.tags.some(tag => tag.toLowerCase().includes(query))
+      ) {
+        return false;
+      }
+    }
+
+    if (filters.categories && filters.categories.length > 0) {
+      if (!filters.categories.includes(workflow.category)) {
+        return false;
+      }
+    }
+
+    if (filters.tags && filters.tags.length > 0) {
+      if (!filters.tags.some(tag => workflow.tags.includes(tag))) {
+        return false;
+      }
+    }
+
+    if (filters.complexity && filters.complexity.length > 0) {
+      if (!filters.complexity.includes(workflow.complexity)) {
+        return false;
+      }
+    }
+
+    if (filters.hasCredentials !== undefined) {
+      if (workflow.hasCredentials !== filters.hasCredentials) {
+        return false;
+      }
+    }
+
+    return true;
+  });
+}
+
+function sortStaticWorkflows(workflows: WorkflowManifest, sort: WorkflowSort): WorkflowManifest {
+  return [...workflows].sort((a, b) => {
+    let aVal: any, bVal: any;
+    
+    switch (sort.field) {
       case 'name':
         aVal = a.name.toLowerCase();
         bVal = b.name.toLowerCase();
         break;
-      case 'nodeCount':
+      case 'node_count':
         aVal = a.nodeCount;
         bVal = b.nodeCount;
         break;
-      case 'updatedAt':
-        aVal = new Date(a.updatedAt).getTime();
-        bVal = new Date(b.updatedAt).getTime();
+      case 'updated_at':
+        aVal = new Date(a.updatedAt);
+        bVal = new Date(b.updatedAt);
         break;
       case 'complexity':
         const complexityOrder = { 'Easy': 1, 'Medium': 2, 'Advanced': 3 };
@@ -162,71 +391,18 @@ export function sortWorkflows(
         bVal = complexityOrder[b.complexity];
         break;
       default:
-        return 0;
+        aVal = a.name.toLowerCase();
+        bVal = b.name.toLowerCase();
     }
     
-    if (aVal < bVal) return direction === 'asc' ? -1 : 1;
-    if (aVal > bVal) return direction === 'asc' ? 1 : -1;
+    if (aVal < bVal) return sort.direction === 'asc' ? -1 : 1;
+    if (aVal > bVal) return sort.direction === 'asc' ? 1 : -1;
     return 0;
   });
-  
-  return sorted;
 }
 
-// Get unique categories from workflows
-export function getCategories(workflows: WorkflowManifest): string[] {
-  return [...new Set(workflows.map(w => w.category))].sort();
-}
-
-// Get unique tags from workflows
-export function getTags(workflows: WorkflowManifest): string[] {
-  return [...new Set(workflows.flatMap(w => w.tags))].sort();
-}
-
-// Get workflow statistics
-export function getWorkflowStats(workflows: WorkflowManifest): WorkflowStats {
-  return {
-    totalWorkflows: workflows.length,
-    totalCategories: getCategories(workflows).length,
-    totalIntegrations: getTags(workflows).length,
-    averageSetupTime: workflows.length > 0 
-      ? Math.round(workflows.reduce((acc, w) => acc + (parseInt(w.description?.match(/(\d+)\s*minutes?/)?.[1] || '30')), 0) / workflows.length)
-      : 0
-  };
-}
-
-// Get workflow by ID
-export function getWorkflowById(workflows: WorkflowManifest, id: string): WorkflowItem | undefined {
-  return workflows.find(w => w.id === id);
-}
-
-// Get related workflows (same category or shared tags)
-export function getRelatedWorkflows(
-  workflows: WorkflowManifest, 
-  workflow: WorkflowItem, 
-  limit: number = 6
-): WorkflowManifest {
-  const related = workflows
-    .filter(w => w.id !== workflow.id)
-    .map(w => {
-      let score = 0;
-      
-      // Same category gets high score
-      if (w.category === workflow.category) score += 10;
-      
-      // Shared tags get medium score
-      const sharedTags = w.tags.filter(tag => workflow.tags.includes(tag));
-      score += sharedTags.length * 2;
-      
-      // Same complexity gets small score
-      if (w.complexity === workflow.complexity) score += 1;
-      
-      return { workflow: w, score };
-    })
-    .filter(item => item.score > 0)
-    .sort((a, b) => b.score - a.score)
-    .slice(0, limit)
-    .map(item => item.workflow);
-    
-  return related;
+// Legacy compatibility - keep for existing code
+export async function loadManifest(): Promise<WorkflowManifest> {
+  const result = await listWorkflows({ pageSize: 1000 });
+  return result.data;
 }
