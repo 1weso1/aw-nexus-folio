@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
 import couplesAppImage from "/src/assets/couples-app-mockup.jpg";
-import crmDashboardImage from "/src/assets/crm-automation-dashboard.jpg";
+import crmDashboardImage from "/src/assets/crm-workflow-dashboard.jpg";
 
 const apps = [
   {
@@ -17,14 +17,14 @@ const apps = [
     features: ["Relationship Goals", "Daily Nudges", "Couple Challenges", "Progress Tracking"]
   },
   {
-    name: "CRM Toolkit",
-    description: "Interactive demo of CRM automation workflows and templates. Showcases lead scoring, automated follow-ups, and integration patterns for small businesses.",
-    status: "in-progress" as const,
-    tech: ["React", "n8n", "HubSpot API"],
-    demoUrl: "crm.ahmedwesam.com",
+    name: "CRM Automation Library",
+    description: "Comprehensive automation library with 2,053+ n8n workflows across 15 business categories. Interactive browser for CRM, AI, and marketing automation templates with live previews and implementation guides.",
+    status: "live" as const,
+    tech: ["n8n", "React", "AI Integration", "365+ APIs"],
+    demoUrl: "automation.ahmedwesam.com",
     caseStudyUrl: "/projects/crm-automation",
     image: crmDashboardImage,
-    features: ["Lead Scoring", "Workflow Templates", "Integration Demos", "Analytics Dashboard"]
+    features: ["2,053 Workflows", "15 Categories", "365+ Integrations", "AI-Powered Templates"]
   }
 ];
 
@@ -36,7 +36,7 @@ const statusStyles = {
 
 const statusLabels = {
   live: "Live",
-  preview: "Preview",
+  preview: "Preview", 
   "in-progress": "In Development"
 };
 
@@ -121,15 +121,15 @@ export default function Apps() {
 
                   {/* Action Buttons */}
                   <div className="flex flex-col sm:flex-row gap-3 pt-4">
-                    {app.status === "preview" ? (
+                    {app.status === "live" || app.status === "preview" ? (
                       <Button variant="hero" size="lg" className="flex-1">
                         <ExternalLink className="h-4 w-4" />
-                        Open Preview
+                        {app.status === "live" ? "Open Live App" : "Open Preview"}
                       </Button>
                     ) : (
                       <div className="flex-1 text-center py-3 px-6 bg-text-secondary/20 text-text-secondary rounded-lg">
                         <Code className="h-4 w-4 inline mr-2" />
-                        {app.status === "in-progress" ? "Preview Coming Soon" : "In Development"}
+                        Preview Coming Soon
                       </div>
                     )}
                     

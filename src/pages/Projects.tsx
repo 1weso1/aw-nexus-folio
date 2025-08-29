@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { ProjectCard } from "@/components/ProjectCard";
 
 import couplesAppImage from "/src/assets/couples-app-mockup.jpg";
-import crmDashboardImage from "/src/assets/crm-automation-dashboard.jpg";
+import crmDashboardImage from "/src/assets/crm-workflow-dashboard.jpg";
 import moveTeamImage from "/lovable-uploads/f9f1defa-84d4-4e38-910e-933f050d0cad.png";
 import heroImage from "/src/assets/student-cafe-concept.jpg";
 import rotaractImage from "/lovable-uploads/3d3cfa69-a6dc-4a58-8aaf-ec6ba9295513.png";
@@ -23,12 +23,12 @@ const projects = [
     image: couplesAppImage
   },
   {
-    title: "CRM Automation Templates (n8n)",
-    description: "A comprehensive library of reusable n8n workflows designed to streamline CRM processes for small businesses and recruitment teams. Features lead scoring, automated follow-ups, and integration templates.",
-    status: "planned" as const,
-    role: "CRM Specialist & Automation Developer", 
-    date: "Coming Soon",
-    tags: ["CRM", "Automation", "n8n", "HubSpot", "Templates"],
+    title: "CRM Automation Library (2,000+ Workflows)",
+    description: "Comprehensive n8n automation library featuring 2,053 production-ready workflows across 15 business categories. Includes CRM integrations, AI-powered lead scoring, social media automation, and enterprise-grade templates for HubSpot, Salesforce, and more.",
+    status: "live" as const,
+    role: "Automation Architect & CRM Specialist", 
+    date: "2024-Present",
+    tags: ["n8n", "CRM", "AI Automation", "HubSpot", "Enterprise", "365+ Integrations"],
     link: "/projects/crm-automation",
     category: "tech",
     image: crmDashboardImage

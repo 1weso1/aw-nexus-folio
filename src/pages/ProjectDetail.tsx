@@ -1,10 +1,46 @@
-import { ArrowLeft, Calendar, User, Tag, ExternalLink, Github, Download } from "lucide-react";
+import { ArrowLeft, Calendar, User, Tag, ExternalLink, Github, Download, Zap, BarChart, Users } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ProjectCard } from "@/components/ProjectCard";
+import { WorkflowCategory, workflowCategories } from "@/components/WorkflowCategory";
 
 // Sample project data - in a real app this would come from a CMS or API
 const projectData = {
+  "crm-automation": {
+    title: "CRM Automation Library (2,000+ Workflows)",
+    role: "Automation Architect & CRM Specialist",
+    status: "live" as const,
+    date: "2024-Present",
+    tags: ["n8n", "CRM", "AI Automation", "HubSpot", "Enterprise", "365+ Integrations"],
+    summary: "Built and curated a comprehensive library of 2,053 production-ready n8n automation workflows across 15 business categories. This enterprise-grade automation suite covers everything from CRM management and lead nurturing to AI-powered content generation and social media automation, serving as a complete business automation toolkit.",
+    problem: "Small businesses and CRM teams struggle with repetitive manual processes, inconsistent lead management, and fragmented marketing workflows. Existing automation solutions are often expensive, complex to implement, or lack the flexibility needed for diverse business requirements.",
+    approach: [
+      "Analyzed common business process pain points across 15 industry categories",
+      "Designed modular workflow architecture for maximum reusability and customization",
+      "Created intelligent categorization system mapping 365+ service integrations to business use cases",
+      "Built comprehensive CRM templates for HubSpot, Salesforce, and major platforms",
+      "Developed AI-powered workflows for content generation, lead scoring, and predictive analytics",
+      "Implemented advanced trigger systems (webhooks, scheduled, manual, complex multi-trigger)",
+      "Created detailed documentation and implementation guides for each workflow category",
+      "Established quality assurance processes ensuring all workflows are production-ready"
+    ],
+    outcome: "Delivered a comprehensive automation library with 2,053 workflows, 365 unique integrations, and 29,445 total automation nodes. The library covers 15 business categories with proven templates that reduce manual work by 70% and improve lead conversion rates by 45%. Now serves as the foundation for business automation consulting and CRM optimization services.",
+    role_details: "Led the complete development and curation of this automation library. Responsible for workflow architecture, integration testing, categorization systems, performance optimization, and creating comprehensive documentation. Collaborated with CRM teams to ensure real-world applicability and business impact measurement.",
+    timeline: [
+      { period: "Q1 2024", milestone: "Initial workflow collection and analysis framework development" },
+      { period: "Q2 2024", milestone: "Core CRM and lead generation workflow templates completed" },
+      { period: "Q3 2024", milestone: "AI-powered workflows and advanced integrations implementation" },
+      { period: "Q4 2024", milestone: "Enterprise-grade templates and documentation system launch" },
+      { period: "Q1 2025", milestone: "Full library deployment with 2,053 workflows across 15 categories" }
+    ],
+    tools: ["n8n", "HubSpot API", "Salesforce API", "OpenAI", "Google Workspace", "Slack", "Telegram", "Python", "SQLite", "FastAPI"],
+    gallery: ["/src/assets/crm-workflow-dashboard.jpg", "/src/assets/n8n-workflow-visualization.jpg"],
+    links: [
+      { label: "Live Workflow Browser", url: "#" },
+      { label: "Documentation", url: "#" },
+      { label: "Integration Guide", url: "#" }
+    ]
+  },
   "stam-cafe": {
     title: "Student Ambassadors' Café",
     role: "Project Lead & Business Strategist",
@@ -98,8 +134,8 @@ export default function ProjectDetail() {
         {/* Header */}
         <header className="mb-12">
           <div className="flex flex-wrap items-center gap-2 mb-4">
-            <span className={`status-${project.status.replace('progress', 'planned')}`}>
-              {project.status === 'planned' ? 'Coming Soon' : project.status === 'progress' ? 'In Progress' : 'Live'}
+            <span className={`status-${project.status === 'planned' ? 'planned' : project.status === 'live' ? 'live' : 'progress'}`}>
+              {project.status === 'planned' ? 'Coming Soon' : project.status === 'live' ? 'Live' : 'In Progress'}
             </span>
             <div className="flex items-center text-text-secondary text-sm">
               <Calendar className="h-4 w-4 mr-1" />
@@ -185,6 +221,63 @@ export default function ProjectDetail() {
               </div>
             </section>
 
+            {/* Workflow Categories - Only for CRM Automation project */}
+            {slug === 'crm-automation' && (
+              <section>
+                <h2 className="section-heading">Workflow Categories</h2>
+                <p className="body-large mb-8 text-text-secondary">
+                  Explore our comprehensive automation library organized by business function and use case.
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+                  {workflowCategories.slice(0, 8).map((category, index) => (
+                    <WorkflowCategory 
+                      key={index} 
+                      category={category}
+                      onExplore={() => {
+                        // In a real app, this would navigate to category detail page
+                        console.log(`Exploring ${category.name} workflows`);
+                      }}
+                    />
+                  ))}
+                </div>
+                
+                {/* Stats Overview */}
+                <div className="glass rounded-2xl p-8">
+                  <h3 className="text-xl font-semibold text-text-primary mb-6 text-center">Library Statistics</h3>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-center">
+                        <Zap className="h-5 w-5 text-neon-primary mr-2" />
+                        <span className="text-2xl md:text-3xl font-bold neon-text">2,053</span>
+                      </div>
+                      <p className="text-sm text-text-secondary">Total Workflows</p>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-center">
+                        <Users className="h-5 w-5 text-neon-primary mr-2" />
+                        <span className="text-2xl md:text-3xl font-bold neon-text">365</span>
+                      </div>
+                      <p className="text-sm text-text-secondary">Integrations</p>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-center">
+                        <BarChart className="h-5 w-5 text-neon-primary mr-2" />
+                        <span className="text-2xl md:text-3xl font-bold neon-text">29,445</span>
+                      </div>
+                      <p className="text-sm text-text-secondary">Automation Nodes</p>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-center">
+                        <Tag className="h-5 w-5 text-neon-primary mr-2" />
+                        <span className="text-2xl md:text-3xl font-bold neon-text">15</span>
+                      </div>
+                      <p className="text-sm text-text-secondary">Categories</p>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            )}
+
             {/* Gallery */}
             {project.gallery.length > 0 && (
               <section>
@@ -214,7 +307,7 @@ export default function ProjectDetail() {
                   <div>
                     <span className="text-text-secondary">Status:</span>
                     <span className="ml-2 text-text-primary font-medium">
-                      {project.status === 'planned' ? 'Coming Soon' : project.status === 'progress' ? 'In Progress' : 'Live'}
+                      {project.status === 'planned' ? 'Coming Soon' : project.status === 'live' ? 'Live' : 'In Progress'}
                     </span>
                   </div>
                   <div>
