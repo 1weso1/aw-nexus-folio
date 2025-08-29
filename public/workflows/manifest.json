@@ -1,0 +1,28 @@
+[
+  {
+    "id": "sample-hubspot-lead-capture",
+    "name": "HubSpot Lead Capture → Google Sheet",
+    "path": "hubspot/lead-capture-to-sheets.json",
+    "rawUrl": "https://raw.githubusercontent.com/zie619/n8n-workflows/main/examples/lead-capture-to-sheets.json",
+    "size": 8421,
+    "updatedAt": "2025-01-10T10:00:00Z",
+    "category": "HubSpot",
+    "tags": ["hubspot","sheets","http","webhook"],
+    "nodeCount": 9,
+    "hasCredentials": true,
+    "complexity": "Medium"
+  },
+  {
+    "id": "sample-telegram-notify",
+    "name": "Telegram Notify on New Form",
+    "path": "notifications/telegram-on-form.json",
+    "rawUrl": "https://raw.githubusercontent.com/zie619/n8n-workflows/main/examples/telegram-on-form.json",
+    "size": 5312,
+    "updatedAt": "2025-02-03T12:00:00Z",
+    "category": "Notifications",
+    "tags": ["telegram","http"],
+    "nodeCount": 6,
+    "hasCredentials": true,
+    "complexity": "Easy"
+  }
+]

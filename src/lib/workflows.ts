@@ -148,7 +148,8 @@ export async function listWorkflows({
   } catch (error) {
     console.error('Supabase query failed, falling back to static data:', error);
     
-    // Fallback to static manifest
+    // Only fallback to static data on actual errors (network/connection issues)
+    // NOT when database is simply empty (count = 0)
     const staticData = await loadStaticManifest();
     const filtered = filterStaticWorkflows(staticData, { query, categories, tags, complexity, hasCredentials });
     const sorted = sortStaticWorkflows(filtered, sort);

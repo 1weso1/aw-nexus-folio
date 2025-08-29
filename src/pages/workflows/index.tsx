@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { WorkflowCard } from '@/components/WorkflowCard';
+import { WorkflowEmptyState } from '@/components/WorkflowEmptyState';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useWorkflowSync } from '@/hooks/useWorkflowSync';
 import { 
@@ -388,12 +389,22 @@ const WorkflowBrowser: React.FC = () => {
             ))}
           </div>
         ) : workflows.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="text-text-mid text-lg mb-4">No workflows found</div>
-            <Button variant="outline" onClick={clearFilters}>
-              <X className="h-4 w-4 mr-2" />
-              Clear Filters
-            </Button>
+          <div className="py-8">
+            {stats.totalWorkflows === 0 ? (
+              <WorkflowEmptyState 
+                onSync={triggerSync}
+                isSyncing={isSyncing}
+                syncResult={syncResult}
+              />
+            ) : (
+              <div className="text-center py-12">
+                <div className="text-text-mid text-lg mb-4">No workflows found</div>
+                <Button variant="outline" onClick={clearFilters}>
+                  <X className="h-4 w-4 mr-2" />
+                  Clear Filters
+                </Button>
+              </div>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">

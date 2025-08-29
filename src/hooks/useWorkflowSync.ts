@@ -18,14 +18,25 @@ export const useWorkflowSync = () => {
     setSyncResult(null);
     
     try {
-      const { data, error } = await supabase.functions.invoke('sync-workflows');
+      console.log('Calling server-side sync API...');
       
-      if (error) throw error;
-      
-      const result = data as SyncResult;
+      const response = await fetch('/api/workflows/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({})
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || `Sync failed: ${response.status}`);
+      }
+
+      const result = await response.json() as SyncResult;
       setSyncResult(result);
+      console.log('Sync completed:', result);
       return result;
     } catch (error) {
+      console.error('Sync failed:', error);
       const result: SyncResult = {
         success: false,
         message: error instanceof Error ? error.message : 'Sync failed'
