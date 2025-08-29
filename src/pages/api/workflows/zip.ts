@@ -1,78 +1,77 @@
 import JSZip from 'jszip';
-import type { WorkflowItem } from '@/types/workflow';
+import { supabase } from '@/integrations/supabase/client';
 
-interface ZipRequest {
-  ids: string[];
-  workflows: WorkflowItem[];
+export interface ZipRequest {
+  workflowIds: string[];
 }
 
 export async function POST(request: Request): Promise<Response> {
   try {
-    const body: ZipRequest = await request.json();
-    const { ids, workflows } = body;
+    const { workflowIds }: ZipRequest = await request.json();
 
-    // Validate request
-    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+    if (!workflowIds || !Array.isArray(workflowIds) || workflowIds.length === 0) {
       return new Response(JSON.stringify({ error: 'No workflows selected' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' }
       });
     }
 
-    if (ids.length > 200) {
-      return new Response(JSON.stringify({ error: 'Maximum 200 workflows allowed' }), {
+    if (workflowIds.length > 50) {
+      return new Response(JSON.stringify({ error: 'Maximum 50 workflows allowed' }), {
         status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    // Fetch workflows from Supabase
+    const { data: workflows, error } = await supabase
+      .from('workflows')
+      .select('slug, name, raw_url, category')
+      .in('slug', workflowIds);
+
+    if (error) {
+      return new Response(JSON.stringify({ error: 'Failed to fetch workflows' }), {
+        status: 500,
         headers: { 'Content-Type': 'application/json' }
       });
     }
 
     const zip = new JSZip();
     const errors: string[] = [];
-    let totalSize = 0;
-    const MAX_SIZE = 50 * 1024 * 1024; // 50MB limit
+    let successCount = 0;
 
     // Download and add each workflow to the zip
-    for (const workflow of workflows) {
-      if (!ids.includes(workflow.id)) continue;
-
+    for (const workflow of workflows || []) {
       try {
-        console.log(`Downloading workflow: ${workflow.name} from ${workflow.rawUrl}`);
+        console.log(`Downloading workflow: ${workflow.name} from ${workflow.raw_url}`);
         
-        const response = await fetch(workflow.rawUrl);
+        const response = await fetch(workflow.raw_url);
         if (!response.ok) {
-          errors.push(`Failed to download ${workflow.name}: ${response.status} ${response.statusText}`);
+          errors.push(`Failed to download ${workflow.name}: ${response.status}`);
           continue;
         }
 
         const content = await response.text();
-        const contentSize = new Blob([content]).size;
-
-        // Check size limit
-        if (totalSize + contentSize > MAX_SIZE) {
-          errors.push(`Size limit exceeded. Skipping remaining workflows.`);
-          break;
-        }
-
-        totalSize += contentSize;
-
-        // Create safe filename
-        const safeFileName = `${workflow.name.replace(/[^a-z0-9\-_\s]/gi, '').replace(/\s+/g, '-')}.json`;
-        const folderName = workflow.category.replace(/[^a-z0-9\-_\s]/gi, '').replace(/\s+/g, '-');
+        
+        // Create safe filename and folder structure
+        const safeFileName = `${workflow.slug}.json`;
+        const folderName = workflow.category?.replace(/[^a-z0-9\-_\s]/gi, '').replace(/\s+/g, '-') || 'General';
         
         // Add to zip with folder structure
         zip.folder(folderName)?.file(safeFileName, content);
+        successCount++;
 
       } catch (error) {
         console.error(`Error processing workflow ${workflow.name}:`, error);
-        errors.push(`Failed to process ${workflow.name}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        errors.push(`Failed to process ${workflow.name}`);
       }
     }
 
-    // Add a README file with information
+    // Add README file
     const readmeContent = `# n8n Workflows Collection
 
 Downloaded on: ${new Date().toISOString()}
-Total workflows: ${workflows.length}
+Total workflows: ${successCount}
 ${errors.length > 0 ? `\nErrors encountered:\n${errors.map(e => `- ${e}`).join('\n')}` : ''}
 
 ## How to Import
@@ -86,6 +85,7 @@ ${errors.length > 0 ? `\nErrors encountered:\n${errors.map(e => `- ${e}`).join('
 ## Need Help?
 
 Visit: https://ahmedwesam.com/contact
+Repository: https://github.com/zie619/n8n-workflows
 `;
 
     zip.file('README.md', readmeContent);
@@ -102,7 +102,7 @@ Visit: https://ahmedwesam.com/contact
     const timestamp = new Date().toISOString().split('T')[0];
     const filename = `n8n-workflows-${timestamp}.zip`;
 
-    console.log(`ZIP file generated successfully. Size: ${zipBlob.size} bytes`);
+    console.log(`ZIP file generated. Size: ${zipBlob.size} bytes, Success: ${successCount}`);
 
     return new Response(zipBlob, {
       status: 200,
@@ -128,7 +128,6 @@ Visit: https://ahmedwesam.com/contact
   }
 }
 
-// Handle the request based on method
 export default async function handler(request: Request) {
   if (request.method === 'POST') {
     return POST(request);

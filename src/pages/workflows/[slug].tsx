@@ -64,23 +64,24 @@ export default function WorkflowDetail() {
     
     try {
       const response = await fetch(workflow.rawUrl);
-      if (!response.ok) throw new Error('Download failed');
+      if (!response.ok) throw new Error('Failed to fetch workflow');
       
-      const blob = await response.blob();
+      const content = await response.text();
+      const blob = new Blob([content], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${workflow.name.replace(/[^a-z0-9]/gi, '-')}.json`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
       
-      toast.success('Workflow downloaded successfully');
+      const element = document.createElement('a');
+      element.href = url;
+      element.download = `${workflow.id}.json`;
+      document.body.appendChild(element);
+      element.click();
+      document.body.removeChild(element);
+      
+      URL.revokeObjectURL(url);
+      toast.success(`Downloaded ${workflow.name}`);
     } catch (error) {
-      toast.error('Download failed');
-      // Fallback: open in new tab
-      window.open(workflow.rawUrl, '_blank');
+      console.error('Download failed:', error);
+      toast.error('Failed to download workflow');
     }
   };
 
@@ -91,6 +92,7 @@ export default function WorkflowDetail() {
       await navigator.clipboard.writeText(JSON.stringify(workflowData, null, 2));
       toast.success('Workflow JSON copied to clipboard');
     } catch (error) {
+      console.error('Copy failed:', error);
       toast.error('Failed to copy to clipboard');
     }
   };

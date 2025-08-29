@@ -236,14 +236,13 @@ const RealWorkflowCard: React.FC<RealWorkflowCardProps> = ({ workflow }) => {
           </div>
           
           <div className="pt-2">
-            <WorkflowDownloadButton
-              workflowId={workflow.id}
-              workflowName={workflow.name}
-              downloadUrl={workflow.downloadUrl}
-              folderName={workflow.folderName}
-              showPreview={true}
-              size="sm"
-            />
+          <WorkflowDownloadButton
+            workflowId={workflow.id}
+            workflowName={workflow.name}
+            rawUrl={workflow.downloadUrl}
+            showPreview={true}
+            size="sm"
+          />
           </div>
         </div>
       </CardContent>
