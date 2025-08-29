@@ -34,7 +34,7 @@ const projectData = {
       { period: "Q1 2025", milestone: "Full library deployment with 2,053 workflows across 15 categories" }
     ],
     tools: ["n8n", "HubSpot API", "Salesforce API", "OpenAI", "Google Workspace", "Slack", "Telegram", "Python", "SQLite", "FastAPI"],
-    gallery: ["/src/assets/crm-workflow-dashboard.jpg", "/src/assets/n8n-workflow-visualization.jpg"],
+    gallery: ["/src/assets/workflow-1.png", "/src/assets/workflow-2.png", "/src/assets/workflow-3.png", "/src/assets/workflow-4.png"],
     links: [
       { label: "Live Workflow Browser", url: "#" },
       { label: "Documentation", url: "#" },

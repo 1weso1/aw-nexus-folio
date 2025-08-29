@@ -2,6 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Zap, Users, Database, Mail, Cloud, TrendingUp, MessageSquare, Brain, Settings, BarChart, Cpu, Shield, Video, DollarSign, Briefcase } from "lucide-react";
+import { useNavigate } from 'react-router-dom';
 
 interface WorkflowCategoryProps {
   category: {
@@ -24,6 +25,17 @@ const complexityColors = {
 };
 
 export function WorkflowCategory({ category, onExplore }: WorkflowCategoryProps) {
+  const navigate = useNavigate();
+
+  const handleExplore = () => {
+    if (onExplore) {
+      onExplore();
+    } else {
+      // Navigate to category page
+      const categoryPath = category.name.toLowerCase().replace(' & ', '-').replace(' ', '-');
+      navigate(`/workflows/${categoryPath}`);
+    }
+  };
   return (
     <Card className="glass border-neon-primary/20 hover:border-neon-primary/40 transition-all duration-300 group">
       <CardHeader className="pb-4">
@@ -104,7 +116,7 @@ export function WorkflowCategory({ category, onExplore }: WorkflowCategoryProps)
           variant="ghost" 
           size="sm" 
           className="w-full justify-between hover:bg-neon-primary/10 hover:text-neon-primary"
-          onClick={onExplore}
+          onClick={handleExplore}
         >
           Explore Workflows
           <ArrowRight className="h-4 w-4" />
