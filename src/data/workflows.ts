@@ -37,6 +37,17 @@ export const workflowData: Workflow[] = [
     setupTime: '45 minutes',
     tags: ['sales', 'pipeline', 'automation'],
   },
+  {
+    id: 'customer-onboarding',
+    name: 'Automated Customer Onboarding',
+    description: 'Complete customer onboarding workflow with welcome sequences and data collection',
+    category: 'CRM & Sales',
+    complexity: 'Intermediate',
+    integrations: ['HubSpot', 'Mailchimp', 'Slack', 'Zapier'],
+    useCase: 'Customer Success',
+    setupTime: '35 minutes',
+    tags: ['onboarding', 'customer-success', 'automation'],
+  },
   
   // Lead Generation Workflows
   {
@@ -85,6 +96,17 @@ export const workflowData: Workflow[] = [
     setupTime: '20 minutes',
     tags: ['content', 'social-media', 'distribution'],
   },
+  {
+    id: 'lead-nurturing-sequence',
+    name: 'Automated Lead Nurturing Sequence',
+    description: 'Multi-step lead nurturing with personalized content based on behavior and interests',
+    category: 'Marketing',
+    complexity: 'Advanced',
+    integrations: ['HubSpot', 'Mailchimp', 'Google Analytics', 'Calendly'],
+    useCase: 'Lead Nurturing',
+    setupTime: '50 minutes',
+    tags: ['nurturing', 'personalization', 'campaigns'],
+  },
 
   // Social Media Workflows
   {
@@ -108,6 +130,17 @@ export const workflowData: Workflow[] = [
     useCase: 'Engagement Management',
     setupTime: '50 minutes',
     tags: ['engagement', 'monitoring', 'response'],
+  },
+  {
+    id: 'influencer-outreach',
+    name: 'Automated Influencer Outreach',
+    description: 'Find and reach out to influencers in your niche with personalized messages',
+    category: 'Social Media',
+    complexity: 'Intermediate',
+    integrations: ['Instagram API', 'Twitter API', 'Email', 'Airtable'],
+    useCase: 'Influencer Marketing',
+    setupTime: '40 minutes',
+    tags: ['influencer', 'outreach', 'partnerships'],
   },
 
   // AI-Powered Workflows
@@ -133,6 +166,17 @@ export const workflowData: Workflow[] = [
     setupTime: '60 minutes',
     tags: ['ai', 'lead-scoring', 'qualification'],
   },
+  {
+    id: 'ai-chatbot-support',
+    name: 'AI-Powered Customer Support Bot',
+    description: 'Intelligent customer support chatbot with knowledge base integration',
+    category: 'AI-Powered',
+    complexity: 'Advanced',
+    integrations: ['OpenAI', 'Zendesk', 'Slack', 'WhatsApp'],
+    useCase: 'Customer Support',
+    setupTime: '55 minutes',
+    tags: ['ai', 'chatbot', 'support'],
+  },
 
   // Business Operations
   {
@@ -156,6 +200,17 @@ export const workflowData: Workflow[] = [
     useCase: 'Business Intelligence',
     setupTime: '55 minutes',
     tags: ['reporting', 'dashboard', 'analytics'],
+  },
+  {
+    id: 'data-backup-sync',
+    name: 'Automated Data Backup & Sync',
+    description: 'Backup and sync critical business data across multiple cloud platforms',
+    category: 'Business Operations',
+    complexity: 'Beginner',
+    integrations: ['Google Drive', 'Dropbox', 'OneDrive', 'AWS S3'],
+    useCase: 'Data Management',
+    setupTime: '25 minutes',
+    tags: ['backup', 'sync', 'data-management'],
   },
 ];
 
