@@ -234,8 +234,7 @@ export default function ProjectDetail() {
                       key={index} 
                       category={category}
                       onExplore={() => {
-                        // In a real app, this would navigate to category detail page
-                        console.log(`Exploring ${category.name} workflows`);
+                        window.location.href = `/workflows?category=${encodeURIComponent(category.name)}`;
                       }}
                     />
                   ))}

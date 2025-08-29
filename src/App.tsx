@@ -33,7 +33,7 @@ const App = () => (
               <Route path="/projects" element={<Projects />} />
               <Route path="/projects/:slug" element={<ProjectDetail />} />
               <Route path="/workflows" element={<WorkflowBrowser />} />
-              <Route path="/workflows/:categoryName" element={<WorkflowCategory />} />
+              <Route path="/workflows/:slug" element={<WorkflowBrowser />} />
               <Route path="/apps" element={<Apps />} />
               <Route path="/blog" element={<Blog />} />
               <Route path="/contact" element={<Contact />} />
