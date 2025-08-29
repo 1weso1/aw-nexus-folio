@@ -31,20 +31,19 @@ export function WorkflowCategory({ category, onExplore }: WorkflowCategoryProps)
     if (onExplore) {
       onExplore();
     } else {
-      // Map display names to data category names
+      // Map display names to URL-friendly category names
       const categoryMapping: { [key: string]: string } = {
-        "CRM & Sales Automation": "CRM & Sales",
-        "AI-Powered Workflows": "AI-Powered", 
-        "Communication & Messaging": "Social Media",
-        "Marketing Automation": "Marketing",
-        "Data Processing & Analytics": "Business Operations",
-        "Cloud Storage & File Management": "Business Operations",
-        "Project Management": "Business Operations",
-        "Social Media Management": "Social Media"
+        "CRM & Sales Automation": "crm-sales",
+        "AI-Powered Workflows": "ai-powered", 
+        "Communication & Messaging": "social-media",
+        "Marketing Automation": "marketing",
+        "Data Processing & Analytics": "business-operations",
+        "Cloud Storage & File Management": "business-operations",
+        "Project Management": "business-operations",
+        "Social Media Management": "social-media"
       };
       
-      const mappedCategory = categoryMapping[category.name] || category.name;
-      const categoryPath = mappedCategory.toLowerCase().replace(' & ', '-').replace(' ', '-');
+      const categoryPath = categoryMapping[category.name] || category.name.toLowerCase().replace(' & ', '-').replace(' ', '-');
       navigate(`/workflows/${categoryPath}`);
     }
   };

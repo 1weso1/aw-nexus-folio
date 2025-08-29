@@ -1,34 +1,41 @@
-import { useParams, useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState, useMemo } from 'react';
+import { useParams, Link } from 'react-router-dom';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Clock, Users, Download, ExternalLink } from 'lucide-react';
-import { useState, useMemo } from 'react';
-import { getWorkflowsByCategory, categoryStats, type Workflow } from '@/data/workflows';
+import { Button } from '@/components/ui/button';
+import { Search, Download, ExternalLink, Clock, Settings, Tags, ArrowLeft } from 'lucide-react';
+import { getRealWorkflowsByCategory, getAllRealCategories, searchRealWorkflows, type RealWorkflow } from '@/data/realWorkflows';
+import { WorkflowDownloadButton } from '@/components/WorkflowDownloadButton';
 
-const complexityColors = {
-  'Beginner': 'bg-accent/20 text-accent-foreground border-accent/30',
-  'Intermediate': 'bg-secondary/20 text-secondary-foreground border-secondary/30',
-  'Advanced': 'bg-destructive/20 text-destructive-foreground border-destructive/30',
-};
-
-export default function WorkflowCategory() {
+const WorkflowCategory: React.FC = () => {
   const { categoryName } = useParams<{ categoryName: string }>();
-  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [complexityFilter, setComplexityFilter] = useState<string>('all');
 
-  const categoryDisplayName = categoryName?.replace('-', ' & ') || '';
-  const workflows = getWorkflowsByCategory(categoryDisplayName);
-  const categoryInfo = categoryStats[categoryDisplayName as keyof typeof categoryStats];
+  // Map URL params to category names
+  const categoryMapping: { [key: string]: string } = {
+    'crm-sales': 'CRM & Sales',
+    'ai-powered': 'AI-Powered', 
+    'social-media': 'Social Media',
+    'marketing': 'Marketing',
+    'business-operations': 'Business Operations',
+  };
+
+  const actualCategory = categoryName ? categoryMapping[categoryName] || categoryName : '';
+  
+  const workflows = getRealWorkflowsByCategory(actualCategory);
+  const allCategories = getAllRealCategories();
 
   const filteredWorkflows = useMemo(() => {
+    if (!workflows.length) return [];
+    
     return workflows.filter(workflow => {
       const matchesSearch = workflow.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          workflow.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          workflow.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
+        workflow.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        workflow.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        workflow.integrations.some(integration => integration.toLowerCase().includes(searchTerm.toLowerCase()));
       
       const matchesComplexity = complexityFilter === 'all' || workflow.complexity === complexityFilter;
       
@@ -36,61 +43,74 @@ export default function WorkflowCategory() {
     });
   }, [workflows, searchTerm, complexityFilter]);
 
-  if (!categoryInfo) {
+  if (!actualCategory || !workflows.length) {
     return (
-      <div className="min-h-screen bg-hero-bg px-4 py-8">
-        <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-2xl font-bold text-text-high mb-4">Category Not Found</h1>
-          <Button onClick={() => navigate('/projects/crm-automation')} variant="outline">
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to CRM Automation
-          </Button>
+      <div className="min-h-screen bg-hero-bg py-20">
+        <div className="container mx-auto px-4 text-center">
+          <h1 className="text-3xl font-bold text-text-high mb-4">Category Not Found</h1>
+          <p className="text-text-mid mb-8">The requested workflow category could not be found or has no workflows.</p>
+          <Link to="/projects">
+            <Button className="flex items-center gap-2">
+              <ArrowLeft className="h-4 w-4" />
+              Back to Projects
+            </Button>
+          </Link>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-hero-bg px-4 py-8">
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen bg-hero-bg py-20">
+      <div className="container mx-auto px-4">
+        {/* Back Button */}
+        <div className="mb-6">
+          <Link to="/projects">
+            <Button variant="ghost" className="flex items-center gap-2 text-text-mid hover:text-text-high">
+              <ArrowLeft className="h-4 w-4" />
+              Back to Projects
+            </Button>
+          </Link>
+        </div>
+
         {/* Header */}
-        <div className="mb-8">
-          <Button 
-            onClick={() => navigate('/projects/crm-automation')} 
-            variant="ghost" 
-            className="mb-4 text-text-mid hover:text-text-high"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to CRM Automation
-          </Button>
-          
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-text-high mb-4">
-              {categoryDisplayName} Workflows
-            </h1>
-            <p className="text-text-mid text-lg mb-2">{categoryInfo.description}</p>
-            <div className="flex items-center justify-center gap-4 text-sm text-text-mid">
-              <div className="flex items-center gap-1">
-                <Users className="w-4 h-4" />
-                {categoryInfo.count} workflows
-              </div>
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold text-text-high mb-4">
+            {actualCategory} Workflows
+          </h1>
+          <p className="text-text-mid text-lg mb-6">
+            Professional n8n automation workflows from the Zie619/n8n-workflows repository
+          </p>
+          <div className="flex justify-center items-center gap-6 text-sm text-text-mid">
+            <div className="flex items-center gap-2">
+              <Settings className="h-4 w-4" />
+              <span>{workflows.length} workflows</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Download className="h-4 w-4" />
+              <span>Ready to import</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <ExternalLink className="h-4 w-4" />
+              <span>GitHub source</span>
             </div>
           </div>
         </div>
 
-        {/* Filters */}
-        <div className="flex flex-col sm:flex-row gap-4 mb-8">
-          <div className="flex-1">
+        {/* Search and Filters */}
+        <div className="flex flex-col md:flex-row gap-4 mb-8">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-mid h-4 w-4" />
             <Input
-              placeholder="Search workflows..."
+              placeholder="Search workflows, integrations, or tags..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="bg-card-bg border-border"
+              className="pl-10"
             />
           </div>
           <Select value={complexityFilter} onValueChange={setComplexityFilter}>
-            <SelectTrigger className="w-full sm:w-48 bg-card-bg border-border">
-              <SelectValue placeholder="Filter by complexity" />
+            <SelectTrigger className="w-full md:w-48">
+              <SelectValue placeholder="Complexity" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Levels</SelectItem>
@@ -101,89 +121,134 @@ export default function WorkflowCategory() {
           </Select>
         </div>
 
+        {/* Results count */}
+        <div className="mb-6">
+          <p className="text-text-mid">
+            Showing {filteredWorkflows.length} of {workflows.length} workflows
+          </p>
+        </div>
+
         {/* Workflows Grid */}
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredWorkflows.map((workflow) => (
-            <WorkflowCard key={workflow.id} workflow={workflow} />
+            <RealWorkflowCard key={workflow.id} workflow={workflow} />
           ))}
         </div>
 
         {filteredWorkflows.length === 0 && (
           <div className="text-center py-12">
-            <p className="text-text-mid text-lg">No workflows found matching your criteria.</p>
+            <p className="text-text-mid text-lg mb-4">No workflows found matching your criteria.</p>
+            <Button variant="outline" onClick={() => {
+              setSearchTerm('');
+              setComplexityFilter('all');
+            }}>
+              Clear Filters
+            </Button>
           </div>
         )}
       </div>
     </div>
   );
+};
+
+interface RealWorkflowCardProps {
+  workflow: RealWorkflow;
 }
 
-function WorkflowCard({ workflow }: { workflow: Workflow }) {
+const RealWorkflowCard: React.FC<RealWorkflowCardProps> = ({ workflow }) => {
+  const complexityColors = {
+    Beginner: 'bg-green-500/20 text-green-300 border-green-500/30',
+    Intermediate: 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30',
+    Advanced: 'bg-red-500/20 text-red-300 border-red-500/30',
+  };
+
   return (
-    <Card className="bg-card-bg border-border hover:border-brand-primary/30 transition-all duration-300 group">
-      <CardHeader>
-        <div className="flex items-start justify-between mb-2">
-          <CardTitle className="text-text-high group-hover:text-brand-primary transition-colors">
-            {workflow.name}
-          </CardTitle>
-          <Badge className={complexityColors[workflow.complexity]}>
+    <Card className="bg-card-bg border-card-border hover:border-brand-primary/50 transition-all duration-300 group">
+      <CardHeader className="pb-3">
+        <div className="flex justify-between items-start mb-2">
+          <Badge className={`text-xs ${complexityColors[workflow.complexity]} border`}>
             {workflow.complexity}
           </Badge>
+          <div className="flex items-center text-text-mid text-sm">
+            <Clock className="w-3 h-3 mr-1" />
+            {workflow.setupTime}
+          </div>
         </div>
-        <p className="text-text-mid text-sm">{workflow.description}</p>
+        <CardTitle className="text-text-high text-lg group-hover:text-brand-primary transition-colors">
+          {workflow.name}
+        </CardTitle>
+        <CardDescription className="text-text-mid text-sm">
+          {workflow.description}
+        </CardDescription>
       </CardHeader>
       
-      <CardContent>
+      <CardContent className="pt-0">
         <div className="space-y-4">
-          {/* Use Case & Setup Time */}
           <div className="flex items-center justify-between text-sm">
-            <span className="text-text-mid">Use Case: <span className="text-text-high">{workflow.useCase}</span></span>
-            <div className="flex items-center gap-1 text-text-mid">
-              <Clock className="w-3 h-3" />
-              {workflow.setupTime}
-            </div>
+            <span className="text-text-mid">Use Case:</span>
+            <span className="text-text-high">{workflow.useCase}</span>
           </div>
-
-          {/* Integrations */}
+          
+          {workflow.nodeCount && (
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-text-mid">Nodes:</span>
+              <span className="text-text-high">{workflow.nodeCount}</span>
+            </div>
+          )}
+          
+          {workflow.triggerType && (
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-text-mid">Trigger:</span>
+              <span className="text-text-high">{workflow.triggerType}</span>
+            </div>
+          )}
+          
           <div>
-            <p className="text-xs text-text-mid mb-2">Integrations:</p>
+            <p className="text-text-mid text-sm mb-2">Integrations:</p>
             <div className="flex flex-wrap gap-1">
-              {workflow.integrations.slice(0, 4).map((integration, index) => (
-                <Badge key={index} variant="outline" className="text-xs">
+              {workflow.integrations.slice(0, 3).map((integration) => (
+                <Badge key={integration} variant="secondary" className="text-xs">
                   {integration}
                 </Badge>
               ))}
-              {workflow.integrations.length > 4 && (
-                <Badge variant="outline" className="text-xs">
-                  +{workflow.integrations.length - 4} more
+              {workflow.integrations.length > 3 && (
+                <Badge variant="secondary" className="text-xs">
+                  +{workflow.integrations.length - 3} more
                 </Badge>
               )}
             </div>
           </div>
-
-          {/* Tags */}
+          
           <div>
-            <div className="flex flex-wrap gap-1">
-              {workflow.tags.slice(0, 3).map((tag, index) => (
-                <Badge key={index} variant="secondary" className="text-xs">
-                  #{tag}
+            <div className="flex flex-wrap gap-1 mb-3">
+              <Tags className="w-3 h-3 text-text-mid mt-0.5 mr-1" />
+              {workflow.tags.slice(0, 3).map((tag) => (
+                <Badge key={tag} variant="outline" className="text-xs">
+                  {tag}
                 </Badge>
               ))}
+              {workflow.tags.length > 3 && (
+                <Badge variant="outline" className="text-xs">
+                  +{workflow.tags.length - 3}
+                </Badge>
+              )}
             </div>
           </div>
-
-          {/* Actions */}
-          <div className="flex gap-2 pt-2">
-            <Button size="sm" variant="outline" className="flex-1">
-              <Download className="w-3 h-3 mr-1" />
-              Download JSON
-            </Button>
-            <Button size="sm" variant="ghost">
-              <ExternalLink className="w-3 h-3" />
-            </Button>
+          
+          <div className="pt-2">
+            <WorkflowDownloadButton
+              workflowId={workflow.id}
+              workflowName={workflow.name}
+              downloadUrl={workflow.downloadUrl}
+              folderName={workflow.folderName}
+              showPreview={true}
+              size="sm"
+            />
           </div>
         </div>
       </CardContent>
     </Card>
   );
-}
+};
+
+export default WorkflowCategory;
