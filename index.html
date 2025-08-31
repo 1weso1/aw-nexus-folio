@@ -29,39 +29,73 @@
     <div id="root"></div>
     <!-- n8n Demo Web Component -->
     <script>
-      // Load n8n demo component and notify when ready
+      // Load n8n demo component with multiple fallback approaches
       window.n8nComponentLoading = true;
       window.n8nComponentReady = false;
       
-      const script = document.createElement('script');
-      script.type = 'module';
-      script.src = 'https://unpkg.com/@n8n/demo-webcomponent@latest/dist/n8n-demo.js';
-      
-      script.onload = () => {
-        console.log('n8n demo script loaded');
-        // Wait for custom element to be defined
-        const checkElement = () => {
-          if (customElements.get('n8n-demo')) {
-            console.log('n8n-demo component registered');
-            window.n8nComponentReady = true;
-            window.n8nComponentLoading = false;
-            // Dispatch event for React components to listen
-            window.dispatchEvent(new CustomEvent('n8n-component-ready'));
-          } else {
-            setTimeout(checkElement, 100);
+      const loadComponent = async () => {
+        try {
+          // Try multiple CDN sources
+          const sources = [
+            'https://unpkg.com/@n8n/demo-webcomponent@latest/dist/n8n-demo.js',
+            'https://cdn.jsdelivr.net/npm/@n8n/demo-webcomponent@latest/dist/n8n-demo.js',
+            'https://unpkg.com/@n8n/demo-webcomponent@1.0.0/dist/n8n-demo.js'
+          ];
+          
+          for (const src of sources) {
+            try {
+              console.log('Trying to load n8n component from:', src);
+              await new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.type = 'module';
+                script.src = src;
+                
+                script.onload = () => {
+                  console.log('n8n demo script loaded from:', src);
+                  // Wait for custom element to be defined
+                  let attempts = 0;
+                  const maxAttempts = 50;
+                  
+                  const checkElement = () => {
+                    attempts++;
+                    if (customElements.get('n8n-demo')) {
+                      console.log('n8n-demo component registered successfully');
+                      window.n8nComponentReady = true;
+                      window.n8nComponentLoading = false;
+                      window.dispatchEvent(new CustomEvent('n8n-component-ready'));
+                      resolve();
+                    } else if (attempts < maxAttempts) {
+                      setTimeout(checkElement, 100);
+                    } else {
+                      reject(new Error('Component registration timeout'));
+                    }
+                  };
+                  checkElement();
+                };
+                
+                script.onerror = () => {
+                  reject(new Error(`Failed to load from ${src}`));
+                };
+                
+                document.head.appendChild(script);
+              });
+              break; // If successful, break out of the loop
+            } catch (error) {
+              console.warn(`Failed to load n8n component from ${src}:`, error);
+              if (src === sources[sources.length - 1]) {
+                throw error; // If this was the last source, throw the error
+              }
+            }
           }
-        };
-        checkElement();
+        } catch (error) {
+          console.error('All n8n component loading attempts failed:', error);
+          window.n8nComponentReady = false;
+          window.n8nComponentLoading = false;
+          window.dispatchEvent(new CustomEvent('n8n-component-error', { detail: error }));
+        }
       };
       
-      script.onerror = () => {
-        console.error('Failed to load n8n demo component');
-        window.n8nComponentReady = false;
-        window.n8nComponentLoading = false;
-        window.dispatchEvent(new CustomEvent('n8n-component-error'));
-      };
-      
-      document.head.appendChild(script);
+      loadComponent();
     </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
