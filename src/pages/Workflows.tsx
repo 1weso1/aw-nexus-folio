@@ -4,7 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Download, Search, Shield, ShieldCheck } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Download, Search, Shield, ShieldCheck, Filter, X } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 interface Workflow {
@@ -22,6 +23,10 @@ const Workflows = () => {
   const [filteredWorkflows, setFilteredWorkflows] = useState<Workflow[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('all');
+  const [complexityFilter, setComplexityFilter] = useState('all');
+  const [credentialsFilter, setCredentialsFilter] = useState('all');
+  const [nodeCountFilter, setNodeCountFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
 
@@ -30,18 +35,42 @@ const Workflows = () => {
   }, []);
 
   useEffect(() => {
-    const filtered = workflows.filter(workflow =>
-      workflow.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      workflow.category.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    let filtered = workflows.filter(workflow => {
+      // Search filter
+      const matchesSearch = workflow.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           workflow.category.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      // Category filter
+      const matchesCategory = categoryFilter === 'all' || 
+                             workflow.category.toLowerCase() === categoryFilter.toLowerCase();
+      
+      // Complexity filter
+      const matchesComplexity = complexityFilter === 'all' || 
+                               workflow.complexity?.toLowerCase() === complexityFilter.toLowerCase();
+      
+      // Credentials filter
+      const matchesCredentials = credentialsFilter === 'all' || 
+                                (credentialsFilter === 'yes' && workflow.has_credentials) ||
+                                (credentialsFilter === 'no' && !workflow.has_credentials);
+      
+      // Node count filter
+      const matchesNodeCount = nodeCountFilter === 'all' || 
+                              (nodeCountFilter === '1-5' && workflow.node_count >= 1 && workflow.node_count <= 5) ||
+                              (nodeCountFilter === '6-10' && workflow.node_count >= 6 && workflow.node_count <= 10) ||
+                              (nodeCountFilter === '11-20' && workflow.node_count >= 11 && workflow.node_count <= 20) ||
+                              (nodeCountFilter === '21+' && workflow.node_count > 20);
+      
+      return matchesSearch && matchesCategory && matchesComplexity && matchesCredentials && matchesNodeCount;
+    });
+    
     setFilteredWorkflows(filtered);
     setCurrentPage(1);
-  }, [searchTerm, workflows]);
+  }, [searchTerm, workflows, categoryFilter, complexityFilter, credentialsFilter, nodeCountFilter]);
 
   const fetchWorkflows = async () => {
     try {
       const response = await fetch(
-        `https://ugjeubqwmgnqvohmrkyv.supabase.co/rest/v1/workflows?select=id,name,category,node_count,has_credentials,raw_url,complexity&order=name.asc`,
+        `https://ugjeubqwmgnqvohmrkyv.supabase.co/rest/v1/workflows?select=id,name,category,node_count,has_credentials,raw_url,complexity&order=name.asc&limit=5000`,
         {
           headers: {
             'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVnamV1YnF3bWducXZvaG1ya3l2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY0Nzc5NDEsImV4cCI6MjA3MjA1Mzk0MX0.esXYyxM-eQbKBXhG2NKrzLsdiveNo4lBsK_rlv_ebjo',
@@ -119,6 +148,20 @@ const Workflows = () => {
   );
 
   const totalPages = Math.ceil(filteredWorkflows.length / itemsPerPage);
+  
+  // Get unique categories for filter dropdown
+  const uniqueCategories = [...new Set(workflows.map(w => w.category))].sort();
+  
+  const clearAllFilters = () => {
+    setSearchTerm('');
+    setCategoryFilter('all');
+    setComplexityFilter('all');
+    setCredentialsFilter('all');
+    setNodeCountFilter('all');
+  };
+  
+  const hasActiveFilters = searchTerm || categoryFilter !== 'all' || complexityFilter !== 'all' || 
+                          credentialsFilter !== 'all' || nodeCountFilter !== 'all';
 
   if (loading) {
     return (
@@ -142,15 +185,84 @@ const Workflows = () => {
             Each workflow is production-ready and includes detailed integration information.
           </p>
           
-          <div className="relative mb-8 max-w-xl">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-            <Input
-              type="text"
-              placeholder="Search workflows by name or category..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-12 h-12 glass border-neon-primary/20 focus:border-neon-primary/50 bg-surface-card/50"
-            />
+          <div className="space-y-6 mb-8">
+            <div className="relative max-w-xl">
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+              <Input
+                type="text"
+                placeholder="Search workflows by name or category..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-12 h-12 glass border-neon-primary/20 focus:border-neon-primary/50 bg-surface-card/50"
+              />
+            </div>
+            
+            <div className="flex flex-wrap gap-4 items-center">
+              <div className="flex items-center gap-2">
+                <Filter className="w-4 h-4 text-text-secondary" />
+                <span className="text-text-secondary text-sm">Filters:</span>
+              </div>
+              
+              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                <SelectTrigger className="w-40 glass border-neon-primary/20">
+                  <SelectValue placeholder="Category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Categories</SelectItem>
+                  {uniqueCategories.map(category => (
+                    <SelectItem key={category} value={category}>{category}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              
+              <Select value={complexityFilter} onValueChange={setComplexityFilter}>
+                <SelectTrigger className="w-32 glass border-neon-primary/20">
+                  <SelectValue placeholder="Complexity" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Levels</SelectItem>
+                  <SelectItem value="easy">Easy</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="hard">Hard</SelectItem>
+                </SelectContent>
+              </Select>
+              
+              <Select value={credentialsFilter} onValueChange={setCredentialsFilter}>
+                <SelectTrigger className="w-36 glass border-neon-primary/20">
+                  <SelectValue placeholder="Auth" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Any Auth</SelectItem>
+                  <SelectItem value="no">No Auth</SelectItem>
+                  <SelectItem value="yes">Auth Required</SelectItem>
+                </SelectContent>
+              </Select>
+              
+              <Select value={nodeCountFilter} onValueChange={setNodeCountFilter}>
+                <SelectTrigger className="w-32 glass border-neon-primary/20">
+                  <SelectValue placeholder="Nodes" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Any Size</SelectItem>
+                  <SelectItem value="1-5">1-5 nodes</SelectItem>
+                  <SelectItem value="6-10">6-10 nodes</SelectItem>
+                  <SelectItem value="11-20">11-20 nodes</SelectItem>
+                  <SelectItem value="21+">21+ nodes</SelectItem>
+                </SelectContent>
+              </Select>
+              
+              {hasActiveFilters && (
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={clearAllFilters}
+                  className="border-neon-primary/30 text-neon-primary hover:bg-neon-primary/10"
+                >
+                  <X className="w-4 h-4 mr-1" />
+                  Clear All
+                </Button>
+              )}
+            </div>
           </div>
 
           <div className="flex flex-wrap gap-6 mb-8 text-sm">
@@ -160,7 +272,8 @@ const Workflows = () => {
             </div>
             <div className="glass px-4 py-2 rounded-lg">
               <span className="text-text-secondary">Showing:</span>
-              <span className="ml-2 text-neon-primary font-semibold">{filteredWorkflows.length}</span>
+              <span className="ml-2 text-neon-primary font-semibold">{paginatedWorkflows.length}</span>
+              <span className="text-text-secondary"> of {filteredWorkflows.length}</span>
             </div>
             {searchTerm && (
               <div className="glass px-4 py-2 rounded-lg">
