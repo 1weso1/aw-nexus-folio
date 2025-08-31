@@ -150,7 +150,7 @@ export default function WorkflowDetail() {
         {/* Back Button */}
         <div className="mb-8">
           <Button asChild variant="ghost">
-            <Link to="/workflows">
+            <Link to={`/workflows${window?.history?.state?.cat ? `?cat=${window.history.state.cat}` : ''}`}>
               <ArrowLeft className="h-4 w-4" />
               Back to Workflows
             </Link>

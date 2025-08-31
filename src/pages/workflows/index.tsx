@@ -21,10 +21,13 @@ import {
 import { toast } from 'sonner';
 import { 
   listWorkflows, 
+  listWorkflowsByTags,
+  countWorkflowsByTags,
   getCategories, 
   getTags, 
   getWorkflowStats 
 } from '@/lib/workflows';
+import { WORKFLOW_CATEGORIES, getCategoryById } from '@/config/workflowCategories';
 import { WorkflowItem, WorkflowStats, WorkflowComplexity } from '@/types/workflow';
 import { WorkflowSort } from '@/lib/workflows';
 
@@ -43,6 +46,10 @@ const WorkflowBrowser: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { isSyncing, syncResult, triggerSync, checkAndAutoSync } = useWorkflowSync();
+  
+  // Get category from URL params
+  const categoryId = searchParams.get('cat') || '';
+  const categoryConfig = getCategoryById(categoryId);
   
   const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
   const [selectedCategories, setSelectedCategories] = useState<string[]>(
@@ -113,15 +120,28 @@ const WorkflowBrowser: React.FC = () => {
       setLoading(true);
       
       try {
-        const result = await listWorkflows({
-          query: searchTerm || undefined,
-          categories: selectedCategories,
-          complexity: selectedComplexity,
-          hasCredentials: requiresCredentials,
-          sort: sortBy,
-          page,
-          pageSize
-        });
+        let result;
+        
+        if (categoryConfig) {
+          // Use category-aware query
+          result = await listWorkflowsByTags({
+            tagFilters: categoryConfig.tagFilters,
+            search: searchTerm,
+            page,
+            pageSize
+          });
+        } else {
+          // Use regular query
+          result = await listWorkflows({
+            query: searchTerm || undefined,
+            categories: selectedCategories,
+            complexity: selectedComplexity,
+            hasCredentials: requiresCredentials,
+            sort: sortBy,
+            page,
+            pageSize
+          });
+        }
         
         setWorkflows(result.data);
         setTotalWorkflows(result.total);
@@ -137,11 +157,12 @@ const WorkflowBrowser: React.FC = () => {
     if (!loading) {
       loadWorkflows();
     }
-  }, [searchTerm, selectedCategories, selectedComplexity, requiresCredentials, sortBy, page, loading]);
+  }, [searchTerm, selectedCategories, selectedComplexity, requiresCredentials, sortBy, page, loading, categoryConfig]);
 
   // Update URL parameters
   useEffect(() => {
     const params = new URLSearchParams();
+    if (categoryId) params.set('cat', categoryId);
     if (searchTerm) params.set('search', searchTerm);
     if (selectedCategories.length) params.set('categories', selectedCategories.join(','));
     if (selectedComplexity.length) params.set('complexity', selectedComplexity.join(','));
@@ -151,7 +172,7 @@ const WorkflowBrowser: React.FC = () => {
     if (page > 1) params.set('page', String(page));
     
     setSearchParams(params);
-  }, [searchTerm, selectedCategories, selectedComplexity, requiresCredentials, sortBy, page, setSearchParams]);
+  }, [categoryId, searchTerm, selectedCategories, selectedComplexity, requiresCredentials, sortBy, page, setSearchParams]);
 
   const clearFilters = () => {
     setSearchTerm('');
@@ -160,6 +181,8 @@ const WorkflowBrowser: React.FC = () => {
     setRequiresCredentials(undefined);
     setSortBy({ field: 'name', direction: 'asc' });
     setPage(1);
+    // Navigate to main workflows page without category
+    navigate('/workflows');
   };
 
   const handleBulkDownload = async () => {
@@ -228,13 +251,34 @@ const WorkflowBrowser: React.FC = () => {
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex flex-col gap-4 mb-8">
+          {/* Category Pill */}
+          {categoryConfig && (
+            <div className="flex items-center gap-2 mb-4">
+              <Badge variant="outline" className="bg-brand-primary/10 text-brand-primary border-brand-primary/20 px-4 py-2">
+                {categoryConfig.label}
+              </Badge>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={clearFilters}
+                className="text-text-mid hover:text-text-high"
+              >
+                <X className="h-4 w-4 mr-1" />
+                Clear Filter
+              </Button>
+            </div>
+          )}
+          
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-text-high">
-                n8n Workflow Library
+                {categoryConfig ? `${categoryConfig.label} Workflows` : 'n8n Workflow Library'}
               </h1>
               <p className="text-text-mid mt-2">
-                Discover and download ready-to-use n8n workflows from the community
+                {categoryConfig 
+                  ? categoryConfig.description
+                  : 'Discover and download ready-to-use n8n workflows from the community'
+                }
               </p>
             </div>
             <Button 
@@ -398,10 +442,15 @@ const WorkflowBrowser: React.FC = () => {
               />
             ) : (
               <div className="text-center py-12">
-                <div className="text-text-mid text-lg mb-4">No workflows found</div>
+                <div className="text-text-mid text-lg mb-4">
+                  {categoryConfig 
+                    ? `No workflows in ${categoryConfig.label}. Try clearing the filter or searching.`
+                    : 'No workflows found'
+                  }
+                </div>
                 <Button variant="outline" onClick={clearFilters}>
                   <X className="h-4 w-4 mr-2" />
-                  Clear Filters
+                  {categoryConfig ? 'Clear Filter' : 'Clear Filters'}
                 </Button>
               </div>
             )}

@@ -285,6 +285,121 @@ export async function getTags(): Promise<string[]> {
   }
 }
 
+export type ListParams = {
+  page?: number;
+  pageSize?: number;
+  search?: string;
+  tagFilters?: string[]; // lowercase tags to match category
+};
+
+export async function listWorkflowsByTags({ page = 1, pageSize = 24, search = "", tagFilters = [] }: ListParams) {
+  try {
+    // 1) if category has tag filters, get tag ids
+    let workflowIds: string[] | null = null;
+
+    if (tagFilters.length) {
+      const { data: tagRows, error: tagErr } = await supabase
+        .from("tags")
+        .select("id,name")
+        .in("name", tagFilters);
+      if (tagErr) throw tagErr;
+
+      const tagIds = (tagRows ?? []).map(t => t.id);
+      if (tagIds.length) {
+        const { data: wtRows, error: wtErr } = await supabase
+          .from("workflow_tags")
+          .select("workflow_id")
+          .in("tag_id", tagIds)
+          .limit(10000); // plenty for category scopes
+        if (wtErr) throw wtErr;
+        workflowIds = [...new Set((wtRows ?? []).map(r => r.workflow_id))];
+        if (!workflowIds.length) workflowIds = ["00000000-0000-0000-0000-000000000000"]; // return empty
+      }
+    }
+
+    const from = (page - 1) * pageSize;
+    const to = from + pageSize - 1;
+
+    let query = supabase
+      .from("workflows")
+      .select(`
+        *,
+        workflow_tags(
+          tags(name)
+        )
+      `, { count: "exact" })
+      .order("updated_at", { ascending: false })
+      .range(from, to);
+
+    if (workflowIds) query = query.in("id", workflowIds);
+    if (search) query = query.ilike("name", `%${search}%`);
+
+    const { data, error, count } = await query;
+    if (error) throw error;
+
+    // Transform data to match expected format
+    const workflows: WorkflowItem[] = (data || []).map(row => ({
+      id: row.slug,
+      name: row.name,
+      path: row.path,
+      rawUrl: row.raw_url,
+      size: row.size_bytes || 0,
+      updatedAt: row.updated_at,
+      category: row.category,
+      tags: row.workflow_tags?.map((wt: any) => wt.tags?.name).filter(Boolean) || [],
+      nodeCount: row.node_count || 0,
+      hasCredentials: row.has_credentials || false,
+      complexity: row.complexity as WorkflowComplexity
+    }));
+
+    return { 
+      data: workflows, 
+      count: count ?? 0,
+      total: count ?? 0,
+      page,
+      pageSize,
+      hasMore: (page * pageSize) < (count || 0)
+    };
+
+  } catch (error) {
+    console.error('Supabase query failed, falling back to static data:', error);
+    
+    // Fallback to static data on error
+    const staticData = await loadStaticManifest();
+    const filtered = filterStaticWorkflows(staticData, { query: search, tags: tagFilters });
+    const sorted = sortStaticWorkflows(filtered, { field: 'updated_at', direction: 'desc' });
+    
+    const from = (page - 1) * pageSize;
+    const to = from + pageSize;
+    
+    return {
+      data: sorted.slice(from, to),
+      total: sorted.length,
+      page,
+      pageSize,
+      hasMore: to < sorted.length,
+      count: sorted.length
+    };
+  }
+}
+
+export async function countWorkflowsByTags(tagFilters: string[]) {
+  try {
+    if (!tagFilters.length) {
+      const { count } = await supabase.from("workflows").select("*", { count: "exact", head: true });
+      return count ?? 0;
+    }
+    const { data: tagRows } = await supabase.from("tags").select("id").in("name", tagFilters);
+    const tagIds = (tagRows ?? []).map(t => t.id);
+    if (!tagIds.length) return 0;
+    const { data: wtRows } = await supabase.from("workflow_tags").select("workflow_id").in("tag_id", tagIds).limit(100000);
+    return new Set((wtRows ?? []).map(r => r.workflow_id)).size;
+  } catch (error) {
+    console.error('Failed to count workflows by tags:', error);
+    return 0;
+  }
+}
+
 export async function getWorkflowStats(): Promise<WorkflowStats> {
   try {
     const [workflowsResult, categoriesResult, tagsResult] = await Promise.all([
