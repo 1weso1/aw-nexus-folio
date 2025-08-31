@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Download, Search, Shield, ShieldCheck, Filter, X } from 'lucide-react';
+import { Download, Search, Shield, ShieldCheck, Filter, X, Eye } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 interface Workflow {
@@ -461,45 +462,65 @@ const Workflows = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
           {paginatedWorkflows.map((workflow) => (
-            <div key={workflow.id} className="project-card hover-lift hover-glow">
-              <div className="flex justify-between items-start gap-3 mb-4">
-                <h3 className="text-text-primary text-lg font-semibold font-sora line-clamp-2 flex-1">
-                  {workflow.name}
-                </h3>
-                <Badge className={getComplexityColor(workflow.complexity)}>
-                  {workflow.complexity}
-                </Badge>
-              </div>
-              
-              <p className="text-text-secondary text-sm mb-4 capitalize">
-                {workflow.category}
-              </p>
+            <div key={workflow.id} className="project-card hover-lift hover-glow group cursor-pointer">
+              <Link to={`/workflows/${workflow.id}`} className="block">
+                <div className="flex justify-between items-start gap-3 mb-4">
+                  <h3 className="text-text-primary text-lg font-semibold font-sora line-clamp-2 flex-1 group-hover:text-brand-accent transition-colors">
+                    {workflow.name}
+                  </h3>
+                  <Badge className={getComplexityColor(workflow.complexity)}>
+                    {workflow.complexity}
+                  </Badge>
+                </div>
+                
+                <p className="text-text-secondary text-sm mb-4 capitalize">
+                  {workflow.category}
+                </p>
 
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-4 text-sm text-text-secondary">
-                  <span className="flex items-center gap-1">
-                    <span className="w-2 h-2 bg-neon-primary rounded-full"></span>
-                    {workflow.node_count} nodes
-                  </span>
-                  <div className="flex items-center gap-1">
-                    {workflow.has_credentials ? (
-                      <Shield className="w-4 h-4 text-yellow-400" />
-                    ) : (
-                      <ShieldCheck className="w-4 h-4 text-green-400" />
-                    )}
-                    <span>{workflow.has_credentials ? 'Auth Required' : 'No Auth'}</span>
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-4 text-sm text-text-secondary">
+                    <span className="flex items-center gap-1">
+                      <span className="w-2 h-2 bg-neon-primary rounded-full"></span>
+                      {workflow.node_count} nodes
+                    </span>
+                    <div className="flex items-center gap-1">
+                      {workflow.has_credentials ? (
+                        <Shield className="w-4 h-4 text-yellow-400" />
+                      ) : (
+                        <ShieldCheck className="w-4 h-4 text-green-400" />
+                      )}
+                      <span>{workflow.has_credentials ? 'Auth Required' : 'No Auth'}</span>
+                    </div>
                   </div>
                 </div>
-              </div>
+              </Link>
               
-              <Button
-                onClick={() => downloadWorkflow(workflow)}
-                className="w-full gradient-primary hover:shadow-lg transition-all duration-300"
-                size="sm"
-              >
-                <Download className="w-4 h-4 mr-2" />
-                Download JSON
-              </Button>
+              <div className="flex gap-2">
+                <Link
+                  to={`/workflows/${workflow.id}`}
+                  className="flex-1"
+                >
+                  <Button
+                    className="w-full bg-brand-primary/20 hover:bg-brand-primary/30 text-brand-accent border border-brand-primary/30 hover:border-brand-primary/50 transition-all duration-300"
+                    size="sm"
+                    variant="outline"
+                  >
+                    <Eye className="w-4 h-4 mr-2" />
+                    View Preview
+                  </Button>
+                </Link>
+                <Button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    downloadWorkflow(workflow);
+                  }}
+                  className="gradient-primary hover:shadow-lg transition-all duration-300"
+                  size="sm"
+                >
+                  <Download className="w-4 h-4" />
+                </Button>
+              </div>
             </div>
           ))}
         </div>
