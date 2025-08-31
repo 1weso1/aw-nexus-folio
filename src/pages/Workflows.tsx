@@ -24,9 +24,11 @@ const Workflows = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
+  const [serviceFilter, setServiceFilter] = useState('all');
   const [complexityFilter, setComplexityFilter] = useState('all');
   const [credentialsFilter, setCredentialsFilter] = useState('all');
   const [nodeCountFilter, setNodeCountFilter] = useState('all');
+  const [triggerTypeFilter, setTriggerTypeFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
 
@@ -36,16 +38,30 @@ const Workflows = () => {
 
   useEffect(() => {
     let filtered = workflows.filter(workflow => {
-      // Search filter
+      // Search filter - enhanced with service detection
+      const serviceCategory = getServiceCategory(workflow);
+      const triggerType = getTriggerType(workflow);
+      const enhancedComplexity = getEnhancedComplexity(workflow.node_count);
+      
       const matchesSearch = workflow.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           workflow.category.toLowerCase().includes(searchTerm.toLowerCase());
+                           workflow.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           serviceCategory.includes(searchTerm.toLowerCase());
       
       // Category filter
       const matchesCategory = categoryFilter === 'all' || 
                              workflow.category.toLowerCase() === categoryFilter.toLowerCase();
       
-      // Complexity filter
+      // Service filter
+      const matchesService = serviceFilter === 'all' || serviceCategory === serviceFilter;
+      
+      // Trigger type filter
+      const matchesTrigger = triggerTypeFilter === 'all' || triggerType === triggerTypeFilter;
+      
+      // Complexity filter - enhanced
       const matchesComplexity = complexityFilter === 'all' || 
+                               (complexityFilter === 'low' && enhancedComplexity === 'low') ||
+                               (complexityFilter === 'medium' && enhancedComplexity === 'medium') ||  
+                               (complexityFilter === 'high' && enhancedComplexity === 'high') ||
                                workflow.complexity?.toLowerCase() === complexityFilter.toLowerCase();
       
       // Credentials filter
@@ -56,16 +72,16 @@ const Workflows = () => {
       // Node count filter
       const matchesNodeCount = nodeCountFilter === 'all' || 
                               (nodeCountFilter === '1-5' && workflow.node_count >= 1 && workflow.node_count <= 5) ||
-                              (nodeCountFilter === '6-10' && workflow.node_count >= 6 && workflow.node_count <= 10) ||
-                              (nodeCountFilter === '11-20' && workflow.node_count >= 11 && workflow.node_count <= 20) ||
-                              (nodeCountFilter === '21+' && workflow.node_count > 20);
+                              (nodeCountFilter === '6-15' && workflow.node_count >= 6 && workflow.node_count <= 15) ||
+                              (nodeCountFilter === '16+' && workflow.node_count >= 16);
       
-      return matchesSearch && matchesCategory && matchesComplexity && matchesCredentials && matchesNodeCount;
+      return matchesSearch && matchesCategory && matchesService && matchesTrigger && 
+             matchesComplexity && matchesCredentials && matchesNodeCount;
     });
     
     setFilteredWorkflows(filtered);
     setCurrentPage(1);
-  }, [searchTerm, workflows, categoryFilter, complexityFilter, credentialsFilter, nodeCountFilter]);
+  }, [searchTerm, workflows, categoryFilter, serviceFilter, triggerTypeFilter, complexityFilter, credentialsFilter, nodeCountFilter]);
 
   const fetchWorkflows = async () => {
     try {
@@ -163,6 +179,105 @@ const Workflows = () => {
     }
   };
 
+  // Service categories based on workflow names and content
+  const getServiceCategory = (workflow: Workflow) => {
+    const name = workflow.name.toLowerCase();
+    const category = workflow.category.toLowerCase();
+    
+    // Messaging & Communication
+    if (name.includes('telegram') || name.includes('discord') || name.includes('slack') || 
+        name.includes('whatsapp') || name.includes('teams') || name.includes('sms')) {
+      return 'messaging';
+    }
+    
+    // AI & Machine Learning
+    if (name.includes('openai') || name.includes('anthropic') || name.includes('hugging') || 
+        name.includes('ai') || name.includes('gpt') || name.includes('claude')) {
+      return 'ai_ml';
+    }
+    
+    // Database & Storage
+    if (name.includes('postgresql') || name.includes('mysql') || name.includes('mongodb') || 
+        name.includes('redis') || name.includes('airtable') || name.includes('database') ||
+        name.includes('sql') || name.includes('db')) {
+      return 'database';
+    }
+    
+    // Email Services
+    if (name.includes('gmail') || name.includes('mailjet') || name.includes('outlook') || 
+        name.includes('email') || name.includes('smtp') || name.includes('imap')) {
+      return 'email';
+    }
+    
+    // Cloud Storage
+    if (name.includes('google drive') || name.includes('google docs') || name.includes('dropbox') || 
+        name.includes('onedrive') || name.includes('sheets') || name.includes('docs')) {
+      return 'cloud_storage';
+    }
+    
+    // Project Management
+    if (name.includes('jira') || name.includes('github') || name.includes('gitlab') || 
+        name.includes('trello') || name.includes('asana') || name.includes('notion')) {
+      return 'project_management';
+    }
+    
+    // Social Media
+    if (name.includes('linkedin') || name.includes('twitter') || name.includes('facebook') || 
+        name.includes('instagram') || name.includes('social')) {
+      return 'social_media';
+    }
+    
+    // E-commerce
+    if (name.includes('shopify') || name.includes('stripe') || name.includes('paypal') || 
+        name.includes('woocommerce') || name.includes('payment')) {
+      return 'ecommerce';
+    }
+    
+    // Analytics
+    if (name.includes('analytics') || name.includes('mixpanel') || name.includes('tracking')) {
+      return 'analytics';
+    }
+    
+    // Calendar & Tasks
+    if (name.includes('calendar') || name.includes('cal.com') || name.includes('calendly') || 
+        name.includes('schedule')) {
+      return 'calendar_tasks';
+    }
+    
+    // Forms
+    if (name.includes('typeform') || name.includes('forms') || name.includes('form')) {
+      return 'forms';
+    }
+    
+    // Development & DevOps
+    if (name.includes('webhook') || name.includes('http') || name.includes('api') || 
+        name.includes('graphql') || name.includes('rest') || name.includes('development')) {
+      return 'development';
+    }
+    
+    return 'other';
+  };
+
+  // Detect trigger type based on workflow characteristics
+  const getTriggerType = (workflow: Workflow) => {
+    const name = workflow.name.toLowerCase();
+    
+    if (name.includes('webhook') || name.includes('api')) return 'webhook';
+    if (name.includes('schedule') || name.includes('cron') || name.includes('daily') || 
+        name.includes('hourly') || name.includes('weekly')) return 'scheduled';
+    if (name.includes('manual') || name.includes('trigger')) return 'manual';
+    if (workflow.node_count > 15) return 'complex';
+    
+    return 'simple';
+  };
+
+  // Enhanced complexity categorization
+  const getEnhancedComplexity = (nodeCount: number) => {
+    if (nodeCount <= 5) return 'low';
+    if (nodeCount <= 15) return 'medium';
+    return 'high';
+  };
+
   const getComplexityColor = (complexity: string) => {
     switch (complexity?.toLowerCase()) {
       case 'easy':
@@ -189,12 +304,15 @@ const Workflows = () => {
   const clearAllFilters = () => {
     setSearchTerm('');
     setCategoryFilter('all');
+    setServiceFilter('all');
+    setTriggerTypeFilter('all');
     setComplexityFilter('all');
     setCredentialsFilter('all');
     setNodeCountFilter('all');
   };
   
-  const hasActiveFilters = searchTerm || categoryFilter !== 'all' || complexityFilter !== 'all' || 
+  const hasActiveFilters = searchTerm || categoryFilter !== 'all' || serviceFilter !== 'all' || 
+                          triggerTypeFilter !== 'all' || complexityFilter !== 'all' || 
                           credentialsFilter !== 'all' || nodeCountFilter !== 'all';
 
   if (loading) {
@@ -231,11 +349,47 @@ const Workflows = () => {
               />
             </div>
             
-            <div className="flex flex-wrap gap-4 items-center">
+            <div className="flex flex-wrap gap-3 items-center">
               <div className="flex items-center gap-2">
                 <Filter className="w-4 h-4 text-text-secondary" />
                 <span className="text-text-secondary text-sm">Filters:</span>
               </div>
+              
+              <Select value={serviceFilter} onValueChange={setServiceFilter}>
+                <SelectTrigger className="w-36 glass border-neon-primary/20">
+                  <SelectValue placeholder="Service" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Services</SelectItem>
+                  <SelectItem value="messaging">💬 Messaging</SelectItem>
+                  <SelectItem value="ai_ml">🤖 AI & ML</SelectItem>
+                  <SelectItem value="database">🗄️ Database</SelectItem>
+                  <SelectItem value="email">📧 Email</SelectItem>
+                  <SelectItem value="cloud_storage">☁️ Cloud Storage</SelectItem>
+                  <SelectItem value="project_management">📋 Project Mgmt</SelectItem>
+                  <SelectItem value="social_media">📱 Social Media</SelectItem>
+                  <SelectItem value="ecommerce">🛒 E-commerce</SelectItem>
+                  <SelectItem value="analytics">📊 Analytics</SelectItem>
+                  <SelectItem value="calendar_tasks">📅 Calendar</SelectItem>
+                  <SelectItem value="forms">📝 Forms</SelectItem>
+                  <SelectItem value="development">⚙️ Development</SelectItem>
+                  <SelectItem value="other">📦 Other</SelectItem>
+                </SelectContent>
+              </Select>
+              
+              <Select value={triggerTypeFilter} onValueChange={setTriggerTypeFilter}>
+                <SelectTrigger className="w-32 glass border-neon-primary/20">
+                  <SelectValue placeholder="Trigger" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Triggers</SelectItem>
+                  <SelectItem value="webhook">🔗 Webhook</SelectItem>
+                  <SelectItem value="scheduled">⏰ Scheduled</SelectItem>
+                  <SelectItem value="manual">👆 Manual</SelectItem>
+                  <SelectItem value="complex">🔄 Complex</SelectItem>
+                  <SelectItem value="simple">⚡ Simple</SelectItem>
+                </SelectContent>
+              </Select>
               
               <Select value={categoryFilter} onValueChange={setCategoryFilter}>
                 <SelectTrigger className="w-40 glass border-neon-primary/20">
@@ -255,33 +409,32 @@ const Workflows = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Levels</SelectItem>
-                  <SelectItem value="easy">Easy</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="hard">Hard</SelectItem>
+                  <SelectItem value="low">🟢 Low (≤5)</SelectItem>
+                  <SelectItem value="medium">🟡 Medium (6-15)</SelectItem>
+                  <SelectItem value="high">🔴 High (16+)</SelectItem>
                 </SelectContent>
               </Select>
               
               <Select value={credentialsFilter} onValueChange={setCredentialsFilter}>
-                <SelectTrigger className="w-36 glass border-neon-primary/20">
+                <SelectTrigger className="w-32 glass border-neon-primary/20">
                   <SelectValue placeholder="Auth" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Any Auth</SelectItem>
-                  <SelectItem value="no">No Auth</SelectItem>
-                  <SelectItem value="yes">Auth Required</SelectItem>
+                  <SelectItem value="no">🔓 No Auth</SelectItem>
+                  <SelectItem value="yes">🔐 Auth Required</SelectItem>
                 </SelectContent>
               </Select>
               
               <Select value={nodeCountFilter} onValueChange={setNodeCountFilter}>
                 <SelectTrigger className="w-32 glass border-neon-primary/20">
-                  <SelectValue placeholder="Nodes" />
+                  <SelectValue placeholder="Size" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Any Size</SelectItem>
-                  <SelectItem value="1-5">1-5 nodes</SelectItem>
-                  <SelectItem value="6-10">6-10 nodes</SelectItem>
-                  <SelectItem value="11-20">11-20 nodes</SelectItem>
-                  <SelectItem value="21+">21+ nodes</SelectItem>
+                  <SelectItem value="1-5">📱 Small (1-5)</SelectItem>
+                  <SelectItem value="6-15">💻 Medium (6-15)</SelectItem>
+                  <SelectItem value="16+">🖥️ Large (16+)</SelectItem>
                 </SelectContent>
               </Select>
               
