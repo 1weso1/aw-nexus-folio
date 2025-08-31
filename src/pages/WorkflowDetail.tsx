@@ -52,12 +52,32 @@ const WorkflowDetail = () => {
   const [workflowData, setWorkflowData] = useState<WorkflowData | null>(null);
   const [loading, setLoading] = useState(true);
   const [dataLoading, setDataLoading] = useState(false);
+  const [componentError, setComponentError] = useState<string | null>(null);
+  const [componentLoaded, setComponentLoaded] = useState(false);
+
+  // Check if n8n-demo component is loaded
+  useEffect(() => {
+    const checkComponent = () => {
+      const isLoaded = customElements.get('n8n-demo') !== undefined;
+      console.log('n8n-demo component loaded:', isLoaded);
+      setComponentLoaded(isLoaded);
+      
+      if (!isLoaded) {
+        // Try again after a short delay
+        setTimeout(checkComponent, 1000);
+      }
+    };
+    
+    checkComponent();
+  }, []);
 
   useEffect(() => {
     if (!id) return;
     
     const fetchWorkflow = async () => {
       try {
+        console.log('Fetching workflow with ID:', id);
+        
         const response = await fetch(
           `https://ugjeubqwmgnqvohmrkyv.supabase.co/rest/v1/workflows?select=id,name,category,node_count,has_credentials,raw_url,complexity&id=eq.${id}`,
           {
@@ -73,6 +93,7 @@ const WorkflowDetail = () => {
         }
         
         const data = await response.json();
+        console.log('Workflow metadata response:', data);
         
         if (data.length === 0) {
           console.error('Workflow not found');
@@ -81,26 +102,48 @@ const WorkflowDetail = () => {
         }
 
         const workflowInfo = data[0];
+        console.log('Workflow info:', workflowInfo);
         setWorkflow(workflowInfo);
         
         // Fetch the actual workflow JSON data
         if (workflowInfo.raw_url) {
+          console.log('Fetching workflow JSON from:', workflowInfo.raw_url);
           setDataLoading(true);
+          setComponentError(null);
+          
           try {
             const workflowResponse = await fetch(workflowInfo.raw_url);
+            console.log('Workflow JSON response status:', workflowResponse.status);
+            
             if (workflowResponse.ok) {
               const workflowJson = await workflowResponse.json();
+              console.log('Workflow JSON data:', workflowJson);
+              console.log('Workflow has nodes:', !!workflowJson?.nodes);
+              console.log('Node count:', workflowJson?.nodes?.length);
+              
+              // Validate workflow structure
+              if (!workflowJson || !workflowJson.nodes || !Array.isArray(workflowJson.nodes)) {
+                throw new Error('Invalid workflow structure: missing or invalid nodes array');
+              }
+              
               setWorkflowData(workflowJson);
+            } else {
+              throw new Error(`Failed to fetch workflow JSON: ${workflowResponse.status} ${workflowResponse.statusText}`);
             }
           } catch (error) {
             console.error('Error fetching workflow data:', error);
+            setComponentError(error instanceof Error ? error.message : 'Unknown error occurred');
             toast.error("Failed to load workflow preview");
           } finally {
             setDataLoading(false);
           }
+        } else {
+          console.warn('No raw_url provided for workflow');
+          setComponentError('No workflow data URL available');
         }
       } catch (error) {
         console.error('Error:', error);
+        setComponentError(error instanceof Error ? error.message : 'Failed to load workflow');
         toast.error("Failed to load workflow");
       } finally {
         setLoading(false);
@@ -267,17 +310,19 @@ const WorkflowDetail = () => {
             </div>
           </div>
           
-          {workflowData ? (
+          {workflowData && componentLoaded ? (
             <div className="bg-card-bg rounded-lg border border-brand-primary/10 overflow-hidden">
               <n8n-demo 
                 workflow={JSON.stringify(workflowData)}
                 frame="true"
                 clicktointeract="true"
+                disableinteractivity="false"
                 theme="dark"
                 style={{
                   width: '100%',
                   minHeight: '600px',
-                  height: '70vh'
+                  height: '70vh',
+                  border: 'none'
                 }}
               />
             </div>
@@ -287,6 +332,29 @@ const WorkflowDetail = () => {
                 <div className="animate-pulse">
                   <div className="text-text-mid mb-4">Loading workflow preview...</div>
                   <div className="h-64 bg-muted rounded"></div>
+                </div>
+              ) : !componentLoaded ? (
+                <div>
+                  <p className="text-text-mid mb-4">
+                    Loading workflow preview component...
+                  </p>
+                  <div className="animate-spin h-8 w-8 border-2 border-brand-primary border-t-transparent rounded-full mx-auto"></div>
+                </div>
+              ) : componentError ? (
+                <div>
+                  <p className="text-red-400 mb-4">
+                    Failed to load workflow preview
+                  </p>
+                  <p className="text-sm text-text-mid mb-4">
+                    Error: {componentError}
+                  </p>
+                  <Button
+                    variant="outline"
+                    onClick={() => window.location.reload()}
+                    className="glass border-brand-primary/20 hover:border-brand-primary/40"
+                  >
+                    Retry
+                  </Button>
                 </div>
               ) : (
                 <div>
