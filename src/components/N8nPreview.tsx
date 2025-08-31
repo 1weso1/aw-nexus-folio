@@ -276,6 +276,11 @@ const N8nPreviewContent: React.FC<N8nPreviewProps> = ({ workflow, className, hei
   const [isDarkTheme, setIsDarkTheme] = useState(true);
   const { fitView, zoomIn, zoomOut } = useReactFlow();
 
+  // Ensure onEdgesChange is defined
+  const handleEdgesChange = useCallback((changes: any) => {
+    onEdgesChange(changes);
+  }, [onEdgesChange]);
+
   const { nodeCount, edgeCount } = useMemo(() => {
     return {
       nodeCount: workflow?.nodes?.length || 0,
@@ -512,7 +517,7 @@ const N8nPreviewContent: React.FC<N8nPreviewProps> = ({ workflow, className, hei
           nodes={nodes}
           edges={edges}
           onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
+          onEdgesChange={handleEdgesChange}
           nodeTypes={nodeTypes}
           fitView
           attributionPosition="bottom-left"
