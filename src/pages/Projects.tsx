@@ -24,11 +24,11 @@ const projects = [
   },
   {
     title: "CRM Automation Library (2,000+ Workflows)",
-    description: "Comprehensive n8n automation library featuring 2,000+ production-ready workflows across 5 business categories. Includes CRM integrations, AI-powered automations, communication workflows, and enterprise-grade templates.",
+    description: "Comprehensive n8n automation library featuring 2,053 production-ready workflows across 15 business categories. Includes CRM integrations, AI-powered lead scoring, social media automation, and enterprise-grade templates for HubSpot, Salesforce, and more.",
     status: "live" as const,
     role: "Automation Architect & CRM Specialist", 
     date: "2024-Present",
-    tags: ["n8n", "CRM", "AI Automation", "Communication", "Marketing", "365+ Integrations"],
+    tags: ["n8n", "CRM", "AI Automation", "HubSpot", "Enterprise", "365+ Integrations"],
     link: "/projects/crm-automation",
     category: "tech",
     image: crmDashboardImage

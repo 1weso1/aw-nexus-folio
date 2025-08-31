@@ -303,13 +303,14 @@ const BrowserWorkflowCard: React.FC<BrowserWorkflowCardProps> = ({ workflow }) =
         </div>
         
         <div className="pt-4 mt-auto">
-            <WorkflowDownloadButton
-              workflowId={workflow.id}
-              workflowName={workflow.name}
-              rawUrl={workflow.downloadUrl}
-              showPreview={true}
-              size="sm"
-            />
+          <WorkflowDownloadButton
+            workflowId={workflow.id}
+            workflowName={workflow.name}
+            downloadUrl={workflow.downloadUrl}
+            folderName={workflow.folderName}
+            showPreview={true}
+            size="sm"
+          />
         </div>
       </CardContent>
     </Card>

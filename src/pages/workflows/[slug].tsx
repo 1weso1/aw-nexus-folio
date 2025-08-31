@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import { getWorkflowBySlug, fetchWorkflowRaw, getRelatedWorkflows } from "@/lib/workflows";
+import { loadManifest, fetchWorkflowRaw, getRelatedWorkflows } from "@/lib/workflows";
 import type { WorkflowItem, N8nWorkflow } from "@/types/workflow";
 import { WorkflowVisualization } from "@/components/WorkflowVisualization";
 
@@ -26,8 +26,9 @@ export default function WorkflowDetail() {
         setLoading(true);
         setError(null);
         
-        // Load workflow by slug
-        const foundWorkflow = await getWorkflowBySlug(slug);
+        // Load manifest to find workflow
+        const manifest = await loadManifest();
+        const foundWorkflow = manifest.find(w => w.id === slug);
         
         if (!foundWorkflow) {
           setError('Workflow not found');
@@ -46,7 +47,7 @@ export default function WorkflowDetail() {
         }
         
         // Load related workflows
-        const related = await getRelatedWorkflows(slug, 6);
+        const related = getRelatedWorkflows(manifest, foundWorkflow, 6);
         setRelatedWorkflows(related);
         
       } catch (err) {
@@ -64,24 +65,23 @@ export default function WorkflowDetail() {
     
     try {
       const response = await fetch(workflow.rawUrl);
-      if (!response.ok) throw new Error('Failed to fetch workflow');
+      if (!response.ok) throw new Error('Download failed');
       
-      const content = await response.text();
-      const blob = new Blob([content], { type: 'application/json' });
+      const blob = await response.blob();
       const url = URL.createObjectURL(blob);
-      
-      const element = document.createElement('a');
-      element.href = url;
-      element.download = `${workflow.id}.json`;
-      document.body.appendChild(element);
-      element.click();
-      document.body.removeChild(element);
-      
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${workflow.name.replace(/[^a-z0-9]/gi, '-')}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      toast.success(`Downloaded ${workflow.name}`);
+      
+      toast.success('Workflow downloaded successfully');
     } catch (error) {
-      console.error('Download failed:', error);
-      toast.error('Failed to download workflow');
+      toast.error('Download failed');
+      // Fallback: open in new tab
+      window.open(workflow.rawUrl, '_blank');
     }
   };
 
@@ -92,7 +92,6 @@ export default function WorkflowDetail() {
       await navigator.clipboard.writeText(JSON.stringify(workflowData, null, 2));
       toast.success('Workflow JSON copied to clipboard');
     } catch (error) {
-      console.error('Copy failed:', error);
       toast.error('Failed to copy to clipboard');
     }
   };
@@ -150,7 +149,7 @@ export default function WorkflowDetail() {
         {/* Back Button */}
         <div className="mb-8">
           <Button asChild variant="ghost">
-            <Link to={`/workflows${window?.history?.state?.cat ? `?cat=${window.history.state.cat}` : ''}`}>
+            <Link to="/workflows">
               <ArrowLeft className="h-4 w-4" />
               Back to Workflows
             </Link>
