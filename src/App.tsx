@@ -12,8 +12,7 @@ import Apps from "./pages/Apps";
 import Blog from "./pages/Blog";
 import Contact from "./pages/Contact";
 import ProjectDetail from "./pages/ProjectDetail";
-import WorkflowCategory from "./pages/WorkflowCategory";
-import WorkflowBrowser from "./pages/WorkflowBrowser";
+import Workflows from "./pages/Workflows";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,8 +31,7 @@ const App = () => (
               <Route path="/about" element={<About />} />
               <Route path="/projects" element={<Projects />} />
               <Route path="/projects/:slug" element={<ProjectDetail />} />
-              <Route path="/workflows" element={<WorkflowBrowser />} />
-              <Route path="/workflows/:slug" element={<WorkflowBrowser />} />
+              <Route path="/workflows" element={<Workflows />} />
               <Route path="/apps" element={<Apps />} />
               <Route path="/blog" element={<Blog />} />
               <Route path="/contact" element={<Contact />} />

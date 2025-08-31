@@ -2,7 +2,6 @@ import { ArrowLeft, Calendar, User, Tag, ExternalLink, Github, Download, Zap, Ba
 import { Link, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ProjectCard } from "@/components/ProjectCard";
-import { WorkflowCategory, workflowCategories } from "@/components/WorkflowCategory";
 
 // Sample project data - in a real app this would come from a CMS or API
 const projectData = {
@@ -221,24 +220,13 @@ export default function ProjectDetail() {
               </div>
             </section>
 
-            {/* Workflow Categories - Only for CRM Automation project */}
+            {/* CRM Automation Stats - Only for CRM Automation project */}
             {slug === 'crm-automation' && (
               <section>
-                <h2 className="section-heading">Workflow Categories</h2>
+                <h2 className="section-heading">Automation Library Overview</h2>
                 <p className="body-large mb-8 text-text-secondary">
-                  Explore our comprehensive automation library organized by business function and use case.
+                  A comprehensive collection of production-ready workflows covering 15 business categories with 365+ integrations.
                 </p>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
-                  {workflowCategories.slice(0, 8).map((category, index) => (
-                    <WorkflowCategory 
-                      key={index} 
-                      category={category}
-                      onExplore={() => {
-                        window.location.href = `/workflows?category=${encodeURIComponent(category.name)}`;
-                      }}
-                    />
-                  ))}
-                </div>
                 
                 {/* Stats Overview */}
                 <div className="glass rounded-2xl p-8">
@@ -273,6 +261,15 @@ export default function ProjectDetail() {
                       <p className="text-sm text-text-secondary">Categories</p>
                     </div>
                   </div>
+                </div>
+
+                <div className="mt-8 text-center">
+                  <Button asChild variant="default">
+                    <Link to="/workflows">
+                      <ExternalLink className="h-4 w-4 mr-2" />
+                      Browse Workflow Library
+                    </Link>
+                  </Button>
                 </div>
               </section>
             )}
