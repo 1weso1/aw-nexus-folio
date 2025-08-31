@@ -19,6 +19,8 @@ export async function listWorkflowsBasic(page = 1, pageSize = 24, search = '') {
   
   const { data, error, count } = await q;
   
+  if (error) console.error('Supabase query error:', error);
+  
   return { 
     items: data ?? [], 
     total: count ?? 0,

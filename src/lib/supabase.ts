@@ -1,13 +1,16 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Using hardcoded values since Lovable doesn't support VITE_ env variables
-const url = "https://ugjeubqwmgnqvohmrkyv.supabase.co";
-const key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVnamV1YnF3bWducXZvaG1ya3l2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY0Nzc5NDEsImV4cCI6MjA3MjA1Mzk0MX0.esXYyxM-eQbKBXhG2NKrzLsdiveNo4lBsK_rlv_ebjo";
+const url =
+  import.meta.env.VITE_SUPABASE_URL ??
+  (typeof process !== 'undefined' ? (process as any).env?.NEXT_PUBLIC_SUPABASE_URL : undefined);
+
+const key =
+  import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ??
+  (typeof process !== 'undefined' ? (process as any).env?.NEXT_PUBLIC_SUPABASE_ANON_KEY : undefined);
 
 if (!url || !key) {
-  // visible at runtime so we instantly know if env is missing
-  // eslint-disable-next-line no-console
-  console.error('Supabase env missing:', { url: !!url, key: !!key });
+  // Visible signal in dev/preview if env is missing
+  console.error('Supabase env missing', { hasUrl: !!url, hasKey: !!key });
 }
 
-export const supabase = createClient(url, key);
+export const supabase = createClient(url!, key!);
