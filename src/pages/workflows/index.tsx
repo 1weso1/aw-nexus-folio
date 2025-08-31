@@ -8,13 +8,26 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import { loadManifest, searchWorkflows, filterByCategory, filterByTags, filterByComplexity, filterByCredentials, sortWorkflows, getCategories, getTags, getWorkflowStats } from "@/lib/workflows";
+import { supabase } from "@/integrations/supabase/client";
 import { PAGE_SIZE } from "@/config/workflows";
-import type { WorkflowManifest, WorkflowItem, WorkflowStats } from "@/types/workflow";
+// Simple workflow type that matches Supabase data structure
+interface SupabaseWorkflow {
+  id: string;
+  name: string;
+  category: string;
+  complexity: 'Easy' | 'Medium' | 'Advanced';
+  node_count: number;
+  has_credentials: boolean;
+  raw_url: string;
+  path: string;
+  slug: string;
+  created_at?: string;
+  updated_at?: string;
+}
 
 // Virtualized workflow card component
 function WorkflowCard({ workflow, isSelected, onSelect }: { 
-  workflow: WorkflowItem; 
+  workflow: SupabaseWorkflow; 
   isSelected: boolean;
   onSelect: (id: string) => void;
 }) {
@@ -26,7 +39,7 @@ function WorkflowCard({ workflow, isSelected, onSelect }: {
 
   const handleDownload = async () => {
     try {
-      const response = await fetch(workflow.rawUrl);
+      const response = await fetch(workflow.raw_url);
       if (!response.ok) throw new Error('Download failed');
       
       const blob = await response.blob();
@@ -41,9 +54,10 @@ function WorkflowCard({ workflow, isSelected, onSelect }: {
       
       toast.success(`Downloaded ${workflow.name}`);
     } catch (error) {
+      console.error('Download error:', error);
       toast.error('Failed to download workflow');
       // Fallback: open in new tab
-      window.open(workflow.rawUrl, '_blank');
+      window.open(workflow.raw_url, '_blank');
     }
   };
 
@@ -69,30 +83,24 @@ function WorkflowCard({ workflow, isSelected, onSelect }: {
       <div className="space-y-3 mb-4">
         <div className="flex items-center justify-between text-sm">
           <span className="text-text-secondary">Nodes:</span>
-          <span className="text-text-primary font-medium">{workflow.nodeCount}</span>
+          <span className="text-text-primary font-medium">{workflow.node_count}</span>
         </div>
         <div className="flex items-center justify-between text-sm">
           <span className="text-text-secondary">Credentials:</span>
-          <span className={workflow.hasCredentials ? "text-yellow-400" : "text-green-400"}>
-            {workflow.hasCredentials ? "Required" : "None"}
+          <span className={workflow.has_credentials ? "text-yellow-400" : "text-green-400"}>
+            {workflow.has_credentials ? "Required" : "None"}
           </span>
         </div>
       </div>
 
-      {workflow.tags.length > 0 && (
-        <div className="flex flex-wrap gap-1 mb-4">
-          {workflow.tags.slice(0, 3).map(tag => (
-            <Badge key={tag} variant="outline" className="text-xs border-neon-primary/20 text-neon-primary">
-              {tag}
-            </Badge>
-          ))}
-          {workflow.tags.length > 3 && (
-            <Badge variant="outline" className="text-xs border-neon-primary/20 text-text-secondary">
-              +{workflow.tags.length - 3}
-            </Badge>
-          )}
-        </div>
-      )}
+      <div className="flex flex-wrap gap-1 mb-4">
+        <Badge variant="outline" className="text-xs border-neon-primary/20 text-neon-primary">
+          {workflow.category}
+        </Badge>
+        <Badge variant="outline" className="text-xs border-neon-primary/20 text-text-secondary">
+          {workflow.complexity}
+        </Badge>
+      </div>
 
       <div className="flex gap-2">
         <Button asChild size="sm" variant="outline" className="flex-1">
@@ -154,10 +162,10 @@ export default function WorkflowBrowser() {
   const [searchParams, setSearchParams] = useSearchParams();
   
   // State
-  const [workflows, setWorkflows] = useState<WorkflowManifest>([]);
+  const [workflows, setWorkflows] = useState<SupabaseWorkflow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [stats, setStats] = useState<WorkflowStats | null>(null);
+  const [stats, setStats] = useState<any>(null);
   
   // Filters from URL params
   const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
@@ -185,16 +193,40 @@ export default function WorkflowBrowser() {
   const [currentPage, setCurrentPage] = useState(parseInt(searchParams.get('page') || '1'));
   const [selectedWorkflows, setSelectedWorkflows] = useState<string[]>([]);
 
-  // Load workflows
+  // Load workflows from Supabase
   useEffect(() => {
     async function load() {
       try {
         setLoading(true);
         setError(null);
-        const manifest = await loadManifest();
-        setWorkflows(manifest);
-        setStats(getWorkflowStats(manifest));
+        
+        // Direct fetch to Supabase REST API
+        const supabaseUrl = 'https://ugjeubqwmgnqvohmrkyv.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVnamV1YnF3bWducXZvaG1ya3l2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY0Nzc5NDEsImV4cCI6MjA3MjA1Mzk0MX0.esXYyxM-eQbKBXhG2NKrzLsdiveNo4lBsK_rlv_ebjo';
+        
+        const response = await fetch(`${supabaseUrl}/rest/v1/workflows?select=*&order=updated_at.desc`, {
+          headers: {
+            'apikey': supabaseKey,
+            'Authorization': `Bearer ${supabaseKey}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        console.log('Loaded workflows from Supabase:', data?.length);
+        setWorkflows(data || []);
+        setStats({
+          totalWorkflows: data?.length || 0,
+          totalCategories: [...new Set(data?.map((w: any) => w.category))].length,
+          totalIntegrations: data?.length || 0,
+          averageSetupTime: 15
+        });
       } catch (err) {
+        console.error('Failed to load workflows:', err);
         setError(err instanceof Error ? err.message : 'Failed to load workflows');
       } finally {
         setLoading(false);
@@ -224,20 +256,56 @@ export default function WorkflowBrowser() {
     
     // Apply search
     if (searchTerm) {
-      result = searchWorkflows(result, searchTerm);
+      result = result.filter(w => 
+        w.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        w.category.toLowerCase().includes(searchTerm.toLowerCase())
+      );
     }
     
-    // Apply filters
-    result = filterByCategory(result, selectedCategories);
-    result = filterByTags(result, selectedTags);
-    result = filterByComplexity(result, selectedComplexities);
-    result = filterByCredentials(result, credentialsFilter);
+    // Apply category filter
+    if (selectedCategories.length > 0) {
+      result = result.filter(w => selectedCategories.includes(w.category));
+    }
+    
+    // Apply complexity filter
+    if (selectedComplexities.length > 0) {
+      result = result.filter(w => selectedComplexities.includes(w.complexity));
+    }
+    
+    // Apply credentials filter
+    if (credentialsFilter !== undefined) {
+      result = result.filter(w => w.has_credentials === credentialsFilter);
+    }
     
     // Apply sorting
-    result = sortWorkflows(result, sortBy, sortDirection);
+    result = [...result].sort((a, b) => {
+      let aVal, bVal;
+      
+      switch (sortBy) {
+        case 'name':
+          aVal = a.name.toLowerCase();
+          bVal = b.name.toLowerCase();
+          break;
+        case 'nodeCount':
+          aVal = a.node_count;
+          bVal = b.node_count;
+          break;
+        case 'complexity':
+          const complexityOrder = { 'Easy': 1, 'Medium': 2, 'Advanced': 3 };
+          aVal = complexityOrder[a.complexity] || 1;
+          bVal = complexityOrder[b.complexity] || 1;
+          break;
+        default:
+          return 0;
+      }
+      
+      if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1;
+      if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1;
+      return 0;
+    });
     
     return result;
-  }, [workflows, searchTerm, selectedCategories, selectedTags, selectedComplexities, credentialsFilter, sortBy, sortDirection]);
+  }, [workflows, searchTerm, selectedCategories, selectedComplexities, credentialsFilter, sortBy, sortDirection]);
 
   // Pagination
   const totalPages = Math.ceil(filteredAndSortedWorkflows.length / PAGE_SIZE);
@@ -247,8 +315,8 @@ export default function WorkflowBrowser() {
   );
 
   // Get available options for filters
-  const availableCategories = getCategories(workflows);
-  const availableTags = getTags(workflows);
+  const availableCategories = [...new Set(workflows.map(w => w.category))].sort();
+  const availableComplexities = ['Easy', 'Medium', 'Advanced'];
 
   // Clear all filters
   const clearFilters = () => {
