@@ -391,18 +391,6 @@ const Workflows = () => {
                 </SelectContent>
               </Select>
               
-              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                <SelectTrigger className="w-40 glass border-neon-primary/20">
-                  <SelectValue placeholder="Category" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Categories</SelectItem>
-                  {uniqueCategories.map(category => (
-                    <SelectItem key={category} value={category}>{category}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              
               <Select value={complexityFilter} onValueChange={setComplexityFilter}>
                 <SelectTrigger className="w-32 glass border-neon-primary/20">
                   <SelectValue placeholder="Complexity" />
