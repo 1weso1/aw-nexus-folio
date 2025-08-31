@@ -282,9 +282,26 @@ const N8nPreviewContent: React.FC<N8nPreviewProps> = ({ workflow, className, hei
   }, [onEdgesChange]);
 
   const { nodeCount, edgeCount } = useMemo(() => {
+    let totalEdges = 0;
+    if (workflow?.connections) {
+      Object.entries(workflow.connections).forEach(([_, connections]) => {
+        if (connections && typeof connections === 'object') {
+          Object.entries(connections).forEach(([_, targetGroups]) => {
+            if (Array.isArray(targetGroups)) {
+              targetGroups.forEach((targets: any[]) => {
+                if (Array.isArray(targets)) {
+                  totalEdges += targets.filter(target => target?.node).length;
+                }
+              });
+            }
+          });
+        }
+      });
+    }
+    
     return {
       nodeCount: workflow?.nodes?.length || 0,
-      edgeCount: Object.keys(workflow?.connections || {}).length || 0,
+      edgeCount: totalEdges,
     };
   }, [workflow]);
 
@@ -322,53 +339,86 @@ const N8nPreviewContent: React.FC<N8nPreviewProps> = ({ workflow, className, hei
       };
     });
 
-    // Convert n8n connections to React Flow edges
-    const flowEdges: Edge[] = [];
-    if (workflow.connections) {
-      Object.entries(workflow.connections).forEach(([sourceNodeName, connections]) => {
-        if (connections && typeof connections === 'object') {
-          Object.entries(connections).forEach(([outputIndex, targets]) => {
-            if (Array.isArray(targets)) {
-              targets.forEach((target: any, targetIndex: number) => {
-                if (target?.node) {
-                  const edgeId = `${sourceNodeName}-${target.node}-${outputIndex}-${targetIndex}`;
-                  const isNonDefaultOutput = outputIndex !== '0' || target.type !== 'main';
-                  
-                  flowEdges.push({
-                    id: edgeId,
-                    source: sourceNodeName,
-                    target: target.node,
-                    type: 'smoothstep',
-                    animated: false,
-                    label: isNonDefaultOutput ? `${outputIndex !== '0' ? outputIndex : target.type}` : undefined,
-                    style: { 
-                      stroke: '#6366f1',
-                      strokeWidth: 2,
-                      filter: 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1))'
-                    },
-                    markerEnd: {
-                      type: 'arrowclosed',
-                      color: '#6366f1',
-                      width: 20,
-                      height: 20,
-                    },
-                    labelStyle: {
-                      fill: '#e5e7eb',
-                      fontSize: 11,
-                      fontWeight: 500,
-                    },
-                    labelBgStyle: {
-                      fill: '#1f2937',
-                      fillOpacity: 0.8,
-                    },
-                  });
-                }
-              });
-            }
-          });
-        }
-      });
-    }
+  // Convert n8n connections to React Flow edges
+  const flowEdges: Edge[] = [];
+  const edgeMap = new Map(); // For deduplication
+  
+  if (workflow.connections) {
+    Object.entries(workflow.connections).forEach(([sourceNodeName, connections]) => {
+      if (connections && typeof connections === 'object') {
+        Object.entries(connections).forEach(([outputName, targetGroups]) => {
+          if (Array.isArray(targetGroups)) {
+            targetGroups.forEach((targets: any[], groupIndex: number) => {
+              if (Array.isArray(targets)) {
+                targets.forEach((target: any, targetIndex: number) => {
+                  if (target?.node && target.node !== sourceNodeName) { // Ignore self-loops
+                    const edgeKey = `${sourceNodeName}-${target.node}-${outputName}`;
+                    
+                    // Skip duplicates
+                    if (edgeMap.has(edgeKey)) return;
+                    edgeMap.set(edgeKey, true);
+                    
+                    const isDefaultOutput = outputName === 'main' && groupIndex === 0;
+                    const edgeId = `${sourceNodeName}-${target.node}-${outputName}-${groupIndex}-${targetIndex}`;
+                    
+                    // Determine edge color based on output type
+                    let edgeColor = '#6b7280'; // Default steel/gray
+                    if (outputName === 'true') {
+                      edgeColor = '#10b981'; // Green for true
+                    } else if (outputName === 'false') {
+                      edgeColor = '#ef4444'; // Red for false
+                    } else if (!isDefaultOutput) {
+                      edgeColor = '#8b5cf6'; // Muted accent for other outputs
+                    }
+                    
+                    // Create edge with bundled routing offset
+                    const edgeOffset = Math.min(groupIndex * 8, 32); // Max 32px offset
+                    
+                    flowEdges.push({
+                      id: edgeId,
+                      source: sourceNodeName,
+                      target: target.node,
+                      type: 'smoothstep',
+                      animated: false,
+                      label: !isDefaultOutput ? outputName : undefined,
+                      data: {
+                        outputName,
+                        isDefault: isDefaultOutput,
+                        offset: edgeOffset,
+                      },
+                      style: { 
+                        stroke: edgeColor,
+                        strokeWidth: 2,
+                        filter: 'drop-shadow(0 1px 3px rgba(0, 0, 0, 0.12))',
+                        zIndex: 1,
+                      },
+                      markerEnd: {
+                        type: 'arrowclosed',
+                        color: edgeColor,
+                        width: 16,
+                        height: 16,
+                      },
+                      labelStyle: {
+                        fill: isDarkTheme ? '#e5e7eb' : '#374151',
+                        fontSize: 10,
+                        fontWeight: 500,
+                      },
+                      labelBgStyle: {
+                        fill: isDarkTheme ? '#1f2937' : '#ffffff',
+                        fillOpacity: 0.9,
+                      },
+                      labelBgPadding: [4, 8],
+                      labelBgBorderRadius: 8,
+                    });
+                  }
+                });
+              }
+            });
+          }
+        });
+      }
+    });
+  }
 
     // Check if any nodes have valid positions
     const hasValidPositions = flowNodes.some(node => 
@@ -444,7 +494,7 @@ const N8nPreviewContent: React.FC<N8nPreviewProps> = ({ workflow, className, hei
       `}>
         <div className={`text-sm font-medium ${isDarkTheme ? 'text-gray-300' : 'text-gray-600'}`}>
           Nodes: <span className="text-blue-400">{nodeCount}</span> | 
-          Connections: <span className="text-blue-400">{edgeCount}</span>
+          Connections: <span className="text-blue-400">{edgeCount > 0 ? edgeCount : 'No connections'}</span>
         </div>
         <div className="flex items-center gap-1">
           <Button 
