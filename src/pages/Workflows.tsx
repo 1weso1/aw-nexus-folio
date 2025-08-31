@@ -103,13 +103,13 @@ const Workflows = () => {
   const getComplexityColor = (complexity: string) => {
     switch (complexity?.toLowerCase()) {
       case 'easy':
-        return 'bg-green-500/10 text-green-500 border-green-500/20';
+        return 'bg-green-400/20 text-green-300 border-green-400/30';
       case 'medium':
-        return 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20';
+        return 'bg-yellow-400/20 text-yellow-300 border-yellow-400/30';
       case 'hard':
-        return 'bg-red-500/10 text-red-500 border-red-500/20';
+        return 'bg-red-400/20 text-red-300 border-red-400/30';
       default:
-        return 'bg-gray-500/10 text-gray-500 border-gray-500/20';
+        return 'bg-neon-primary/20 text-neon-primary border-neon-primary/30';
     }
   };
 
@@ -122,103 +122,147 @@ const Workflows = () => {
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-center">Loading workflows...</div>
+      <div className="min-h-screen pt-20 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
+        <div className="glass rounded-2xl p-12 text-center">
+          <div className="animate-spin w-8 h-8 border-2 border-neon-primary border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p className="text-text-primary text-lg">Loading workflows...</p>
+          <p className="text-text-secondary text-sm mt-2">Fetching automation library from Supabase</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold mb-4 text-text-high">n8n Workflows</h1>
-        <p className="text-text-mid mb-6">
-          Browse and download automation workflows from the 1weso1/n8n-workflows repository.
-        </p>
-        
-        <div className="relative mb-6">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-mid w-4 h-4" />
-          <Input
-            type="text"
-            placeholder="Search workflows..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
+    <div className="min-h-screen pt-20 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto">
+        <div className="mb-12">
+          <h1 className="hero-text text-4xl md:text-5xl mb-6">n8n Workflows</h1>
+          <p className="body-large mb-8 max-w-3xl">
+            Browse and download automation workflows from the 1weso1/n8n-workflows repository. 
+            Each workflow is production-ready and includes detailed integration information.
+          </p>
+          
+          <div className="relative mb-8 max-w-xl">
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+            <Input
+              type="text"
+              placeholder="Search workflows by name or category..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-12 h-12 glass border-neon-primary/20 focus:border-neon-primary/50 bg-surface-card/50"
+            />
+          </div>
+
+          <div className="flex flex-wrap gap-6 mb-8 text-sm">
+            <div className="glass px-4 py-2 rounded-lg">
+              <span className="text-text-secondary">Total workflows:</span>
+              <span className="ml-2 text-neon-primary font-semibold">{workflows.length}</span>
+            </div>
+            <div className="glass px-4 py-2 rounded-lg">
+              <span className="text-text-secondary">Showing:</span>
+              <span className="ml-2 text-neon-primary font-semibold">{filteredWorkflows.length}</span>
+            </div>
+            {searchTerm && (
+              <div className="glass px-4 py-2 rounded-lg">
+                <span className="text-text-secondary">Search:</span>
+                <span className="ml-2 text-neon-primary font-semibold">"{searchTerm}"</span>
+              </div>
+            )}
+          </div>
         </div>
 
-        <div className="flex flex-wrap gap-4 mb-6 text-sm text-text-mid">
-          <span>Total workflows: {workflows.length}</span>
-          <span>Showing: {filteredWorkflows.length}</span>
-          {searchTerm && <span>Search: "{searchTerm}"</span>}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-        {paginatedWorkflows.map((workflow) => (
-          <Card key={workflow.id} className="bg-card-bg border-white/10 hover:border-brand-primary/30 transition-colors">
-            <CardHeader>
-              <div className="flex justify-between items-start gap-2">
-                <CardTitle className="text-text-high text-lg line-clamp-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+          {paginatedWorkflows.map((workflow) => (
+            <div key={workflow.id} className="project-card hover-lift hover-glow">
+              <div className="flex justify-between items-start gap-3 mb-4">
+                <h3 className="text-text-primary text-lg font-semibold font-sora line-clamp-2 flex-1">
                   {workflow.name}
-                </CardTitle>
+                </h3>
                 <Badge className={getComplexityColor(workflow.complexity)}>
                   {workflow.complexity}
                 </Badge>
               </div>
-              <CardDescription className="text-text-mid">
+              
+              <p className="text-text-secondary text-sm mb-4 capitalize">
                 {workflow.category}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-4 text-sm text-text-mid">
-                  <span>{workflow.node_count} nodes</span>
+              </p>
+
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-4 text-sm text-text-secondary">
+                  <span className="flex items-center gap-1">
+                    <span className="w-2 h-2 bg-neon-primary rounded-full"></span>
+                    {workflow.node_count} nodes
+                  </span>
                   <div className="flex items-center gap-1">
                     {workflow.has_credentials ? (
-                      <Shield className="w-4 h-4 text-yellow-500" />
+                      <Shield className="w-4 h-4 text-yellow-400" />
                     ) : (
-                      <ShieldCheck className="w-4 h-4 text-green-500" />
+                      <ShieldCheck className="w-4 h-4 text-green-400" />
                     )}
-                    <span>{workflow.has_credentials ? 'Needs Auth' : 'No Auth'}</span>
+                    <span>{workflow.has_credentials ? 'Auth Required' : 'No Auth'}</span>
                   </div>
                 </div>
               </div>
               
               <Button
                 onClick={() => downloadWorkflow(workflow)}
-                className="w-full"
+                className="w-full gradient-primary hover:shadow-lg transition-all duration-300"
                 size="sm"
               >
                 <Download className="w-4 h-4 mr-2" />
                 Download JSON
               </Button>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {totalPages > 1 && (
-        <div className="flex justify-center items-center gap-2">
-          <Button
-            variant="outline"
-            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-            disabled={currentPage === 1}
-          >
-            Previous
-          </Button>
-          <span className="text-text-mid">
-            Page {currentPage} of {totalPages}
-          </span>
-          <Button
-            variant="outline"
-            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-            disabled={currentPage === totalPages}
-          >
-            Next
-          </Button>
+            </div>
+          ))}
         </div>
-      )}
+
+        {filteredWorkflows.length === 0 && !loading && (
+          <div className="text-center py-16">
+            <div className="glass rounded-2xl p-12 max-w-md mx-auto">
+              <Search className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-text-primary text-xl font-semibold mb-2">No workflows found</h3>
+              <p className="text-text-secondary mb-4">
+                {searchTerm ? `No workflows match "${searchTerm}"` : 'No workflows available'}
+              </p>
+              {searchTerm && (
+                <Button 
+                  variant="outline" 
+                  onClick={() => setSearchTerm('')}
+                  className="border-neon-primary/30 text-neon-primary hover:bg-neon-primary/10"
+                >
+                  Clear search
+                </Button>
+              )}
+            </div>
+          </div>
+        )}
+
+        {totalPages > 1 && (
+          <div className="flex justify-center items-center gap-4 mb-8">
+            <Button
+              variant="outline"
+              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className="border-neon-primary/30 text-neon-primary hover:bg-neon-primary/10"
+            >
+              Previous
+            </Button>
+            <div className="glass px-4 py-2 rounded-lg">
+              <span className="text-text-secondary">Page</span>
+              <span className="mx-2 text-neon-primary font-semibold">{currentPage}</span>
+              <span className="text-text-secondary">of {totalPages}</span>
+            </div>
+            <Button
+              variant="outline"
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
+              className="border-neon-primary/30 text-neon-primary hover:bg-neon-primary/10"
+            >
+              Next
+            </Button>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
