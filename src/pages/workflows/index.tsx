@@ -5,7 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Search, Download, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Search, Download, ChevronLeft, ChevronRight, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { listWorkflowsBasic } from '@/lib/workflows';
 
@@ -30,6 +31,7 @@ const WorkflowsPage: React.FC = () => {
   
   const [workflows, setWorkflows] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
   const [page, setPage] = useState(parseInt(searchParams.get('page') || '1'));
   const [total, setTotal] = useState(0);
@@ -41,13 +43,20 @@ const WorkflowsPage: React.FC = () => {
   // Load workflows
   const loadWorkflows = async (currentPage: number, search: string) => {
     setLoading(true);
+    setError(null);
     try {
       const result = await listWorkflowsBasic(currentPage, pageSize, search);
-      setWorkflows(result.items);
-      setTotal(result.total);
+      if (result.error) {
+        setError(result.error.message || 'Unknown error occurred');
+        setWorkflows([]);
+        setTotal(0);
+      } else {
+        setWorkflows(result.items);
+        setTotal(result.total);
+      }
     } catch (error) {
       console.error('Failed to load workflows:', error);
-      toast.error('Failed to load workflows');
+      setError(error instanceof Error ? error.message : 'Failed to load workflows');
       setWorkflows([]);
       setTotal(0);
     } finally {
@@ -128,8 +137,18 @@ const WorkflowsPage: React.FC = () => {
           </div>
         </div>
 
+        {/* Error Alert */}
+        {error && (
+          <Alert className="mb-6 border-red-500/20 bg-red-500/10">
+            <AlertCircle className="h-4 w-4 text-red-500" />
+            <AlertDescription className="text-red-500">
+              {error}
+            </AlertDescription>
+          </Alert>
+        )}
+
         {/* Stats */}
-        {!loading && (
+        {!loading && !error && (
           <div className="mb-6 text-text-mid">
             Showing {workflows.length} of {total} workflows
             {searchTerm && ` for "${searchTerm}"`}
