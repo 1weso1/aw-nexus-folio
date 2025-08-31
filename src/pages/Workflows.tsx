@@ -69,7 +69,7 @@ const Workflows = () => {
 
   const fetchWorkflows = async () => {
     try {
-      // First, get the total count
+      // First, get the total count to know how many batches we need
       const countResponse = await fetch(
         `https://ugjeubqwmgnqvohmrkyv.supabase.co/rest/v1/workflows?select=count`,
         {
@@ -81,24 +81,43 @@ const Workflows = () => {
         }
       );
 
-      // Now fetch all workflows without any limit
-      const response = await fetch(
-        `https://ugjeubqwmgnqvohmrkyv.supabase.co/rest/v1/workflows?select=id,name,category,node_count,has_credentials,raw_url,complexity&order=name.asc`,
-        {
-          headers: {
-            'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVnamV1YnF3bWducXZvaG1ya3l2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY0Nzc5NDEsImV4cCI6MjA3MjA1Mzk0MX0.esXYyxM-eQbKBXhG2NKrzLsdiveNo4lBsK_rlv_ebjo',
-            'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVnamV1YnF3bWducXZvaG1ya3l2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY0Nzc5NDEsImV4cCI6MjA3MjA1Mzk0MX0.esXYyxM-eQbKBXhG2NKrzLsdiveNo4lBsK_rlv_ebjo`,
-            'Range': '0-10000' // Explicitly request up to 10000 records
-          },
-        }
-      );
+      const countHeader = countResponse.headers.get('Content-Range');
+      const totalCount = countHeader ? parseInt(countHeader.split('/')[1]) : 2046;
+      console.log(`Total workflows in database: ${totalCount}`);
 
-      if (!response.ok) throw new Error('Failed to fetch workflows');
-      
-      const data = await response.json();
-      console.log(`Fetched ${data.length} workflows from Supabase`);
-      setWorkflows(data || []);
-      setFilteredWorkflows(data || []);
+      // Fetch workflows in batches of 1000 to overcome Supabase limits
+      const batchSize = 1000;
+      const batches = Math.ceil(totalCount / batchSize);
+      let allWorkflows: Workflow[] = [];
+
+      for (let i = 0; i < batches; i++) {
+        const start = i * batchSize;
+        const end = start + batchSize - 1;
+        
+        console.log(`Fetching batch ${i + 1}/${batches} (records ${start}-${end})`);
+        
+        const response = await fetch(
+          `https://ugjeubqwmgnqvohmrkyv.supabase.co/rest/v1/workflows?select=id,name,category,node_count,has_credentials,raw_url,complexity&order=name.asc`,
+          {
+            headers: {
+              'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVnamV1YnF3bWducXZvaG1ya3l2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY0Nzc5NDEsImV4cCI6MjA3MjA1Mzk0MX0.esXYyxM-eQbKBXhG2NKrzLsdiveNo4lBsK_rlv_ebjo',
+              'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVnamV1YnF3bWducXZvaG1ya3l2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY0Nzc5NDEsImV4cCI6MjA3MjA1Mzk0MX0.esXYyxM-eQbKBXhG2NKrzLsdiveNo4lBsK_rlv_ebjo`,
+              'Range': `${start}-${end}`
+            },
+          }
+        );
+
+        if (!response.ok) throw new Error(`Failed to fetch batch ${i + 1}`);
+        
+        const batchData = await response.json();
+        allWorkflows = [...allWorkflows, ...batchData];
+        
+        console.log(`Batch ${i + 1} complete. Total loaded: ${allWorkflows.length}`);
+      }
+
+      console.log(`Successfully loaded all ${allWorkflows.length} workflows from Supabase`);
+      setWorkflows(allWorkflows);
+      setFilteredWorkflows(allWorkflows);
     } catch (error) {
       console.error('Error fetching workflows:', error);
       toast({
