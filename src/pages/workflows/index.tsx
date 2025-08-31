@@ -1,511 +1,226 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { WorkflowCard } from '@/components/WorkflowCard';
-import { WorkflowEmptyState } from '@/components/WorkflowEmptyState';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useWorkflowSync } from '@/hooks/useWorkflowSync';
-import { 
-  Search, 
-  Filter, 
-  Download, 
-  BarChart3,
-  ChevronLeft,
-  ChevronRight,
-  RefreshCw,
-  X
-} from 'lucide-react';
+import { Search, Download, ChevronLeft, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
-import { 
-  listWorkflows, 
-  listWorkflowsByTags,
-  countWorkflowsByTags,
-  getCategories, 
-  getTags, 
-  getWorkflowStats 
-} from '@/lib/workflows';
-import { WORKFLOW_CATEGORIES, getCategoryById } from '@/config/workflowCategories';
-import { WorkflowItem, WorkflowStats, WorkflowComplexity } from '@/types/workflow';
-import { WorkflowSort } from '@/lib/workflows';
+import { listWorkflowsBasic } from '@/lib/workflows';
 
 // Skeleton component for loading state
 const WorkflowCardSkeleton: React.FC = () => (
-  <div className="space-y-3">
-    <Skeleton className="h-32 w-full" />
-    <div className="space-y-2">
-      <Skeleton className="h-4 w-3/4" />
+  <Card className="bg-bg-card border-text-mid/20">
+    <CardHeader>
+      <Skeleton className="h-6 w-3/4" />
       <Skeleton className="h-4 w-1/2" />
-    </div>
-  </div>
+    </CardHeader>
+    <CardContent>
+      <div className="space-y-2">
+        <Skeleton className="h-4 w-full" />
+        <Skeleton className="h-8 w-24" />
+      </div>
+    </CardContent>
+  </Card>
 );
 
-const WorkflowBrowser: React.FC = () => {
-  const navigate = useNavigate();
+const WorkflowsPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const { isSyncing, syncResult, triggerSync, checkAndAutoSync } = useWorkflowSync();
   
-  // Get category from URL params
-  const categoryId = searchParams.get('cat') || '';
-  const categoryConfig = getCategoryById(categoryId);
-  
-  const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
-  const [selectedCategories, setSelectedCategories] = useState<string[]>(
-    searchParams.get('categories')?.split(',').filter(Boolean) || []
-  );
-  const [selectedComplexity, setSelectedComplexity] = useState<WorkflowComplexity[]>(
-    (searchParams.get('complexity')?.split(',') as WorkflowComplexity[]) || []
-  );
-  const [requiresCredentials, setRequiresCredentials] = useState<boolean | undefined>(
-    searchParams.get('credentials') === 'true' ? true : 
-    searchParams.get('credentials') === 'false' ? false : undefined
-  );
-  const [sortBy, setSortBy] = useState<WorkflowSort>(
-    {
-      field: (searchParams.get('sortBy') as any) || 'name',
-      direction: (searchParams.get('sortDir') as 'asc' | 'desc') || 'asc'
-    }
-  );
-  
-  const [workflows, setWorkflows] = useState<WorkflowItem[]>([]);
-  const [categories, setCategories] = useState<string[]>([]);
-  const [tags, setTags] = useState<string[]>([]);
-  const [stats, setStats] = useState<WorkflowStats>({
-    totalWorkflows: 0,
-    totalCategories: 0,
-    totalIntegrations: 0,
-    averageSetupTime: 0
-  });
-  const [selectedWorkflows, setSelectedWorkflows] = useState<Set<string>>(new Set());
+  const [workflows, setWorkflows] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [workflowsLoading, setWorkflowsLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
   const [page, setPage] = useState(parseInt(searchParams.get('page') || '1'));
-  const [totalWorkflows, setTotalWorkflows] = useState(0);
-  const [hasMore, setHasMore] = useState(false);
+  const [total, setTotal] = useState(0);
+  const [searchDebounce, setSearchDebounce] = useState<NodeJS.Timeout | null>(null);
+  
   const pageSize = 24;
+  const totalPages = Math.ceil(total / pageSize);
 
-  // Auto-sync on first load
-  useEffect(() => {
-    const initializeData = async () => {
-      setLoading(true);
-      
-      try {
-        // Check if database is populated, auto-sync if empty
-        await checkAndAutoSync();
-        
-        const [categoriesData, tagsData, statsData] = await Promise.all([
-          getCategories(),
-          getTags(),
-          getWorkflowStats()
-        ]);
-        
-        setCategories(categoriesData);
-        setTags(tagsData);
-        setStats(statsData);
-      } catch (error) {
-        console.error('Failed to initialize data:', error);
-        toast.error('Failed to load workflow data');
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    initializeData();
-  }, [checkAndAutoSync]);
-
-  // Load workflows when filters change
-  useEffect(() => {
-    const loadWorkflows = async () => {
-      setWorkflowsLoading(true);
-      
-      try {
-        console.log('Loading workflows with:', { categoryConfig, searchTerm, page, pageSize });
-        let result;
-        
-        if (categoryConfig) {
-          console.log('Using category-aware query with tags:', categoryConfig.tagFilters);
-          // Use category-aware query
-          result = await listWorkflowsByTags({
-            tagFilters: categoryConfig.tagFilters,
-            search: searchTerm,
-            page,
-            pageSize
-          });
-        } else {
-          console.log('Using regular query');
-          // Use regular query
-          result = await listWorkflows({
-            query: searchTerm || undefined,
-            categories: selectedCategories,
-            complexity: selectedComplexity,
-            hasCredentials: requiresCredentials,
-            sort: sortBy,
-            page,
-            pageSize
-          });
-        }
-        
-        console.log('Workflows loaded:', result);
-        setWorkflows(result.data || []);
-        setTotalWorkflows(result.total || result.count || 0);
-        setHasMore(result.hasMore || (result.data?.length === pageSize));
-      } catch (error) {
-        console.error('Failed to load workflows:', error);
-        toast.error('Failed to load workflows');
-        setWorkflows([]);
-        setTotalWorkflows(0);
-        setHasMore(false);
-      } finally {
-        setWorkflowsLoading(false);
-      }
-    };
-    
-    // Only load workflows if not in initial loading state
-    if (!loading) {
-      loadWorkflows();
+  // Load workflows
+  const loadWorkflows = async (currentPage: number, search: string) => {
+    setLoading(true);
+    try {
+      const result = await listWorkflowsBasic(currentPage, pageSize, search);
+      setWorkflows(result.items);
+      setTotal(result.total);
+    } catch (error) {
+      console.error('Failed to load workflows:', error);
+      toast.error('Failed to load workflows');
+      setWorkflows([]);
+      setTotal(0);
+    } finally {
+      setLoading(false);
     }
-  }, [loading, searchTerm, selectedCategories, selectedComplexity, requiresCredentials, sortBy, page, categoryConfig]);
+  };
 
-  // Update URL parameters
+  // Load workflows on page/search change
+  useEffect(() => {
+    loadWorkflows(page, searchTerm);
+  }, [page]);
+
+  // Debounced search
+  useEffect(() => {
+    if (searchDebounce) {
+      clearTimeout(searchDebounce);
+    }
+    
+    const timeout = setTimeout(() => {
+      setPage(1); // Reset to first page on search
+      loadWorkflows(1, searchTerm);
+    }, 300);
+    
+    setSearchDebounce(timeout);
+    
+    return () => {
+      if (timeout) clearTimeout(timeout);
+    };
+  }, [searchTerm]);
+
+  // Update URL params
   useEffect(() => {
     const params = new URLSearchParams();
-    if (categoryId) params.set('cat', categoryId);
     if (searchTerm) params.set('search', searchTerm);
-    if (selectedCategories.length) params.set('categories', selectedCategories.join(','));
-    if (selectedComplexity.length) params.set('complexity', selectedComplexity.join(','));
-    if (requiresCredentials !== undefined) params.set('credentials', String(requiresCredentials));
-    if (sortBy.field !== 'name') params.set('sortBy', sortBy.field);
-    if (sortBy.direction !== 'asc') params.set('sortDir', sortBy.direction);
-    if (page > 1) params.set('page', String(page));
-    
+    if (page > 1) params.set('page', page.toString());
     setSearchParams(params);
-  }, [categoryId, searchTerm, selectedCategories, selectedComplexity, requiresCredentials, sortBy, page, setSearchParams]);
+  }, [searchTerm, page, setSearchParams]);
 
-  const clearFilters = () => {
-    setSearchTerm('');
-    setSelectedCategories([]);
-    setSelectedComplexity([]);
-    setRequiresCredentials(undefined);
-    setSortBy({ field: 'name', direction: 'asc' });
-    setPage(1);
-    // Navigate to main workflows page without category
-    navigate('/workflows');
+  const handlePrevPage = () => {
+    if (page > 1) setPage(page - 1);
   };
 
-  const handleBulkDownload = async () => {
-    if (selectedWorkflows.size === 0) {
-      toast.error('No workflows selected');
-      return;
-    }
-
-    try {
-      const selectedIds = Array.from(selectedWorkflows);
-
-      const response = await fetch('/api/workflows/zip', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          workflowIds: selectedIds
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to create ZIP file');
-      }
-
-      // Create download
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `n8n-workflows-${new Date().toISOString().split('T')[0]}.zip`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-
-      toast.success(`Downloaded ${selectedWorkflows.size} workflows as ZIP`);
-    } catch (error) {
-      console.error('Bulk download failed:', error);
-      toast.error('Failed to download workflows');
-    }
+  const handleNextPage = () => {
+    if (page < totalPages) setPage(page + 1);
   };
 
-  const toggleWorkflowSelection = (workflowId: string, selected: boolean) => {
-    const newSelected = new Set(selectedWorkflows);
-    if (selected) {
-      newSelected.add(workflowId);
-    } else {
-      newSelected.delete(workflowId);
-    }
-    setSelectedWorkflows(newSelected);
+  const handleDownload = (rawUrl: string, name: string) => {
+    const link = document.createElement('a');
+    link.href = rawUrl;
+    link.download = `${name}.json`;
+    link.target = '_blank';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
-
-  const handleWorkflowPreview = (slug: string) => {
-    navigate(`/workflows/${slug}`);
-  };
-
-  const toggleSelectAll = () => {
-    if (selectedWorkflows.size === workflows.length) {
-      setSelectedWorkflows(new Set());
-    } else {
-      setSelectedWorkflows(new Set(workflows.map(w => w.id)));
-    }
-  };
-
-  const isLoadingWorkflows = loading || workflowsLoading;
 
   return (
     <div className="min-h-screen bg-bg-hero text-text-high">
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-6 py-8">
         {/* Header */}
-        <div className="flex flex-col gap-4 mb-8">
-          {/* Category Pill */}
-          {categoryConfig && (
-            <div className="flex items-center gap-2 mb-4">
-              <Badge variant="outline" className="bg-brand-primary/10 text-brand-primary border-brand-primary/20 px-4 py-2">
-                {categoryConfig.label}
-              </Badge>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={clearFilters}
-                className="text-text-mid hover:text-text-high"
-              >
-                <X className="h-4 w-4 mr-1" />
-                Clear Filter
-              </Button>
-            </div>
-          )}
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold mb-4 text-text-high">
+            n8n Workflows
+          </h1>
+          <p className="text-text-mid mb-6">
+            Browse and download ready-to-use automation workflows
+          </p>
           
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-text-high">
-                {categoryConfig ? `${categoryConfig.label} Workflows` : 'n8n Workflow Library'}
-              </h1>
-              <p className="text-text-mid mt-2">
-                {categoryConfig 
-                  ? categoryConfig.description
-                  : 'Discover and download ready-to-use n8n workflows from the community'
-                }
-              </p>
-            </div>
-            <Button 
-              variant="outline" 
-              onClick={triggerSync} 
-              disabled={isSyncing}
-              className="flex items-center gap-2"
-            >
-              <RefreshCw className={`h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
-              {isSyncing ? 'Syncing...' : 'Sync Workflows'}
-            </Button>
-          </div>
-          
-          {/* Stats Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="bg-bg-card rounded-lg p-4 border border-border-subtle">
-              <div className="flex items-center gap-2">
-                <BarChart3 className="h-4 w-4 text-brand-primary" />
-                <div>
-                  <p className="text-sm font-semibold text-text-high">{stats.totalWorkflows.toLocaleString()}</p>
-                  <p className="text-xs text-text-mid">Workflows</p>
-                </div>
-              </div>
-            </div>
-            <div className="bg-bg-card rounded-lg p-4 border border-border-subtle">
-              <div className="flex items-center gap-2">
-                <Filter className="h-4 w-4 text-brand-primary" />
-                <div>
-                  <p className="text-sm font-semibold text-text-high">{stats.totalCategories}</p>
-                  <p className="text-xs text-text-mid">Categories</p>
-                </div>
-              </div>
-            </div>
-            <div className="bg-bg-card rounded-lg p-4 border border-border-subtle">
-              <div className="flex items-center gap-2">
-                <Filter className="h-4 w-4 text-brand-primary" />
-                <div>
-                  <p className="text-sm font-semibold text-text-high">{stats.totalIntegrations}</p>
-                  <p className="text-xs text-text-mid">Tags</p>
-                </div>
-              </div>
-            </div>
-            <div className="bg-bg-card rounded-lg p-4 border border-border-subtle">
-              <div className="flex items-center gap-2">
-                <Download className="h-4 w-4 text-brand-primary" />
-                <div>
-                  <p className="text-sm font-semibold text-text-high">{selectedWorkflows.size}</p>
-                  <p className="text-xs text-text-mid">Selected</p>
-                </div>
-              </div>
-            </div>
+          {/* Search */}
+          <div className="relative max-w-md">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-mid h-4 w-4" />
+            <Input
+              placeholder="Search workflows..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 bg-bg-card border-text-mid/20 text-text-high"
+            />
           </div>
         </div>
 
-        {/* Filters */}
-        <div className="bg-bg-card rounded-lg p-6 mb-6 border border-border-subtle">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-2.5 h-4 w-4 text-text-mid" />
-              <Input
-                placeholder="Search workflows..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-
-            <Select 
-              value={selectedCategories[0] || ''} 
-              onValueChange={(value) => setSelectedCategories(value ? [value] : [])}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="All Categories" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="">All Categories</SelectItem>
-                {categories.map(category => (
-                  <SelectItem key={category} value={category}>{category}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select 
-              value={selectedComplexity[0] || ''} 
-              onValueChange={(value) => setSelectedComplexity(value ? [value as WorkflowComplexity] : [])}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="All Complexity" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="">All Complexity</SelectItem>
-                <SelectItem value="Easy">Easy</SelectItem>
-                <SelectItem value="Medium">Medium</SelectItem>
-                <SelectItem value="Advanced">Advanced</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Select 
-              value={`${sortBy.field}_${sortBy.direction}`} 
-              onValueChange={(value) => {
-                const [field, dir] = value.split('_');
-                setSortBy({ field: field as any, direction: dir as any });
-              }}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="name_asc">Name A-Z</SelectItem>
-                <SelectItem value="name_desc">Name Z-A</SelectItem>
-                <SelectItem value="node_count_asc">Nodes (Low to High)</SelectItem>
-                <SelectItem value="node_count_desc">Nodes (High to Low)</SelectItem>
-                <SelectItem value="updated_at_desc">Recently Updated</SelectItem>
-              </SelectContent>
-            </Select>
+        {/* Stats */}
+        {!loading && (
+          <div className="mb-6 text-text-mid">
+            Showing {workflows.length} of {total} workflows
+            {searchTerm && ` for "${searchTerm}"`}
           </div>
-
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <p className="text-sm text-text-mid">
-                {totalWorkflows} workflows found
-              </p>
-              {(searchTerm || selectedCategories.length > 0 || selectedComplexity.length > 0) && (
-                <Button variant="ghost" onClick={clearFilters} size="sm">
-                  <X className="h-4 w-4 mr-1" />
-                  Clear Filters
-                </Button>
-              )}
-            </div>
-            
-            <div className="flex items-center gap-2">
-              {selectedWorkflows.size > 0 && (
-                <>
-                  <Button onClick={toggleSelectAll} variant="outline" size="sm">
-                    {selectedWorkflows.size === workflows.length ? 'Deselect All' : 'Select All'}
-                  </Button>
-                  <Button onClick={handleBulkDownload} variant="default" size="sm">
-                    <Download className="h-4 w-4 mr-2" />
-                    Download Selected ({selectedWorkflows.size})
-                  </Button>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
+        )}
 
         {/* Workflows Grid */}
-        {isLoadingWorkflows ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
             {Array.from({ length: pageSize }).map((_, index) => (
               <WorkflowCardSkeleton key={index} />
             ))}
           </div>
         ) : workflows.length === 0 ? (
-          <div className="py-8">
-            {stats.totalWorkflows === 0 ? (
-              <WorkflowEmptyState 
-                onSync={triggerSync}
-                isSyncing={isSyncing}
-                syncResult={syncResult}
-              />
-            ) : (
-              <div className="text-center py-12">
-                <div className="text-text-mid text-lg mb-4">
-                  {categoryConfig 
-                    ? `No workflows in ${categoryConfig.label}. Try clearing the filter or searching.`
-                    : 'No workflows found'
-                  }
-                </div>
-                <Button variant="outline" onClick={clearFilters}>
-                  <X className="h-4 w-4 mr-2" />
-                  {categoryConfig ? 'Clear Filter' : 'Clear Filters'}
-                </Button>
-              </div>
+          <div className="text-center py-12">
+            <p className="text-text-mid text-lg mb-4">
+              {searchTerm ? `No workflows found for "${searchTerm}"` : 'No workflows found'}
+            </p>
+            {searchTerm && (
+              <Button 
+                variant="outline" 
+                onClick={() => setSearchTerm('')}
+                className="border-text-mid/20 text-text-mid hover:bg-bg-card"
+              >
+                Clear search
+              </Button>
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
             {workflows.map((workflow) => (
-              <WorkflowCard
-                key={workflow.id}
-                workflow={workflow}
-                isSelected={selectedWorkflows.has(workflow.id)}
-                onSelect={toggleWorkflowSelection}
-                onPreview={handleWorkflowPreview}
-                showSelect={true}
-              />
+              <Card key={workflow.id} className="bg-bg-card border-text-mid/20 hover:border-brand-primary/50 transition-colors">
+                <CardHeader>
+                  <CardTitle className="text-text-high text-lg line-clamp-2">
+                    {workflow.name}
+                  </CardTitle>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary" className="text-xs">
+                      {workflow.category}
+                    </Badge>
+                    <span className="text-text-mid text-sm">
+                      {workflow.node_count} nodes
+                    </span>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex justify-between items-center">
+                    <span className="text-text-mid text-sm">
+                      Updated {new Date(workflow.updated_at).toLocaleDateString()}
+                    </span>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleDownload(workflow.raw_url, workflow.name)}
+                      className="border-brand-primary/50 text-brand-primary hover:bg-brand-primary/10"
+                    >
+                      <Download className="h-4 w-4 mr-1" />
+                      JSON
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
             ))}
           </div>
         )}
 
         {/* Pagination */}
-        {!isLoadingWorkflows && totalWorkflows > pageSize && (
-          <div className="flex justify-center items-center gap-4 mt-8">
+        {!loading && totalPages > 1 && (
+          <div className="flex justify-center items-center gap-4">
             <Button
               variant="outline"
-              onClick={() => setPage(p => Math.max(1, p - 1))}
+              onClick={handlePrevPage}
               disabled={page === 1}
+              className="border-text-mid/20 text-text-mid hover:bg-bg-card disabled:opacity-50"
             >
-              <ChevronLeft className="h-4 w-4 mr-2" />
+              <ChevronLeft className="h-4 w-4 mr-1" />
               Previous
             </Button>
             
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-text-mid">
-                Page {page} of {Math.ceil(totalWorkflows / pageSize)}
-              </span>
-            </div>
+            <span className="text-text-mid">
+              Page {page} of {totalPages}
+            </span>
             
             <Button
               variant="outline"
-              onClick={() => setPage(p => p + 1)}
-              disabled={!hasMore}
+              onClick={handleNextPage}
+              disabled={page === totalPages}
+              className="border-text-mid/20 text-text-mid hover:bg-bg-card disabled:opacity-50"
             >
               Next
-              <ChevronRight className="h-4 w-4 ml-2" />
+              <ChevronRight className="h-4 w-4 ml-1" />
             </Button>
           </div>
         )}
@@ -514,4 +229,4 @@ const WorkflowBrowser: React.FC = () => {
   );
 };
 
-export default WorkflowBrowser;
+export default WorkflowsPage;

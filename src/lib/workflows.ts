@@ -2,6 +2,30 @@ import { supabase } from "@/integrations/supabase/client";
 import { WorkflowManifest, WorkflowItem, N8nWorkflow, WorkflowStats, WorkflowComplexity } from "@/types/workflow";
 import { MANIFEST_URL } from "@/config/workflows";
 
+// Simple basic workflow fetching function
+export async function listWorkflowsBasic(page = 1, pageSize = 24, search = "") {
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
+  
+  let q = supabase
+    .from("workflows")
+    .select("*", { count: "exact" })
+    .order("updated_at", { ascending: false })
+    .range(from, to);
+    
+  if (search) {
+    q = q.ilike("name", `%${search}%`);
+  }
+  
+  const { data, error, count } = await q;
+  if (error) throw error;
+  
+  return { 
+    items: data ?? [], 
+    total: count ?? 0 
+  };
+}
+
 // Supabase-based workflow data layer with static fallback
 
 export interface WorkflowFilters {
