@@ -42,20 +42,30 @@ const WorkflowsPage: React.FC = () => {
 
   // Load workflows
   const loadWorkflows = async (currentPage: number, search: string) => {
+    console.log('loadWorkflows called:', { currentPage, search });
     setLoading(true);
     setError(null);
     try {
+      console.log('About to call listWorkflowsBasic...');
       const result = await listWorkflowsBasic(currentPage, pageSize, search);
+      console.log('listWorkflowsBasic returned:', { 
+        itemsLength: result.items.length, 
+        total: result.total, 
+        hasError: !!result.error 
+      });
+      
       if (result.error) {
+        console.error('Setting error:', result.error.message);
         setError(result.error.message || 'Unknown error occurred');
         setWorkflows([]);
         setTotal(0);
       } else {
+        console.log('Setting workflows:', result.items.slice(0, 2)); // Log first 2 items
         setWorkflows(result.items);
         setTotal(result.total);
       }
     } catch (error) {
-      console.error('Failed to load workflows:', error);
+      console.error('Failed to load workflows - caught exception:', error);
       setError(error instanceof Error ? error.message : 'Failed to load workflows');
       setWorkflows([]);
       setTotal(0);

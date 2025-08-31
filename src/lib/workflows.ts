@@ -7,6 +7,8 @@ export async function listWorkflowsBasic(page = 1, pageSize = 24, search = '') {
   const from = (page - 1) * pageSize;
   const to = from + pageSize - 1;
   
+  console.log('listWorkflowsBasic called:', { page, pageSize, search, from, to });
+  
   let q = supabase
     .from('workflows')
     .select('*', { count: 'exact' })
@@ -17,7 +19,15 @@ export async function listWorkflowsBasic(page = 1, pageSize = 24, search = '') {
     q = q.ilike('name', `%${search}%`);
   }
   
+  console.log('About to execute Supabase query...');
   const { data, error, count } = await q;
+  
+  console.log('Supabase query result:', { 
+    dataLength: data?.length || 0, 
+    count, 
+    error: error?.message || null,
+    firstItem: data?.[0] || null 
+  });
   
   if (error) console.error('Supabase query error:', error);
   
