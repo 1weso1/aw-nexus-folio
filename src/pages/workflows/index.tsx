@@ -80,6 +80,7 @@ const WorkflowBrowser: React.FC = () => {
   });
   const [selectedWorkflows, setSelectedWorkflows] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
+  const [workflowsLoading, setWorkflowsLoading] = useState(false);
   const [page, setPage] = useState(parseInt(searchParams.get('page') || '1'));
   const [totalWorkflows, setTotalWorkflows] = useState(0);
   const [hasMore, setHasMore] = useState(false);
@@ -117,12 +118,14 @@ const WorkflowBrowser: React.FC = () => {
   // Load workflows when filters change
   useEffect(() => {
     const loadWorkflows = async () => {
-      setLoading(true);
+      setWorkflowsLoading(true);
       
       try {
+        console.log('Loading workflows with:', { categoryConfig, searchTerm, page, pageSize });
         let result;
         
         if (categoryConfig) {
+          console.log('Using category-aware query with tags:', categoryConfig.tagFilters);
           // Use category-aware query
           result = await listWorkflowsByTags({
             tagFilters: categoryConfig.tagFilters,
@@ -131,6 +134,7 @@ const WorkflowBrowser: React.FC = () => {
             pageSize
           });
         } else {
+          console.log('Using regular query');
           // Use regular query
           result = await listWorkflows({
             query: searchTerm || undefined,
@@ -143,21 +147,26 @@ const WorkflowBrowser: React.FC = () => {
           });
         }
         
-        setWorkflows(result.data);
-        setTotalWorkflows(result.total);
-        setHasMore(result.hasMore);
+        console.log('Workflows loaded:', result);
+        setWorkflows(result.data || []);
+        setTotalWorkflows(result.total || result.count || 0);
+        setHasMore(result.hasMore || (result.data?.length === pageSize));
       } catch (error) {
         console.error('Failed to load workflows:', error);
         toast.error('Failed to load workflows');
+        setWorkflows([]);
+        setTotalWorkflows(0);
+        setHasMore(false);
       } finally {
-        setLoading(false);
+        setWorkflowsLoading(false);
       }
     };
     
+    // Only load workflows if not in initial loading state
     if (!loading) {
       loadWorkflows();
     }
-  }, [searchTerm, selectedCategories, selectedComplexity, requiresCredentials, sortBy, page, loading, categoryConfig]);
+  }, [loading, searchTerm, selectedCategories, selectedComplexity, requiresCredentials, sortBy, page, categoryConfig]);
 
   // Update URL parameters
   useEffect(() => {
@@ -245,6 +254,8 @@ const WorkflowBrowser: React.FC = () => {
       setSelectedWorkflows(new Set(workflows.map(w => w.id)));
     }
   };
+
+  const isLoadingWorkflows = loading || workflowsLoading;
 
   return (
     <div className="min-h-screen bg-bg-hero text-text-high">
@@ -426,7 +437,7 @@ const WorkflowBrowser: React.FC = () => {
         </div>
 
         {/* Workflows Grid */}
-        {loading ? (
+        {isLoadingWorkflows ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {Array.from({ length: pageSize }).map((_, index) => (
               <WorkflowCardSkeleton key={index} />
@@ -471,7 +482,7 @@ const WorkflowBrowser: React.FC = () => {
         )}
 
         {/* Pagination */}
-        {!loading && totalWorkflows > pageSize && (
+        {!isLoadingWorkflows && totalWorkflows > pageSize && (
           <div className="flex justify-center items-center gap-4 mt-8">
             <Button
               variant="outline"

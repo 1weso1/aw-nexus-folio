@@ -294,16 +294,20 @@ export type ListParams = {
 
 export async function listWorkflowsByTags({ page = 1, pageSize = 24, search = "", tagFilters = [] }: ListParams) {
   try {
+    console.log('listWorkflowsByTags called with:', { page, pageSize, search, tagFilters });
+    
     // 1) if category has tag filters, get tag ids
     let workflowIds: string[] | null = null;
 
     if (tagFilters.length) {
+      console.log('Fetching tag IDs for:', tagFilters);
       const { data: tagRows, error: tagErr } = await supabase
         .from("tags")
         .select("id,name")
         .in("name", tagFilters);
       if (tagErr) throw tagErr;
 
+      console.log('Found tags:', tagRows);
       const tagIds = (tagRows ?? []).map(t => t.id);
       if (tagIds.length) {
         const { data: wtRows, error: wtErr } = await supabase
@@ -313,7 +317,11 @@ export async function listWorkflowsByTags({ page = 1, pageSize = 24, search = ""
           .limit(10000); // plenty for category scopes
         if (wtErr) throw wtErr;
         workflowIds = [...new Set((wtRows ?? []).map(r => r.workflow_id))];
+        console.log('Found workflow IDs:', workflowIds.length);
         if (!workflowIds.length) workflowIds = ["00000000-0000-0000-0000-000000000000"]; // return empty
+      } else {
+        console.log('No matching tags found, returning empty result');
+        workflowIds = ["00000000-0000-0000-0000-000000000000"]; // return empty
       }
     }
 
