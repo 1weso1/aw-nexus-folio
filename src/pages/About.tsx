@@ -115,7 +115,7 @@ export default function About() {
 
             <div className="relative">
               <img 
-                src="/public/profile/ahmed.jpg" 
+                src="/lovable-uploads/2028e426-177f-4a9f-99e3-2745c2aada2b.png" 
                 alt="Ahmed Wesam"
                 className="w-56 h-56 rounded-full object-cover mx-auto border-4 border-neon-primary/20 shadow-2xl"
                 onError={(e) => {
