@@ -28,7 +28,41 @@
   <body>
     <div id="root"></div>
     <!-- n8n Demo Web Component -->
-    <script type="module" src="https://unpkg.com/@n8n/demo-webcomponent@latest/dist/n8n-demo.js"></script>
+    <script>
+      // Load n8n demo component and notify when ready
+      window.n8nComponentLoading = true;
+      window.n8nComponentReady = false;
+      
+      const script = document.createElement('script');
+      script.type = 'module';
+      script.src = 'https://unpkg.com/@n8n/demo-webcomponent@latest/dist/n8n-demo.js';
+      
+      script.onload = () => {
+        console.log('n8n demo script loaded');
+        // Wait for custom element to be defined
+        const checkElement = () => {
+          if (customElements.get('n8n-demo')) {
+            console.log('n8n-demo component registered');
+            window.n8nComponentReady = true;
+            window.n8nComponentLoading = false;
+            // Dispatch event for React components to listen
+            window.dispatchEvent(new CustomEvent('n8n-component-ready'));
+          } else {
+            setTimeout(checkElement, 100);
+          }
+        };
+        checkElement();
+      };
+      
+      script.onerror = () => {
+        console.error('Failed to load n8n demo component');
+        window.n8nComponentReady = false;
+        window.n8nComponentLoading = false;
+        window.dispatchEvent(new CustomEvent('n8n-component-error'));
+      };
+      
+      document.head.appendChild(script);
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

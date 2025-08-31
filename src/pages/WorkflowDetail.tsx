@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Download, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 
-// Declare the n8n-demo custom element
+// Declare the n8n-demo custom element and window properties
 declare global {
   namespace JSX {
     interface IntrinsicElements {
@@ -19,6 +19,11 @@ declare global {
         style?: React.CSSProperties;
       };
     }
+  }
+  
+  interface Window {
+    n8nComponentReady?: boolean;
+    n8nComponentLoading?: boolean;
   }
 }
 
@@ -61,14 +66,37 @@ const WorkflowDetail = () => {
       const isLoaded = customElements.get('n8n-demo') !== undefined;
       console.log('n8n-demo component loaded:', isLoaded);
       setComponentLoaded(isLoaded);
-      
-      if (!isLoaded) {
-        // Try again after a short delay
-        setTimeout(checkComponent, 1000);
-      }
     };
     
+    // Check if already loaded
+    if (window.n8nComponentReady) {
+      setComponentLoaded(true);
+      return;
+    }
+    
+    // Listen for component ready event
+    const handleComponentReady = () => {
+      console.log('n8n component ready event received');
+      setComponentLoaded(true);
+    };
+    
+    const handleComponentError = () => {
+      console.error('n8n component failed to load');
+      setComponentError('Failed to load n8n preview component');
+      setComponentLoaded(false);
+    };
+    
+    window.addEventListener('n8n-component-ready', handleComponentReady);
+    window.addEventListener('n8n-component-error', handleComponentError);
+    
+    // Initial check
     checkComponent();
+    
+    // Cleanup
+    return () => {
+      window.removeEventListener('n8n-component-ready', handleComponentReady);
+      window.removeEventListener('n8n-component-error', handleComponentError);
+    };
   }, []);
 
   useEffect(() => {
