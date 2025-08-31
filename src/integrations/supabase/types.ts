@@ -14,13 +14,195 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      booking_requests: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          name: string
+          notes: string | null
+          window_text: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          name: string
+          notes?: string | null
+          window_text: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+          notes?: string | null
+          window_text?: string
+        }
+        Relationships: []
+      }
+      contact_messages: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          message: string
+          name: string
+          subject: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          message: string
+          name: string
+          subject: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          message?: string
+          name?: string
+          subject?: string
+        }
+        Relationships: []
+      }
+      subscribers: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          status?: string
+        }
+        Relationships: []
+      }
+      tags: {
+        Row: {
+          id: number
+          name: string
+        }
+        Insert: {
+          id?: number
+          name: string
+        }
+        Update: {
+          id?: number
+          name?: string
+        }
+        Relationships: []
+      }
+      workflow_tags: {
+        Row: {
+          tag_id: number
+          workflow_id: string
+        }
+        Insert: {
+          tag_id: number
+          workflow_id: string
+        }
+        Update: {
+          tag_id?: number
+          workflow_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workflow_tags_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "tags"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workflow_tags_workflow_id_fkey"
+            columns: ["workflow_id"]
+            isOneToOne: false
+            referencedRelation: "workflows"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workflows: {
+        Row: {
+          category: string | null
+          complexity: string | null
+          created_at: string | null
+          has_credentials: boolean | null
+          id: string
+          name: string
+          node_count: number | null
+          path: string
+          raw_url: string
+          search_tsv: unknown | null
+          size_bytes: number | null
+          slug: string
+          updated_at: string | null
+        }
+        Insert: {
+          category?: string | null
+          complexity?: string | null
+          created_at?: string | null
+          has_credentials?: boolean | null
+          id?: string
+          name: string
+          node_count?: number | null
+          path: string
+          raw_url: string
+          search_tsv?: unknown | null
+          size_bytes?: number | null
+          slug: string
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string | null
+          complexity?: string | null
+          created_at?: string | null
+          has_credentials?: boolean | null
+          id?: string
+          name?: string
+          node_count?: number | null
+          path?: string
+          raw_url?: string
+          search_tsv?: unknown | null
+          size_bytes?: number | null
+          slug?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      upsert_workflow: {
+        Args: {
+          p_category: string
+          p_complexity: string
+          p_has_credentials: boolean
+          p_name: string
+          p_node_count: number
+          p_path: string
+          p_raw_url: string
+          p_size: number
+          p_slug: string
+          p_tags: string[]
+          p_updated: string
+        }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never

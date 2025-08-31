@@ -93,8 +93,8 @@ export default function Home() {
               </Link>
             </Button>
             <Button asChild variant="glass" size="xl">
-              <Link to="/contact">
-                Contact Me
+              <Link to="/book">
+                Book a Call
               </Link>
             </Button>
           </div>

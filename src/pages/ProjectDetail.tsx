@@ -275,7 +275,7 @@ export default function ProjectDetail() {
             )}
 
             {/* Gallery */}
-            {project.gallery.length > 0 && (
+            {project.gallery.length >= 3 && (
               <section>
                 <h2 className="section-heading">Gallery</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -285,6 +285,10 @@ export default function ProjectDetail() {
                         src={image} 
                         alt={`${project.title} - Image ${index + 1}`}
                         className="w-full h-64 object-cover hover:scale-105 transition-transform duration-300"
+                        onError={(e) => {
+                          // Hide image if it fails to load
+                          e.currentTarget.style.display = 'none';
+                        }}
                       />
                     </div>
                   ))}

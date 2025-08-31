@@ -98,26 +98,41 @@ export default function About() {
               </div>
 
               <div className="flex flex-wrap gap-4">
-                <Button variant="hero" size="lg">
-                  <Download className="h-4 w-4" />
-                  Download CV
+                <Button asChild variant="hero" size="lg">
+                  <a href="/cv">
+                    <Download className="h-4 w-4" />
+                    Download CV
+                  </a>
                 </Button>
-                <Button variant="neon" size="lg">
-                  <Mail className="h-4 w-4" />
-                  Get In Touch
+                <Button asChild variant="neon" size="lg">
+                  <a href="/contact">
+                    <Mail className="h-4 w-4" />
+                    Get In Touch
+                  </a>
                 </Button>
               </div>
             </div>
 
             <div className="relative">
-              <div className="glass rounded-3xl p-8 text-center">
-                <div className="w-32 h-32 mx-auto mb-6 rounded-2xl bg-gradient-surface border border-neon-primary/20 flex items-center justify-center">
-                  <span className="text-4xl font-sora font-bold neon-text">AW</span>
-                </div>
-                <h3 className="text-xl font-sora font-semibold text-text-primary mb-2">Ahmed Wesam</h3>
-                <p className="body-large">CRM & Recruitment Specialist</p>
-                <p className="text-neon-primary font-medium">The British University in Egypt</p>
-              </div>
+              <img 
+                src="/public/profile/ahmed.jpg" 
+                alt="Ahmed Wesam"
+                className="w-56 h-56 rounded-full object-cover mx-auto border-4 border-neon-primary/20 shadow-2xl"
+                onError={(e) => {
+                  // Show placeholder silhouette if image fails to load
+                  e.currentTarget.style.display = 'none';
+                  const parent = e.currentTarget.parentElement;
+                  if (parent) {
+                    parent.innerHTML = `
+                      <div class="w-56 h-56 rounded-full bg-gradient-surface border-4 border-neon-primary/20 flex items-center justify-center mx-auto shadow-2xl">
+                        <svg class="w-32 h-32 text-text-secondary" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                        </svg>
+                      </div>
+                    `;
+                  }
+                }}
+              />
             </div>
           </div>
         </section>

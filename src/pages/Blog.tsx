@@ -11,7 +11,8 @@ const blogPosts = [
     readTime: "8 min read",
     tags: ["Leadership", "Business Planning", "Stakeholder Management"],
     slug: "student-cafe-board-approval",
-    featured: true
+    featured: true,
+    body: "Lorem ipsum..."
   },
   {
     title: "Founding a university club from scratch: a practical playbook",
@@ -20,53 +21,20 @@ const blogPosts = [
     readTime: "12 min read", 
     tags: ["Leadership", "Community Building", "Sports"],
     slug: "founding-university-club-playbook",
-    featured: true
-  },
-  {
-    title: "Why I pivoted from Political Science to people+tech work",
-    excerpt: "My journey from political science theory to CRM and automation. How student leadership experiences revealed my passion for systematic people impact.",
-    date: "2024-11-28",
-    readTime: "6 min read",
-    tags: ["Career", "Personal Story", "CRM"],
-    slug: "political-science-to-people-tech-pivot",
-    featured: false
-  },
-  {
-    title: "First steps in CRM automation for higher-ed recruitment",
-    excerpt: "Practical lessons from implementing HubSpot workflows at BUE. What works, what doesn't, and how to maintain the human touch in automated outreach.",
-    date: "2024-11-10",
-    readTime: "10 min read",
-    tags: ["CRM", "Automation", "Higher Education", "HubSpot"],
-    slug: "crm-automation-higher-ed-recruitment",
-    featured: false
-  },
-  {
-    title: "Building authentic partnerships: Lessons from Cairo Runners collaboration",
-    excerpt: "How Move Sports Club partnered with Cairo Runners and what I learned about creating win-win community collaborations that actually sustain.",
-    date: "2024-10-15",
-    readTime: "7 min read",
-    tags: ["Partnership", "Community", "Sports", "Collaboration"],
-    slug: "authentic-partnerships-cairo-runners",
-    featured: false
-  },
-  {
-    title: "The art of systematic people impact: CRM beyond the numbers",
-    excerpt: "Why the best CRM systems enhance human connections rather than replace them. Principles for building automation that feels personal and authentic.",
-    date: "2024-09-22",
-    readTime: "9 min read",
-    tags: ["CRM", "Philosophy", "Automation", "Human Connection"],
-    slug: "systematic-people-impact-crm-beyond-numbers",
-    featured: false
+    featured: true,
+    body: "Lorem ipsum..."
   }
 ];
 
-const allTags = Array.from(new Set(blogPosts.flatMap(post => post.tags)));
+const publishedPosts = blogPosts.filter(post => post.body && post.body.length > 0);
+
+const allTags = Array.from(new Set(publishedPosts.flatMap(post => post.tags)));
 
 export default function Blog() {
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const filteredPosts = blogPosts.filter(post => {
+  const filteredPosts = publishedPosts.filter(post => {
     const matchesTag = !selectedTag || post.tags.includes(selectedTag);
     const matchesSearch = !searchQuery || 
       post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -246,24 +214,32 @@ export default function Blog() {
           </section>
         )}
 
-        {/* No Results */}
-        {filteredPosts.length === 0 && (
+        {/* No Posts / Coming Soon */}
+        {publishedPosts.length === 0 ? (
           <section className="py-16 text-center">
             <div className="glass rounded-2xl p-12">
-              <Search className="h-12 w-12 text-text-secondary mx-auto mb-4" />
-              <h3 className="text-xl font-sora font-semibold text-text-primary mb-2">No posts found</h3>
-              <p className="body-large mb-6">Try adjusting your search or removing filters</p>
-              <Button 
-                variant="neon" 
-                onClick={() => {
-                  setSearchQuery("");
-                  setSelectedTag(null);
-                }}
-              >
-                Clear Filters
-              </Button>
+              <h3 className="text-2xl font-sora font-semibold text-text-primary mb-4">Posts coming soon—subscribe for updates</h3>
+              <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
+                <input
+                  type="email"
+                  placeholder="your@email.com"
+                  className="flex-1 px-4 py-3 glass rounded-lg text-text-primary placeholder-text-secondary focus:outline-none focus:border-neon-primary/50"
+                />
+                <Button variant="hero">Subscribe</Button>
+              </div>
             </div>
           </section>
+        ) : (
+          <>
+            {filteredPosts.length === 0 && (
+              <section className="py-16 text-center">
+                <div className="glass rounded-2xl p-12">
+                  <h3 className="text-xl font-sora font-semibold text-text-primary mb-2">No posts found</h3>
+                  <Button variant="neon" onClick={() => { setSearchQuery(""); setSelectedTag(null); }}>Clear Filters</Button>
+                </div>
+              </section>
+            )}
+          </>
         )}
 
         {/* Newsletter Signup */}

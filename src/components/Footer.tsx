@@ -1,5 +1,6 @@
 import { Mail, Linkedin, Instagram } from "lucide-react";
 import { Link } from "react-router-dom";
+import { NewsletterForm } from "./NewsletterForm";
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
@@ -45,49 +46,55 @@ export function Footer() {
             </nav>
           </div>
 
-          {/* Contact & Social */}
+          {/* Newsletter */}
           <div className="space-y-4">
-            <h3 className="font-sora font-semibold text-text-primary">Connect</h3>
-            <div className="flex flex-col space-y-3">
-              <a
-                href="mailto:contact@ahmedwesam.com"
-                className="flex items-center text-text-secondary hover:text-neon-primary transition-colors duration-300"
-              >
-                <Mail className="h-4 w-4 mr-2" />
-                contact@ahmedwesam.com
-              </a>
-              <a
-                href="https://www.linkedin.com/in/ahmed-wesam-3b57bb1b1?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=ios_app"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center text-text-secondary hover:text-neon-primary transition-colors duration-300"
-              >
-                <Linkedin className="h-4 w-4 mr-2" />
-                LinkedIn
-              </a>
-              <a
-                href="https://www.instagram.com/movebue?igsh=d2ppOWFnNHM1cmdi"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center text-text-secondary hover:text-neon-primary transition-colors duration-300"
-              >
-                <Instagram className="h-4 w-4 mr-2" />
-                Move Instagram
-              </a>
-              <a
-                href="https://www.instagram.com/buerotaract?igsh=dTJ0emh5eXRsNzM5"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center text-text-secondary hover:text-neon-primary transition-colors duration-300"
-              >
-                <Instagram className="h-4 w-4 mr-2" />
-                Rotaract Instagram
-              </a>
-            </div>
+            <h3 className="font-sora font-semibold text-text-primary">Newsletter</h3>
+            <p className="body-large text-sm">Subscribe for updates on projects and insights</p>
+            <NewsletterForm />
           </div>
         </div>
 
-        <div className="border-t border-neon-primary/10 mt-8 pt-8 text-center">
+        {/* Contact & Social */}
+        <div className="mt-8 pt-6 border-t border-neon-primary/10">
+          <div className="flex flex-wrap justify-center gap-6 text-sm">
+            <a
+              href="mailto:contact@ahmedwesam.com"
+              className="flex items-center text-text-secondary hover:text-neon-primary transition-colors duration-300"
+            >
+              <Mail className="h-4 w-4 mr-2" />
+              contact@ahmedwesam.com
+            </a>
+            <a
+              href="https://www.linkedin.com/in/ahmed-wesam-3b57bb1b1?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=ios_app"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center text-text-secondary hover:text-neon-primary transition-colors duration-300"
+            >
+              <Linkedin className="h-4 w-4 mr-2" />
+              LinkedIn
+            </a>
+            <a
+              href="https://www.instagram.com/movebue?igsh=d2ppOWFnNHM1cmdi"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center text-text-secondary hover:text-neon-primary transition-colors duration-300"
+            >
+              <Instagram className="h-4 w-4 mr-2" />
+              Move Instagram
+            </a>
+            <a
+              href="https://www.instagram.com/buerotaract?igsh=dTJ0emh5eXRsNzM5"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center text-text-secondary hover:text-neon-primary transition-colors duration-300"
+            >
+              <Instagram className="h-4 w-4 mr-2" />
+              Rotaract Instagram
+            </a>
+          </div>
+        </div>
+
+        <div className="border-t border-neon-primary/10 mt-6 pt-6 text-center">
           <p className="text-text-secondary">
             © {currentYear} Ahmed Wesam. All rights reserved.
           </p>

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, Sun, Moon } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const navigation = [
@@ -14,13 +14,7 @@ const navigation = [
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
-  const [isDark, setIsDark] = useState(true);
   const location = useLocation();
-
-  const toggleTheme = () => {
-    setIsDark(!isDark);
-    document.documentElement.classList.toggle("dark", !isDark);
-  };
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 nav-blur">
@@ -55,28 +49,16 @@ export function Navbar() {
             </div>
           </div>
 
-          {/* Theme Toggle & Mobile Menu Button */}
-          <div className="flex items-center space-x-4">
+          {/* Mobile Menu Button */}
+          <div className="md:hidden">
             <Button
               variant="ghost"
               size="sm"
-              onClick={toggleTheme}
+              onClick={() => setIsOpen(!isOpen)}
               className="p-2 text-text-secondary hover:text-neon-primary"
             >
-              {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+              {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </Button>
-
-            {/* Mobile menu button */}
-            <div className="md:hidden">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setIsOpen(!isOpen)}
-                className="p-2 text-text-secondary hover:text-neon-primary"
-              >
-                {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-              </Button>
-            </div>
           </div>
         </div>
 
