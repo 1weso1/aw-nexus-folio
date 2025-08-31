@@ -215,14 +215,28 @@ const N8nNodeComponent: React.FC<{ data: any; selected?: boolean }> = ({ data, s
       <Handle
         type="target"
         position={Position.Left}
-        className="w-3 h-3 border-2 border-gray-600 bg-gray-800 hover:border-blue-400 hover:bg-blue-400 transition-colors"
-        style={{ left: -6 }}
+        id="input"
+        className="!w-2 !h-2 !border-2 !border-gray-500 !bg-gray-700 hover:!border-blue-400 hover:!bg-blue-400 transition-colors"
+        style={{ 
+          left: -4, 
+          top: '50%',
+          transform: 'translateY(-50%)',
+          borderRadius: '50%',
+          zIndex: 10
+        }}
       />
       <Handle
         type="source"
         position={Position.Right}
-        className="w-3 h-3 border-2 border-gray-600 bg-gray-800 hover:border-blue-400 hover:bg-blue-400 transition-colors"
-        style={{ right: -6 }}
+        id="output"
+        className="!w-2 !h-2 !border-2 !border-gray-500 !bg-gray-700 hover:!border-blue-400 hover:!bg-blue-400 transition-colors"
+        style={{ 
+          right: -4, 
+          top: '50%',
+          transform: 'translateY(-50%)',
+          borderRadius: '50%',
+          zIndex: 10
+        }}
       />
       
       {/* Hover glow effect */}
@@ -339,6 +353,15 @@ const N8nPreviewContent: React.FC<N8nPreviewProps> = ({ workflow, className, hei
       };
     });
 
+    // Create a map for node name to ID lookup
+    const nodeNameToId = new Map();
+    flowNodes.forEach(node => {
+      nodeNameToId.set(node.data.name, node.id);
+    });
+
+    console.log('Node name to ID mapping:', Object.fromEntries(nodeNameToId));
+    console.log('Workflow connections:', workflow.connections);
+
   // Convert n8n connections to React Flow edges
   const flowEdges: Edge[] = [];
   const edgeMap = new Map(); // For deduplication
@@ -352,64 +375,77 @@ const N8nPreviewContent: React.FC<N8nPreviewProps> = ({ workflow, className, hei
               if (Array.isArray(targets)) {
                 targets.forEach((target: any, targetIndex: number) => {
                   if (target?.node && target.node !== sourceNodeName) { // Ignore self-loops
-                    const edgeKey = `${sourceNodeName}-${target.node}-${outputName}`;
-                    
-                    // Skip duplicates
-                    if (edgeMap.has(edgeKey)) return;
-                    edgeMap.set(edgeKey, true);
-                    
-                    const isDefaultOutput = outputName === 'main' && groupIndex === 0;
-                    const edgeId = `${sourceNodeName}-${target.node}-${outputName}-${groupIndex}-${targetIndex}`;
-                    
-                    // Determine edge color based on output type
-                    let edgeColor = '#6b7280'; // Default steel/gray
-                    if (outputName === 'true') {
-                      edgeColor = '#10b981'; // Green for true
-                    } else if (outputName === 'false') {
-                      edgeColor = '#ef4444'; // Red for false
-                    } else if (!isDefaultOutput) {
-                      edgeColor = '#8b5cf6'; // Muted accent for other outputs
-                    }
-                    
-                    // Create edge with bundled routing offset
-                    const edgeOffset = Math.min(groupIndex * 8, 32); // Max 32px offset
-                    
-                    flowEdges.push({
-                      id: edgeId,
-                      source: sourceNodeName,
-                      target: target.node,
-                      type: 'smoothstep',
-                      animated: false,
-                      label: !isDefaultOutput ? outputName : undefined,
-                      data: {
-                        outputName,
-                        isDefault: isDefaultOutput,
-                        offset: edgeOffset,
-                      },
-                      style: { 
-                        stroke: edgeColor,
-                        strokeWidth: 2,
-                        filter: 'drop-shadow(0 1px 3px rgba(0, 0, 0, 0.12))',
-                        zIndex: 1,
-                      },
-                      markerEnd: {
-                        type: 'arrowclosed',
-                        color: edgeColor,
-                        width: 16,
-                        height: 16,
-                      },
-                      labelStyle: {
-                        fill: isDarkTheme ? '#e5e7eb' : '#374151',
-                        fontSize: 10,
-                        fontWeight: 500,
-                      },
-                      labelBgStyle: {
-                        fill: isDarkTheme ? '#1f2937' : '#ffffff',
-                        fillOpacity: 0.9,
-                      },
-                      labelBgPadding: [4, 8],
-                      labelBgBorderRadius: 8,
-                    });
+                     // Get the correct node IDs
+                     const sourceNodeId = nodeNameToId.get(sourceNodeName);
+                     const targetNodeId = nodeNameToId.get(target.node);
+                     
+                     if (!sourceNodeId || !targetNodeId) {
+                       console.warn(`Missing node ID for edge: ${sourceNodeName} -> ${target.node}`);
+                       return;
+                     }
+                     
+                     const edgeKey = `${sourceNodeId}-${targetNodeId}-${outputName}`;
+                     
+                     // Skip duplicates
+                     if (edgeMap.has(edgeKey)) return;
+                     edgeMap.set(edgeKey, true);
+                     
+                     const isDefaultOutput = outputName === 'main' && groupIndex === 0;
+                     const edgeId = `${sourceNodeId}-${targetNodeId}-${outputName}-${groupIndex}-${targetIndex}`;
+                     
+                     // Determine edge color based on output type
+                     let edgeColor = '#6b7280'; // Default steel/gray
+                     if (outputName === 'true') {
+                       edgeColor = '#10b981'; // Green for true
+                     } else if (outputName === 'false') {
+                       edgeColor = '#ef4444'; // Red for false
+                     } else if (!isDefaultOutput) {
+                       edgeColor = '#8b5cf6'; // Muted accent for other outputs
+                     }
+                     
+                     // Create edge with bundled routing offset
+                     const edgeOffset = Math.min(groupIndex * 8, 32); // Max 32px offset
+                     
+                     console.log(`Creating edge: ${sourceNodeId} -> ${targetNodeId} (${outputName})`);
+                     
+                     flowEdges.push({
+                       id: edgeId,
+                       source: sourceNodeId,
+                       target: targetNodeId,
+                       sourceHandle: 'output',
+                       targetHandle: 'input',
+                       type: 'smoothstep',
+                       animated: false,
+                       label: !isDefaultOutput ? outputName : undefined,
+                       data: {
+                         outputName,
+                         isDefault: isDefaultOutput,
+                         offset: edgeOffset,
+                       },
+                       style: { 
+                         stroke: edgeColor,
+                         strokeWidth: 2,
+                         filter: 'drop-shadow(0 1px 3px rgba(0, 0, 0, 0.12))',
+                         zIndex: 1,
+                       },
+                       markerEnd: {
+                         type: 'arrowclosed',
+                         color: edgeColor,
+                         width: 16,
+                         height: 16,
+                       },
+                       labelStyle: {
+                         fill: isDarkTheme ? '#e5e7eb' : '#374151',
+                         fontSize: 10,
+                         fontWeight: 500,
+                       },
+                       labelBgStyle: {
+                         fill: isDarkTheme ? '#1f2937' : '#ffffff',
+                         fillOpacity: 0.9,
+                       },
+                       labelBgPadding: [4, 8],
+                       labelBgBorderRadius: 8,
+                     });
                   }
                 });
               }
