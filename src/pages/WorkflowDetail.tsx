@@ -5,27 +5,9 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Download, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
+import N8nPreview from "@/components/N8nPreview";
 
-// Declare the n8n-demo custom element and window properties
-declare global {
-  namespace JSX {
-    interface IntrinsicElements {
-      'n8n-demo': {
-        workflow?: string;
-        frame?: string;
-        clicktointeract?: string;
-        disableinteractivity?: string;
-        theme?: string;
-        style?: React.CSSProperties;
-      };
-    }
-  }
-  
-  interface Window {
-    n8nComponentReady?: boolean;
-    n8nComponentLoading?: boolean;
-  }
-}
+// Remove old n8n-demo declarations as we're using React Flow now
 
 interface Workflow {
   id: string;
@@ -57,47 +39,9 @@ const WorkflowDetail = () => {
   const [workflowData, setWorkflowData] = useState<WorkflowData | null>(null);
   const [loading, setLoading] = useState(true);
   const [dataLoading, setDataLoading] = useState(false);
-  const [componentError, setComponentError] = useState<string | null>(null);
-  const [componentLoaded, setComponentLoaded] = useState(false);
+  const [previewError, setPreviewError] = useState<string | null>(null);
 
-  // Check if n8n-demo component is loaded
-  useEffect(() => {
-    const checkComponent = () => {
-      const isLoaded = customElements.get('n8n-demo') !== undefined;
-      console.log('n8n-demo component loaded:', isLoaded);
-      setComponentLoaded(isLoaded);
-    };
-    
-    // Check if already loaded
-    if (window.n8nComponentReady) {
-      setComponentLoaded(true);
-      return;
-    }
-    
-    // Listen for component ready event
-    const handleComponentReady = () => {
-      console.log('n8n component ready event received');
-      setComponentLoaded(true);
-    };
-    
-    const handleComponentError = () => {
-      console.error('n8n component failed to load');
-      setComponentError('Failed to load n8n preview component');
-      setComponentLoaded(false);
-    };
-    
-    window.addEventListener('n8n-component-ready', handleComponentReady);
-    window.addEventListener('n8n-component-error', handleComponentError);
-    
-    // Initial check
-    checkComponent();
-    
-    // Cleanup
-    return () => {
-      window.removeEventListener('n8n-component-ready', handleComponentReady);
-      window.removeEventListener('n8n-component-error', handleComponentError);
-    };
-  }, []);
+  // Remove old n8n-demo component loading logic
 
   useEffect(() => {
     if (!id) return;
@@ -137,7 +81,7 @@ const WorkflowDetail = () => {
         if (workflowInfo.raw_url) {
           console.log('Fetching workflow JSON from:', workflowInfo.raw_url);
           setDataLoading(true);
-          setComponentError(null);
+          setPreviewError(null);
           
           try {
             const workflowResponse = await fetch(workflowInfo.raw_url);
@@ -160,18 +104,18 @@ const WorkflowDetail = () => {
             }
           } catch (error) {
             console.error('Error fetching workflow data:', error);
-            setComponentError(error instanceof Error ? error.message : 'Unknown error occurred');
+            setPreviewError(error instanceof Error ? error.message : 'Unknown error occurred');
             toast.error("Failed to load workflow preview");
           } finally {
             setDataLoading(false);
           }
         } else {
           console.warn('No raw_url provided for workflow');
-          setComponentError('No workflow data URL available');
+          setPreviewError('No workflow data URL available');
         }
       } catch (error) {
         console.error('Error:', error);
-        setComponentError(error instanceof Error ? error.message : 'Failed to load workflow');
+        setPreviewError(error instanceof Error ? error.message : 'Failed to load workflow');
         toast.error("Failed to load workflow");
       } finally {
         setLoading(false);
@@ -338,108 +282,53 @@ const WorkflowDetail = () => {
             </div>
           </div>
           
-          {workflowData && componentLoaded ? (
-            <div className="bg-card-bg rounded-lg border border-brand-primary/10 overflow-hidden">
-              <n8n-demo 
-                workflow={JSON.stringify(workflowData)}
-                frame="true"
-                clicktointeract="true"
-                disableinteractivity="false"
-                theme="dark"
-                style={{
-                  width: '100%',
-                  minHeight: '600px',
-                  height: '70vh',
-                  border: 'none'
-                }}
-              />
+          {workflowData ? (
+            <N8nPreview workflow={workflowData} height="600px" />
+          ) : dataLoading ? (
+            <div className="bg-card rounded-lg border border-brand-primary/20 p-12 text-center" style={{ height: '600px' }}>
+              <div className="animate-pulse">
+                <div className="text-text-mid mb-4">Loading workflow preview...</div>
+                <div className="h-64 bg-muted rounded mx-auto max-w-md"></div>
+              </div>
             </div>
-          ) : workflowData && !componentLoaded ? (
-            // Fallback: Simple workflow visualization when n8n-demo fails to load
-            <div className="bg-card-bg rounded-lg border border-brand-primary/10 p-8">
-              <div className="text-center mb-6">
-                <h3 className="text-lg font-medium text-text-high mb-2">Workflow Structure</h3>
-                <p className="text-sm text-text-mid">Interactive preview unavailable - showing basic structure</p>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-96 overflow-y-auto">
-                {workflowData.nodes?.map((node: any, index: number) => (
-                  <div 
-                    key={node.id || index} 
-                    className="bg-bg-hero/50 rounded-lg p-4 border border-brand-primary/20"
-                  >
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className="w-3 h-3 rounded-full bg-brand-primary"></div>
-                      <span className="font-medium text-text-high text-sm">
-                        {node.name || `Node ${index + 1}`}
-                      </span>
-                    </div>
-                    <div className="text-xs text-text-mid">
-                      Type: {node.type?.replace('n8n-nodes-base.', '') || 'Unknown'}
-                    </div>
-                    {node.position && (
-                      <div className="text-xs text-text-mid mt-1">
-                        Position: ({node.position[0]}, {node.position[1]})
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-              
-              <div className="mt-6 text-center">
-                <p className="text-sm text-text-mid mb-2">
-                  Nodes: {workflowData.nodes?.length || 0} | 
-                  Connections: {Object.keys(workflowData.connections || {}).length}
+          ) : previewError ? (
+            <div className="bg-card rounded-lg border border-brand-primary/20 p-12 text-center" style={{ height: '600px' }}>
+              <div>
+                <p className="text-red-400 mb-4">
+                  Failed to load workflow preview
                 </p>
+                <p className="text-sm text-text-mid mb-4">
+                  Error: {previewError}
+                </p>
+                {workflow?.raw_url && (
+                  <Button
+                    variant="outline"
+                    onClick={() => window.open(workflow.raw_url, '_blank')}
+                    className="glass border-brand-primary/20 hover:border-brand-primary/40 mb-2 mr-2"
+                  >
+                    <ExternalLink className="mr-2 h-4 w-4" />
+                    Open Raw JSON
+                  </Button>
+                )}
                 <Button
                   variant="outline"
                   onClick={() => window.location.reload()}
                   className="glass border-brand-primary/20 hover:border-brand-primary/40"
                 >
-                  Retry Interactive Preview
+                  Retry
                 </Button>
               </div>
             </div>
           ) : (
-            <div className="bg-card-bg rounded-lg border border-brand-primary/10 p-12 text-center">
-              {dataLoading ? (
-                <div className="animate-pulse">
-                  <div className="text-text-mid mb-4">Loading workflow preview...</div>
-                  <div className="h-64 bg-muted rounded"></div>
-                </div>
-              ) : !componentLoaded && !workflowData ? (
-                <div>
-                  <p className="text-text-mid mb-4">
-                    Loading workflow preview component...
-                  </p>
-                  <div className="animate-spin h-8 w-8 border-2 border-brand-primary border-t-transparent rounded-full mx-auto"></div>
-                </div>
-              ) : componentError ? (
-                <div>
-                  <p className="text-red-400 mb-4">
-                    Failed to load workflow preview
-                  </p>
-                  <p className="text-sm text-text-mid mb-4">
-                    Error: {componentError}
-                  </p>
-                  <Button
-                    variant="outline"
-                    onClick={() => window.location.reload()}
-                    className="glass border-brand-primary/20 hover:border-brand-primary/40"
-                  >
-                    Retry
-                  </Button>
-                </div>
-              ) : (
-                <div>
-                  <p className="text-text-mid mb-4">
-                    Preview not available for this workflow.
-                  </p>
-                  <p className="text-sm text-text-mid">
-                    The workflow data could not be loaded from the source.
-                  </p>
-                </div>
-              )}
+            <div className="bg-card rounded-lg border border-brand-primary/20 p-12 text-center" style={{ height: '600px' }}>
+              <div>
+                <p className="text-text-mid mb-4">
+                  Preview not available for this workflow.
+                </p>
+                <p className="text-sm text-text-mid">
+                  The workflow data could not be loaded from the source.
+                </p>
+              </div>
             </div>
           )}
           
