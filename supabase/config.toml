@@ -1,1 +1,4 @@
 project_id = "ugjeubqwmgnqvohmrkyv"
+
+[functions.sync-workflows]
+verify_jwt = false
