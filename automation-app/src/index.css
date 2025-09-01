@@ -1,0 +1,188 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Brand Colors */
+    --brand-primary: 212 100% 46%; /* #00E5D4 - teal */
+    --brand-accent: 195 100% 50%; /* #00C8FF - cyan */
+    
+    /* Background Colors */
+    --hero-bg: 215 28% 7%; /* #0E1116 - dark background */
+    --surface-bg: 216 28% 8%; /* #12151C - card background */
+    --surface-card: 216 20% 10%; /* Slightly lighter for elevated surfaces */
+    
+    /* Text Colors */
+    --text-primary: 180 25% 90%; /* #E6F2F2 - high contrast text */
+    --text-secondary: 215 15% 70%; /* #AEB7C2 - medium contrast text */
+    --text-muted: 215 15% 50%; /* Lower contrast text */
+    
+    /* UI Colors */
+    --border: 216 20% 20%; /* For borders */
+    --input: 216 20% 15%; /* Input backgrounds */
+    --ring: var(--brand-primary); /* Focus rings */
+    
+    /* Semantic Colors */
+    --background: var(--hero-bg);
+    --foreground: var(--text-primary);
+    --card: var(--surface-card);
+    --card-foreground: var(--text-primary);
+    --popover: var(--surface-card);
+    --popover-foreground: var(--text-primary);
+    --primary: var(--brand-primary);
+    --primary-foreground: 0 0% 100%;
+    --secondary: 216 20% 20%;
+    --secondary-foreground: var(--text-primary);
+    --muted: 216 20% 15%;
+    --muted-foreground: var(--text-secondary);
+    --accent: var(--brand-accent);
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+    
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(var(--brand-primary)), hsl(var(--brand-accent)));
+    --gradient-hero: linear-gradient(180deg, hsl(var(--hero-bg)), hsl(var(--surface-bg)));
+    
+    /* Shadows & Effects */
+    --shadow-glow: 0 0 40px hsl(var(--brand-primary) / 0.3);
+    --shadow-elegant: 0 10px 30px -10px hsl(var(--brand-primary) / 0.2);
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    
+    --radius: 0.75rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-background text-foreground font-sans;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+@layer components {
+  /* Typography System */
+  .hero-text {
+    @apply font-bold tracking-tight;
+    font-family: "Sora", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  }
+  
+  .heading-text {
+    @apply font-semibold tracking-tight text-text-primary;
+    font-family: "Sora", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  }
+  
+  .body-large {
+    @apply text-lg text-text-secondary leading-relaxed;
+  }
+  
+  .body-text {
+    @apply text-base text-text-secondary leading-relaxed;
+  }
+  
+  /* Gradient Text */
+  .gradient-text {
+    @apply bg-gradient-to-r from-brand-primary to-brand-accent bg-clip-text text-transparent;
+  }
+  
+  /* Glass Morphism */
+  .glass {
+    @apply backdrop-blur-sm bg-surface-card/80 border border-white/10;
+  }
+  
+  /* Neon Effects */
+  .neon-glow {
+    @apply shadow-[0_0_20px_hsl(var(--brand-primary)/0.3)];
+  }
+  
+  .hover-glow {
+    @apply transition-all duration-300 hover:shadow-[0_0_40px_hsl(var(--brand-primary)/0.4)];
+  }
+  
+  .shadow-glow {
+    box-shadow: var(--shadow-glow);
+  }
+  
+  /* Custom Animations */
+  .animate-glow {
+    animation: glow 2s ease-in-out infinite alternate;
+  }
+  
+  @keyframes glow {
+    from {
+      box-shadow: 0 0 20px hsl(var(--brand-primary) / 0.2);
+    }
+    to {
+      box-shadow: 0 0 40px hsl(var(--brand-primary) / 0.4);
+    }
+  }
+  
+  /* Smooth Transitions */
+  .transition-smooth {
+    transition: var(--transition-smooth);
+  }
+  
+  /* Focus States */
+  .focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2 focus:ring-offset-background;
+  }
+  
+  /* Brand Colors as Utilities */
+  .text-brand-primary {
+    color: hsl(var(--brand-primary));
+  }
+  
+  .text-brand-accent {
+    color: hsl(var(--brand-accent));
+  }
+  
+  .bg-brand-primary {
+    background-color: hsl(var(--brand-primary));
+  }
+  
+  .bg-brand-accent {
+    background-color: hsl(var(--brand-accent));
+  }
+  
+  .border-brand-primary {
+    border-color: hsl(var(--brand-primary));
+  }
+  
+  .border-brand-accent {
+    border-color: hsl(var(--brand-accent));
+  }
+  
+  /* Custom Scrollbar */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: hsl(var(--surface-bg));
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: hsl(var(--brand-primary) / 0.3);
+    border-radius: 3px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--brand-primary) / 0.5);
+  }
+}
