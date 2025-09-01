@@ -14,12 +14,6 @@ const skills = [
 
 const achievements = [
   {
-    title: "GRACE Research Competition Winner",
-    description: "Anti-Corruption Research in partnership with Arab League",
-    year: "2024",
-    icon: Award
-  },
-  {
     title: "Student Ambassadors' Café Approval",
     description: "Successfully pitched and got board approval for student-run café",
     year: "2025",

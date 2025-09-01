@@ -178,27 +178,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-
-      {/* Achievement Highlight */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-4xl mx-auto text-center">
-          <div className="glass rounded-2xl p-8 hover-lift">
-            <Award className="h-12 w-12 text-neon-primary mx-auto mb-4" />
-            <h3 className="text-2xl font-sora font-bold mb-2 text-text-primary">
-              GRACE Research Competition Winner
-            </h3>
-            <p className="body-large mb-6">
-              Anti-Corruption Research • Arab League Partnership
-            </p>
-            <Button asChild variant="ghost">
-              <Link to="/about#achievements">
-                Learn More
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
-          </div>
-        </div>
-      </section>
     </div>
   );
 }

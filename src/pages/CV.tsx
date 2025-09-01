@@ -331,18 +331,6 @@ Cairo, Egypt`;
               </p>
             </div>
 
-            {/* Awards and Publications */}
-            <div className="cv-section">
-              <h2 className="section-heading text-lg mb-3">Awards and Publications</h2>
-              <div className="cv-item">
-                <h3 className="font-semibold text-text-primary">GRACE Research Competition on Anti-Corruption</h3>
-                <p className="body-large text-sm mt-1">
-                  Received 1st place award at the British University in Egypt for research titled: 
-                  "The Role of Cybersecurity in Combating Corruption in the Field of Biomedical Data"
-                </p>
-              </div>
-            </div>
-
             {/* Languages */}
             <div className="cv-section">
               <h2 className="section-heading text-lg mb-3">Languages</h2>

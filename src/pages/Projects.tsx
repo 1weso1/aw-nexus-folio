@@ -78,17 +78,6 @@ const projects = [
     link: "/projects/student-ambassadors-program",
     category: "leadership",
     image: "/lovable-uploads/19db5647-a818-44f1-a6fb-cc27bf6f9a1b.png"
-  },
-  {
-    title: "GRACE Research Competition",
-    description: "Led winning research project on anti-corruption initiatives in partnership with Arab League. Conducted comprehensive policy analysis and presented findings to international panel.",
-    status: "live" as const,
-    role: "Lead Researcher",
-    date: "2024",
-    tags: ["Research", "Policy Analysis", "Anti-Corruption", "Arab League", "Leadership"],
-    link: "/projects/grace-research",
-    category: "leadership",
-    image: heroImage
   }
 ];
 
