@@ -247,6 +247,18 @@ Cairo, Egypt`;
                   <li>Receive comprehensive and specialised training sessions on parliamentary processes and international relations</li>
                 </ul>
               </div>
+
+              <div className="cv-item mb-4">
+                <h3 className="font-semibold text-text-primary">Automation Architect</h3>
+                <div className="cv-meta text-text-secondary text-sm">
+                  Freelance • 2024-Present
+                </div>
+                <ul className="body-large text-sm mt-1 space-y-1 list-disc list-inside">
+                  <li>Built comprehensive library of 2,053 n8n automation workflows across 15 business categories</li>
+                  <li>Integrated 365+ services for CRM, lead generation, and business process automation</li>
+                  <li>Developed AI-powered workflows for content generation and predictive analytics</li>
+                </ul>
+              </div>
             </div>
 
             {/* Student Activities */}

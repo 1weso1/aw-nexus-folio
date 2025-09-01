@@ -158,10 +158,10 @@ export default function Home() {
                     </Link>
                   </Button>
                   <Button asChild variant="glass">
-                    <a href="/cv/ahmed-wesam-cv.pdf" target="_blank" rel="noopener noreferrer">
+                    <Link to="/cv">
                       <Download className="h-4 w-4" />
                       Download CV
-                    </a>
+                    </Link>
                   </Button>
                 </div>
               </div>
