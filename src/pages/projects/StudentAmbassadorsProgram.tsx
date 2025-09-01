@@ -6,10 +6,10 @@ import { SEO } from "@/components/SEO";
 import ProjectGallery from "@/components/ProjectGallery";
 import RelatedProjects from "@/components/RelatedProjects";
 
-import heroImage from "/src/assets/student-cafe-concept.jpg";
+const heroImage = "/lovable-uploads/19db5647-a818-44f1-a6fb-cc27bf6f9a1b.png";
 
 const galleryItems = [
-  { type: 'image' as const, src: heroImage, alt: 'Student Ambassador Program', caption: 'Student Ambassadors during training session' },
+  { type: 'image' as const, src: heroImage, alt: 'Student Ambassador Program Team', caption: 'Student Ambassadors team at formal parliament session' },
   { type: 'instagram' as const, src: 'https://www.instagram.com/p/placeholder1/', alt: 'Open Day event with STAMs' },
   { type: 'instagram' as const, src: 'https://www.instagram.com/p/placeholder2/', alt: 'Focus Day campus tour leadership' },
   { type: 'instagram' as const, src: 'https://www.instagram.com/reel/placeholder3/', alt: 'Under the Stars event coordination' },
