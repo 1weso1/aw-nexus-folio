@@ -187,6 +187,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      is_site_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       upsert_workflow: {
         Args: {
           p_category: string
