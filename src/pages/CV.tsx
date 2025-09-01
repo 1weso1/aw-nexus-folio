@@ -10,9 +10,10 @@ export default function CV() {
 
   const copyContactDetails = () => {
     const contactText = `Ahmed Wesam
-CRM & Recruitment Specialist
-contact@ahmedwesam.com
+CRM & Recruitment Officer
+ahmed.wesamfahmy@gmail.com
 LinkedIn: https://www.linkedin.com/in/ahmed-wesam-3b57bb1b1
++201001878594
 Cairo, Egypt`;
 
     navigator.clipboard.writeText(contactText).then(() => {
@@ -154,12 +155,16 @@ Cairo, Egypt`;
             {/* Header */}
             <div className="cv-header text-center pb-6 border-b border-neon-primary/20">
               <h1 className="text-3xl font-sora font-bold text-text-primary mb-2">Ahmed Wesam</h1>
-              <p className="text-lg text-neon-primary font-medium mb-4">CRM & Recruitment Specialist</p>
+              <p className="text-lg text-neon-primary font-medium mb-4">CRM & Recruitment Officer</p>
               
               <div className="flex flex-wrap justify-center gap-4 text-sm text-text-secondary">
                 <div className="flex items-center gap-1">
                   <Mail className="h-4 w-4" />
-                  <span>contact@ahmedwesam.com</span>
+                  <span>ahmed.wesamfahmy@gmail.com</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Phone className="h-4 w-4" />
+                  <span>+201001878594</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <MapPin className="h-4 w-4" />
@@ -176,10 +181,11 @@ Cairo, Egypt`;
             <div className="cv-section">
               <h2 className="section-heading text-lg mb-3">Profile</h2>
               <p className="body-large text-sm">
-                CRM & Recruitment specialist with expertise in HubSpot automation, student engagement, and community building. 
-                Proven track record in optimizing recruitment processes, founding successful student organizations, and 
-                leading cross-functional teams. Passionate about combining systematic thinking with human-centered approach 
-                to drive meaningful impact.
+                A Political Science graduate with expertise in student recruitment, CRM, and higher education marketing. 
+                Currently working as a CRM & Recruitment Officer at The British University in Egypt, optimizing HubSpot CRM, 
+                leading student engagement initiatives, and managing large-scale recruitment events. Passionate about event 
+                management, public relations, and data-driven recruitment strategies, with a proven track record of leadership 
+                in student organisations and management.
               </p>
             </div>
 
@@ -187,12 +193,13 @@ Cairo, Egypt`;
             <div className="cv-section">
               <h2 className="section-heading text-lg mb-3">Education</h2>
               <div className="cv-item">
-                <h3 className="font-semibold text-text-primary">Bachelor of Arts in Political Science</h3>
+                <h3 className="font-semibold text-text-primary">Political Science BSc.</h3>
                 <div className="cv-meta text-text-secondary text-sm">
-                  The British University in Egypt • 2022-2025 (Expected)
+                  The British University in Egypt • 2020-2024
                 </div>
                 <p className="body-large text-sm mt-1">
-                  Focus on systematic analysis and governance structures. Active in student leadership and community initiatives.
+                  Activities & Societies: Founder & President of Move Sports Club, Student Ambassador in the Student 
+                  Recruitment and Partnership Office, Vice President of Rotaract Club of The British University in Egypt.
                 </p>
               </div>
             </div>
@@ -202,97 +209,126 @@ Cairo, Egypt`;
               <h2 className="section-heading text-lg mb-3">Professional Experience</h2>
               
               <div className="cv-item mb-4">
-                <h3 className="font-semibold text-text-primary">CRM & Recruitment Specialist</h3>
+                <h3 className="font-semibold text-text-primary">CRM & Recruitment Officer</h3>
                 <div className="cv-meta text-text-secondary text-sm">
-                  The British University in Egypt • 2024-Present
+                  The British University in Egypt • 06/2024-Present
                 </div>
                 <ul className="body-large text-sm mt-1 space-y-1 list-disc list-inside">
-                  <li>Optimize HubSpot CRM systems for student recruitment and engagement workflows</li>
-                  <li>Design and implement automation processes to improve recruitment efficiency</li>
-                  <li>Lead student engagement initiatives and stakeholder coordination</li>
-                  <li>Analyze recruitment data and provide actionable insights to leadership team</li>
+                  <li>Manage HubSpot CRM, integrating APIs for WhatsApp, Facebook Messenger, and web chats to streamline student engagement</li>
+                  <li>Organize and oversee school visits, fairs, and open days, managing logistics and targeted marketing campaigns</li>
+                  <li>Student Ambassador Program (STAM): Oversee recruitment, training, and performance tracking for ambassadors</li>
+                  <li>Utilize CRM analytics to refine outreach strategies via emails, SMS, WhatsApp, and social media ads</li>
+                  <li>Developing automated performance tracking for STAM using HubSpot-Educatly integration</li>
                 </ul>
               </div>
 
               <div className="cv-item mb-4">
-                <h3 className="font-semibold text-text-primary">Automation Architect</h3>
+                <h3 className="font-semibold text-text-primary">Student Ambassador and Intern</h3>
                 <div className="cv-meta text-text-secondary text-sm">
-                  Freelance • 2024-Present
+                  Student Recruitment and Partnerships Office, The British University in Egypt • 07/2022-06/2024
                 </div>
                 <ul className="body-large text-sm mt-1 space-y-1 list-disc list-inside">
-                  <li>Built comprehensive library of 2,053 n8n automation workflows across 15 business categories</li>
-                  <li>Integrated 365+ services for CRM, lead generation, and business process automation</li>
-                  <li>Developed AI-powered workflows for content generation and predictive analytics</li>
+                  <li>Co-lead the Student Ambassadors' expansion plan, including marketing, interviews and supervision of recruits' trial periods</li>
+                  <li>Maintain accurate records and databases of applicant information and admissions statistics using a CRM system</li>
+                  <li>Contribute to the development and on-ground planning of event concepts, themes, and agendas</li>
+                  <li>Conduct post-event evaluations and collect feedback to identify areas for improvement</li>
+                  <li>Recruit high school students through outreach efforts and campus tours</li>
+                  <li>Coordinate with fellow Student Ambassadors and execute recruitment events, such as university fairs, campus visits and open days</li>
+                </ul>
+              </div>
+
+              <div className="cv-item mb-4">
+                <h3 className="font-semibold text-text-primary">Intern</h3>
+                <div className="cv-meta text-text-secondary text-sm">
+                  The Arab Parliament, The League of Arab States • 08/2023-10/2023
+                </div>
+                <ul className="body-large text-sm mt-1 space-y-1 list-disc list-inside">
+                  <li>Support parliament members by conducting research on socio-political issues in the Arab world</li>
+                  <li>Receive comprehensive and specialised training sessions on parliamentary processes and international relations</li>
                 </ul>
               </div>
             </div>
 
-            {/* Leadership & Activities */}
+            {/* Student Activities */}
             <div className="cv-section">
-              <h2 className="section-heading text-lg mb-3">Leadership & Activities</h2>
+              <h2 className="section-heading text-lg mb-3">Student Activities</h2>
               
               <div className="cv-item mb-3">
-                <h3 className="font-semibold text-text-primary">Founder & President - Move Sports Club</h3>
-                <div className="cv-meta text-text-secondary text-sm">2023-Present</div>
-                <p className="body-large text-sm mt-1">
-                  Founded university sports club from concept. Built partnerships with Cairo Runners, established regular programming, 
-                  and scaled to active community participation.
-                </p>
+                <h3 className="font-semibold text-text-primary">Member, Public Relations Committee</h3>
+                <div className="cv-meta text-text-secondary text-sm">
+                  Egyptian Youth Parliament, Ministry of Youth and Sports, Egypt • 2022-2025
+                </div>
+                <ul className="body-large text-sm mt-1 space-y-1 list-disc list-inside">
+                  <li>Contact sponsors to secure funding for youth parliament events and initiatives</li>
+                  <li>Coordinate with and organise events for the Ministry of Youth and Sports and the minister</li>
+                  <li>Develop and maintain positive relationships with sponsors</li>
+                  <li>Coordinate with other members to plan and execute youth parliament events, such as advocacy campaigns</li>
+                </ul>
               </div>
 
               <div className="cv-item mb-3">
-                <h3 className="font-semibold text-text-primary">Vice President - Rotaract Club</h3>
-                <div className="cv-meta text-text-secondary text-sm">2023-2024</div>
-                <p className="body-large text-sm mt-1">
-                  Led community service projects, managed member engagement initiatives, and coordinated with 
-                  international Rotaract districts. Organized 20+ community events and workshops.
-                </p>
+                <h3 className="font-semibold text-text-primary">Co-Founder of Move Sports Club</h3>
+                <div className="cv-meta text-text-secondary text-sm">
+                  The British University in Egypt • 2021-2024
+                </div>
+                <ul className="body-large text-sm mt-1 space-y-1 list-disc list-inside">
+                  <li>Create, plan, and organise events in collaboration with other university clubs</li>
+                  <li>Coordinate with the university's administration on official matters</li>
+                  <li>Manage the club's budget, including fundraising and sponsorships</li>
+                  <li>Write the operation plan for the club's academic year and create a training schedule for the club's sports</li>
+                  <li>Lead weekly meetings with the heads of committees to ensure coordination within the club</li>
+                  <li>Design and contact textile companies for club attire</li>
+                </ul>
+              </div>
+            </div>
+
+            {/* Volunteering */}
+            <div className="cv-section">
+              <h2 className="section-heading text-lg mb-3">Volunteering</h2>
+              
+              <div className="cv-item mb-3">
+                <h3 className="font-semibold text-text-primary">Vice-President</h3>
+                <div className="cv-meta text-text-secondary text-sm">
+                  Rotaract Club of The British University in Egypt, D2451 • 2023-2024
+                </div>
+                <ul className="body-large text-sm mt-1 space-y-1 list-disc list-inside">
+                  <li>Managed club operations, including budgeting, event planning, and membership drives</li>
+                  <li>Fostered partnerships with local businesses and organizations, expanding the club's outreach</li>
+                  <li>Organized and led international service projects and professional development workshops</li>
+                  <li>Promoted global citizenship and enhanced leadership skills among club members</li>
+                </ul>
               </div>
 
               <div className="cv-item mb-3">
-                <h3 className="font-semibold text-text-primary">Project Lead - Student Ambassadors' Café</h3>
-                <div className="cv-meta text-text-secondary text-sm">2024-2025</div>
+                <h3 className="font-semibold text-text-primary">Cairo Runners</h3>
+                <div className="cv-meta text-text-secondary text-sm">2022-2023</div>
                 <p className="body-large text-sm mt-1">
-                  Proposed and developed comprehensive business plan for student-run café. Led feasibility study, 
-                  financial modeling, and stakeholder presentations. Achieved board approval for Summer 2026 launch.
+                  Facilitated training run-organisation opportunities for Move Sports Club's members with Cairo Runners including:
+                  Madinet Nasr 10K Fun Run, CFC 5K World Heart Run, Run for the Climate at The British University in Egypt.
                 </p>
               </div>
             </div>
 
             {/* Skills */}
             <div className="cv-section">
-              <h2 className="section-heading text-lg mb-3">Technical Skills</h2>
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <h4 className="font-medium text-text-primary mb-1">CRM & Automation</h4>
-                  <ul className="body-large space-y-0.5 text-xs">
-                    <li>• HubSpot (Advanced)</li>
-                    <li>• n8n Automation (Advanced)</li>
-                    <li>• Salesforce (Intermediate)</li>
-                    <li>• Zapier (Intermediate)</li>
-                  </ul>
-                </div>
-                <div>
-                  <h4 className="font-medium text-text-primary mb-1">Technical</h4>
-                  <ul className="body-large space-y-0.5 text-xs">
-                    <li>• Python (Intermediate)</li>
-                    <li>• SQL (Basic)</li>
-                    <li>• API Integration</li>
-                    <li>• Data Analysis</li>
-                  </ul>
-                </div>
-              </div>
+              <h2 className="section-heading text-lg mb-3">Skills</h2>
+              <p className="body-large text-sm">
+                Student Recruitment & CRM (HubSpot, Educatly), Higher Education Marketing & Event Planning, 
+                Public Relations & Strategic Communications, Project Management & Leadership Development, 
+                Python, AI Process Automation & Digital Innovation
+              </p>
             </div>
 
-            {/* Achievements */}
+            {/* Awards and Publications */}
             <div className="cv-section">
-              <h2 className="section-heading text-lg mb-3">Key Achievements</h2>
-              <ul className="body-large text-sm space-y-1">
-                <li>• <strong>GRACE Research Competition Winner (2024):</strong> Anti-Corruption Research in partnership with Arab League</li>
-                <li>• <strong>Automation Library:</strong> Built 2,053-workflow library with 365 integrations serving multiple business categories</li>
-                <li>• <strong>Student Café Project:</strong> Achieved board approval for innovative student entrepreneurship initiative</li>
-                <li>• <strong>Community Building:</strong> Founded and scaled university sports club with ongoing community partnerships</li>
-              </ul>
+              <h2 className="section-heading text-lg mb-3">Awards and Publications</h2>
+              <div className="cv-item">
+                <h3 className="font-semibold text-text-primary">GRACE Research Competition on Anti-Corruption</h3>
+                <p className="body-large text-sm mt-1">
+                  Received 1st place award at the British University in Egypt for research titled: 
+                  "The Role of Cybersecurity in Combating Corruption in the Field of Biomedical Data"
+                </p>
+              </div>
             </div>
 
             {/* Languages */}
@@ -300,7 +336,7 @@ Cairo, Egypt`;
               <h2 className="section-heading text-lg mb-3">Languages</h2>
               <div className="flex gap-6 text-sm">
                 <div><strong>Arabic:</strong> Native</div>
-                <div><strong>English:</strong> Fluent</div>
+                <div><strong>English:</strong> Bilingual</div>
               </div>
             </div>
           </div>
