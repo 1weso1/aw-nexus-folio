@@ -4,10 +4,8 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import html2canvas from "html2canvas";
-
 export default function CV() {
   const [isCapturing, setIsCapturing] = useState(false);
-
   const copyContactDetails = () => {
     const contactText = `Ahmed Wesam
 CRM & Recruitment Officer
@@ -15,15 +13,13 @@ ahmed.wesamfahmy@gmail.com
 LinkedIn: https://www.linkedin.com/in/ahmed-wesam-3b57bb1b1
 +201001878594
 Cairo, Egypt`;
-
     navigator.clipboard.writeText(contactText).then(() => {
       toast({
         title: "Contact details copied!",
-        description: "Contact information copied to clipboard.",
+        description: "Contact information copied to clipboard."
       });
     });
   };
-
   const downloadPNG = async () => {
     setIsCapturing(true);
     try {
@@ -34,38 +30,33 @@ Cairo, Egypt`;
           backgroundColor: '#0E1116',
           logging: false
         });
-        
         const link = document.createElement('a');
         link.download = 'Ahmed-Wesam-CV.png';
         link.href = canvas.toDataURL();
         link.click();
-
         toast({
           title: "CV Downloaded!",
-          description: "CV saved as PNG image.",
+          description: "CV saved as PNG image."
         });
       }
     } catch (error) {
       toast({
         title: "Download failed",
         description: "Please try again or use the print option.",
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setIsCapturing(false);
     }
   };
-
   const handlePrint = () => {
     window.print();
     toast({
       title: "Opening print dialog...",
-      description: "Use your browser's print dialog to save as PDF.",
+      description: "Use your browser's print dialog to save as PDF."
     });
   };
-
-  return (
-    <>
+  return <>
       <style>{`
         @media print {
           .no-print { display: none !important; }
@@ -134,12 +125,7 @@ Cairo, Egypt`;
                 <Copy className="h-4 w-4" />
                 Copy Contact
               </Button>
-              <Button 
-                onClick={downloadPNG} 
-                variant="neon" 
-                size="sm"
-                disabled={isCapturing}
-              >
+              <Button onClick={downloadPNG} variant="neon" size="sm" disabled={isCapturing}>
                 <Download className="h-4 w-4" />
                 {isCapturing ? "Capturing..." : "Download PNG"}
               </Button>
@@ -250,9 +236,7 @@ Cairo, Egypt`;
 
               <div className="cv-item mb-4">
                 <h3 className="font-semibold text-text-primary">Automation Architect</h3>
-                <div className="cv-meta text-text-secondary text-sm">
-                  Freelance • 2024-Present
-                </div>
+                <div className="cv-meta text-text-secondary text-sm">Freelance • 2023-Present</div>
                 <ul className="body-large text-sm mt-1 space-y-1 list-disc list-inside">
                   <li>Built comprehensive library of 2,053 n8n automation workflows across 15 business categories</li>
                   <li>Integrated 365+ services for CRM, lead generation, and business process automation</li>
@@ -331,6 +315,18 @@ Cairo, Egypt`;
               </p>
             </div>
 
+            {/* Awards and Publications */}
+            <div className="cv-section">
+              <h2 className="section-heading text-lg mb-3">Awards and Publications</h2>
+              <div className="cv-item">
+                <h3 className="font-semibold text-text-primary">GRACE Research Competition on Anti-Corruption</h3>
+                <p className="body-large text-sm mt-1">
+                  Received 1st place award at the British University in Egypt for research titled: 
+                  "The Role of Cybersecurity in Combating Corruption in the Field of Biomedical Data"
+                </p>
+              </div>
+            </div>
+
             {/* Languages */}
             <div className="cv-section">
               <h2 className="section-heading text-lg mb-3">Languages</h2>
@@ -342,6 +338,5 @@ Cairo, Egypt`;
           </div>
         </div>
       </div>
-    </>
-  );
+    </>;
 }
