@@ -48,25 +48,36 @@ const projects = [
   },
   {
     title: "Move Sports Club",
-    description: "Founded university sports club from zero. Built organizational structure, recruited diverse membership, established partnerships with Cairo Runners, and created sustainable programming model.",
+    description: "Founded the first university sports club at The British University in Egypt (BUE) to unify student athletes, deliver structured competitions, and create hands-on learning in sports operations. Built the club from zero: organization, governance, partnerships, and a steady cadence of events.",
     status: "live" as const,
     role: "Founder & President",
     date: "2023-Present",
-    tags: ["Leadership", "Community Building", "Sports Management", "Partnership Development"],
-    link: "/projects/move",
+    tags: ["Leadership", "Sports Management", "Event Operations", "Partnerships", "Community Building"],
+    link: "/projects/move-sports-club",
     category: "leadership", 
     image: moveTeamImage
   },
   {
     title: "Rotaract Vice Presidency",
-    description: "Led member engagement initiatives and community service projects as VP. Managed international partnerships, organized 20+ events, and implemented digital systems for member communication.",
+    description: "As Vice President, led programs that combined community service, youth development, and institutional partnerships—expanding the club's impact and member experience.",
     status: "live" as const,
-    role: "Vice President",
+    role: "Vice President – Rotaract Club, BUE",
     date: "2023-2024", 
-    tags: ["Leadership", "Community Service", "Event Management", "International Relations"],
-    link: "/projects/rotaract",
+    tags: ["Leadership", "Community Service", "Partnerships", "Event Management", "Youth Development"],
+    link: "/projects/rotaract-vice-presidency",
     category: "leadership",
     image: rotaractImage
+  },
+  {
+    title: "Student Ambassador Program Management",
+    description: "Professionalized BUE's Student Ambassador Program: structured recruitment, continuous training, digital tracking, and deployment across major admissions/recruitment events.",
+    status: "live" as const,
+    role: "Program Manager – Student Ambassadors (STAMs), BUE",
+    date: "2023-Present",
+    tags: ["Leadership", "Training", "Recruitment", "Event Ops", "CRM"],
+    link: "/projects/student-ambassadors-program",
+    category: "leadership",
+    image: heroImage
   },
   {
     title: "GRACE Research Competition",

@@ -70,6 +70,92 @@ const projectData = {
     tools: ["Google Sheets", "Canva", "HubSpot", "Market Research Tools", "Financial Modeling"],
     gallery: ["/src/assets/student-cafe-concept.jpg"],
     links: []
+  },
+  "move-sports-club": {
+    title: "Move Sports Club",
+    role: "Founder & President",
+    status: "live" as const,
+    date: "2023-Present",
+    tags: ["Leadership", "Sports Management", "Event Operations", "Partnerships", "Community Building"],
+    summary: "Founded the first university sports club at The British University in Egypt (BUE) to unify student athletes, deliver structured competitions, and create hands-on learning in sports operations. Built the club from zero: organization, governance, partnerships, and a steady cadence of events.",
+    problem: "BUE's sports activities were fragmented. Students had passion but few structured pathways to compete, learn event ops, or connect with professional organizers.",
+    approach: [
+      "Launched MOVE as an official multi-discipline club with clear governance and operations",
+      "Organized flagship competitions including BUE Club Football Tournament (multi-day, officiated, bracketed)",
+      "Partnered with Cairo Runners to place members in internship/training for large-scale run operations",
+      "Ran community campaigns such as Anti-Smoking awareness activation and fitness initiatives",
+      "Built repeatable checklists/SOPs: permissions, refs/judges, equipment, medics, communications, and results management"
+    ],
+    outcome: "A sustained, student-run club with high event turnout and continuous recruitment. Students gained real event-management skills and professional exposure. Strong external partnerships and a recognizable brand on campus.",
+    role_details: "Founded MOVE and authored the operating model, budget approach, and safety protocols. Led partnerships (e.g., Cairo Runners) and university coordination. Directed event design, staffing, risk planning, and post-event reviews. Mentored team leads (logistics, media, refereeing, first aid).",
+    timeline: [
+      { period: "Q1 2023", milestone: "Initial concept development and university approval process" },
+      { period: "Q2 2023", milestone: "Club registration and core team formation" },
+      { period: "Q3 2023", milestone: "First flagship events and Cairo Runners partnership" },
+      { period: "Q4 2023", milestone: "Established regular programming and expanded membership" },
+      { period: "2024", milestone: "Full event calendar with multiple tournaments and community initiatives" }
+    ],
+    tools: ["Event Playbooks", "Scheduling Boards", "Budget Sheets", "Vendor Management", "Safety & First-Aid SOPs"],
+    gallery: ["/lovable-uploads/f9f1defa-84d4-4e38-910e-933f050d0cad.png"],
+    links: []
+  },
+  "rotaract-vice-presidency": {
+    title: "Rotaract Vice Presidency",
+    role: "Vice President – Rotaract Club, BUE",
+    status: "live" as const,
+    date: "2023-2024",
+    tags: ["Leadership", "Community Service", "Partnerships", "Event Management", "Youth Development"],
+    summary: "As Vice President, led programs that combined community service, youth development, and institutional partnerships—expanding the club's impact and member experience.",
+    problem: "Students lacked a consistent pipeline for structured civic action and skills development with credible partners.",
+    approach: [
+      "Run for Health & Wellbeing with UNDP, ministries, and Cairo Runners—health/climate advocacy and community activation",
+      "Museums for Peace at Prince Mohamed Ali Palace with UNESCO/ICOM partners—cultural diplomacy and peace education",
+      "Hearing Day with Rotary Egy Deaf—awareness, sign-language demos, assistive tools",
+      "Garage Sale—student entrepreneurship + sustainability fundraising",
+      "Iftar Sa'em—Ramadan meal distribution for vulnerable groups",
+      "Career Workshops—LinkedIn/CV sessions for members and students",
+      "Pinning Ceremony—membership growth and recognition"
+    ],
+    outcome: "Stronger District 2451 presence for BUE's Rotaract; deeper partner network. Tangible community outcomes and higher member retention/participation. Members gained event ops, partnership management, and advocacy skills.",
+    role_details: "Drove partner outreach, logistics, compliance, and stakeholder comms. Led volunteer recruitment, role assignment, and on-site coordination. Managed budgeting, supplies, safety, and impact tracking.",
+    timeline: [
+      { period: "Q1 2023", milestone: "VP role appointment and strategic planning" },
+      { period: "Q2 2023", milestone: "Partnership development with UNDP and UNESCO collaborators" },
+      { period: "Q3 2023", milestone: "Major community service initiatives launched" },
+      { period: "Q4 2023", milestone: "Career development programs and member recognition events" },
+      { period: "Q1 2024", milestone: "Expanded district presence and leadership transition" }
+    ],
+    tools: ["Event Checklists", "Partner MOUs", "Volunteer Rosters", "Budget & Impact Sheets"],
+    gallery: ["/lovable-uploads/3d3cfa69-a6dc-4a58-8aaf-ec6ba9295513.png"],
+    links: []
+  },
+  "student-ambassadors-program": {
+    title: "Student Ambassador Program Management",
+    role: "Program Manager – Student Ambassadors (STAMs), BUE",
+    status: "live" as const,
+    date: "2023-Present",
+    tags: ["Leadership", "Training", "Recruitment", "Event Ops", "CRM"],
+    summary: "Professionalized BUE's Student Ambassador Program: structured recruitment, continuous training, digital tracking, and deployment across major admissions/recruitment events.",
+    problem: "The program had motivated students but lacked standardized training, performance tracking, and integrated scheduling to meet admissions goals.",
+    approach: [
+      "Built a repeatable recruitment → onboarding → placement funnel",
+      "Designed training in public speaking, campus tours, customer service, time management, first aid, and event execution",
+      "Deployed STAMs across Open Days, Focus Days, Under the Stars, fairs, and summer activities",
+      "Introduced CRM (HubSpot/Educatly) for assignments, availability, and performance notes",
+      "Created feedback loops, peer mentoring, and progression paths to senior roles"
+    ],
+    outcome: "Reliable staffing for admissions/recruitment events with higher visitor satisfaction. Clear performance visibility and faster coordination between teams. Ambassadors developed real workplace skills and leadership habits.",
+    role_details: "Owned program design, training calendar, and event deployment plans. Integrated digital tools for scheduling/performance tracking. Coordinated with Admissions/Marketing to meet event KPIs. Coached leads and ran post-event reviews.",
+    timeline: [
+      { period: "Q1 2023", milestone: "Program assessment and digital integration planning" },
+      { period: "Q2 2023", milestone: "New recruitment and training framework launch" },
+      { period: "Q3 2023", milestone: "CRM implementation and performance tracking systems" },
+      { period: "Q4 2023", milestone: "Major events deployment and feedback optimization" },
+      { period: "2024", milestone: "Full program maturity with senior lead progression paths" }
+    ],
+    tools: ["HubSpot", "Educatly", "Training Guides", "Roster & Shift Boards", "Feedback Forms"],
+    gallery: ["/src/assets/student-cafe-concept.jpg"],
+    links: []
   }
 };
 
