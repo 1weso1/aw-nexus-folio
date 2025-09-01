@@ -6,8 +6,9 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Download, Search, Shield, ShieldCheck, Filter, X, Eye } from 'lucide-react';
+import { Download, Search, Shield, ShieldCheck, Filter, X, Eye, Heart, Lock } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface Workflow {
   id: string;
@@ -20,6 +21,7 @@ interface Workflow {
 }
 
 const Workflows = () => {
+  const { user } = useAuth();
   const [workflows, setWorkflows] = useState<Workflow[]>([]);
   const [filteredWorkflows, setFilteredWorkflows] = useState<Workflow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -148,6 +150,15 @@ const Workflows = () => {
   };
 
   const downloadWorkflow = async (workflow: Workflow) => {
+    if (!user) {
+      toast({
+        title: "Sign In Required",
+        description: "Please sign in to download workflows",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       const response = await fetch(workflow.raw_url);
       if (!response.ok) throw new Error('Failed to fetch workflow');
@@ -165,6 +176,8 @@ const Workflows = () => {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
+      
+      // Track download in database (TODO: implement)
       
       toast({
         title: "Success",

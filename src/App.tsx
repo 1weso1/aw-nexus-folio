@@ -13,8 +13,6 @@ import Apps from "./pages/Apps";
 import Blog from "./pages/Blog";
 import Contact from "./pages/Contact";
 import ProjectDetail from "./pages/ProjectDetail";
-import Workflows from "./pages/Workflows";
-import WorkflowDetail from "./pages/WorkflowDetail";
 import Book from "./pages/Book";
 import CV from "./pages/CV";
 import NotFound from "./pages/NotFound";
@@ -35,8 +33,6 @@ const App = () => (
               <Route path="/about" element={<About />} />
               <Route path="/projects" element={<Projects />} />
               <Route path="/projects/:slug" element={<ProjectDetail />} />
-              <Route path="/workflows" element={<Workflows />} />
-              <Route path="/workflows/:id" element={<WorkflowDetail />} />
               <Route path="/apps" element={<Apps />} />
               <Route path="/blog" element={<Blog />} />
               <Route path="/contact" element={<Contact />} />
