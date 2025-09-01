@@ -10,11 +10,11 @@ import moveTeamImage from "/lovable-uploads/f9f1defa-84d4-4e38-910e-933f050d0cad
 
 const galleryItems = [
   { type: 'image' as const, src: moveTeamImage, alt: 'Move Sports Club team photo', caption: 'MOVE Sports Club founding team' },
-  { type: 'instagram' as const, src: 'https://www.instagram.com/p/placeholder1/', alt: 'BUE Club Football Tournament highlights' },
-  { type: 'instagram' as const, src: 'https://www.instagram.com/p/placeholder2/', alt: 'Cairo Runners partnership event' },
-  { type: 'instagram' as const, src: 'https://www.instagram.com/reel/placeholder3/', alt: 'MOVE Sports Arena competition' },
-  { type: 'instagram' as const, src: 'https://www.instagram.com/p/placeholder4/', alt: 'Anti-smoking awareness campaign' },
-  { type: 'instagram' as const, src: 'https://www.instagram.com/p/placeholder5/', alt: 'Faculties Football Tournament' }
+  { type: 'instagram' as const, src: 'https://www.instagram.com/movebue/', alt: 'BUE Club Football Tournament highlights' },
+  { type: 'instagram' as const, src: 'https://www.instagram.com/movebue/', alt: 'Cairo Runners partnership event' },
+  { type: 'instagram' as const, src: 'https://www.instagram.com/movebue/', alt: 'MOVE Sports Arena competition' },
+  { type: 'instagram' as const, src: 'https://www.instagram.com/movebue/', alt: 'Anti-smoking awareness campaign' },
+  { type: 'instagram' as const, src: 'https://www.instagram.com/movebue/', alt: 'Faculties Football Tournament' }
 ];
 
 export default function MoveSportsClub() {

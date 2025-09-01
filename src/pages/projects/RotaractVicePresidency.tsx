@@ -10,11 +10,11 @@ import rotaractImage from "/lovable-uploads/3d3cfa69-a6dc-4a58-8aaf-ec6ba9295513
 
 const galleryItems = [
   { type: 'image' as const, src: rotaractImage, alt: 'Rotaract activities', caption: 'Rotaract community service initiatives' },
-  { type: 'instagram' as const, src: 'https://www.instagram.com/p/placeholder1/', alt: 'Run for Health & Wellbeing with UNDP' },
-  { type: 'instagram' as const, src: 'https://www.instagram.com/p/placeholder2/', alt: 'Museums for Peace at Prince Mohamed Ali Palace' },
-  { type: 'instagram' as const, src: 'https://www.instagram.com/reel/placeholder3/', alt: 'Hearing Day with Rotary Egy Deaf' },
-  { type: 'instagram' as const, src: 'https://www.instagram.com/p/placeholder4/', alt: 'Garage Sale entrepreneurship event' },
-  { type: 'instagram' as const, src: 'https://www.instagram.com/p/placeholder5/', alt: 'Career Workshops and member development' }
+  { type: 'instagram' as const, src: 'https://www.instagram.com/buerotaract/', alt: 'Run for Health & Wellbeing with UNDP' },
+  { type: 'instagram' as const, src: 'https://www.instagram.com/buerotaract/', alt: 'Museums for Peace at Prince Mohamed Ali Palace' },
+  { type: 'instagram' as const, src: 'https://www.instagram.com/buerotaract/', alt: 'Hearing Day with Rotary Egy Deaf' },
+  { type: 'instagram' as const, src: 'https://www.instagram.com/buerotaract/', alt: 'Garage Sale entrepreneurship event' },
+  { type: 'instagram' as const, src: 'https://www.instagram.com/buerotaract/', alt: 'Career Workshops and member development' }
 ];
 
 export default function RotaractVicePresidency() {
