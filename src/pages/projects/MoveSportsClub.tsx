@@ -3,8 +3,19 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { SEO } from "@/components/SEO";
+import ProjectGallery from "@/components/ProjectGallery";
+import RelatedProjects from "@/components/RelatedProjects";
 
 import moveTeamImage from "/lovable-uploads/f9f1defa-84d4-4e38-910e-933f050d0cad.png";
+
+const galleryItems = [
+  { type: 'image' as const, src: moveTeamImage, alt: 'Move Sports Club team photo', caption: 'MOVE Sports Club founding team' },
+  { type: 'instagram' as const, src: 'https://www.instagram.com/p/placeholder1/', alt: 'BUE Club Football Tournament highlights' },
+  { type: 'instagram' as const, src: 'https://www.instagram.com/p/placeholder2/', alt: 'Cairo Runners partnership event' },
+  { type: 'instagram' as const, src: 'https://www.instagram.com/reel/placeholder3/', alt: 'MOVE Sports Arena competition' },
+  { type: 'instagram' as const, src: 'https://www.instagram.com/p/placeholder4/', alt: 'Anti-smoking awareness campaign' },
+  { type: 'instagram' as const, src: 'https://www.instagram.com/p/placeholder5/', alt: 'Faculties Football Tournament' }
+];
 
 export default function MoveSportsClub() {
   return (
@@ -202,6 +213,12 @@ export default function MoveSportsClub() {
                 ))}
               </div>
             </section>
+
+            {/* Gallery */}
+            <ProjectGallery items={galleryItems} />
+
+            {/* Related Projects */}
+            <RelatedProjects currentProjectSlug="move-sports-club" />
 
           </div>
         </div>

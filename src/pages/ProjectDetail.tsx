@@ -162,23 +162,33 @@ const projectData = {
 const relatedProjects = [
   {
     title: "Move Sports Club",
-    description: "Founded university sports club from zero and scaled it to a full program with regular activities and community partnerships.",
+    description: "Founded the first university sports club at BUE to unify student athletes and deliver structured competitions. Built organization, governance, and partnerships from zero.",
     status: "live" as const,
     role: "Founder & President",
     date: "2023-Present",
-    tags: ["Leadership", "Community Building", "Sports Management"],
-    link: "/projects/move",
-    image: "/src/assets/sports-club-community.jpg"
+    tags: ["Leadership", "Sports Management", "Event Operations"],
+    link: "/projects/move-sports-club",
+    image: "/lovable-uploads/f9f1defa-84d4-4e38-910e-933f050d0cad.png"
   },
   {
     title: "Rotaract Vice Presidency",
-    description: "Led member engagement initiatives and community service projects as VP. Managed international partnerships and organized 20+ events.",
+    description: "Led programs combining community service, youth development, and institutional partnerships—expanding the club's impact and member experience.",
     status: "live" as const,
-    role: "Vice President",
+    role: "Vice President – Rotaract Club, BUE",
     date: "2023-2024",
-    tags: ["Leadership", "Community Service", "Event Management"],
-    link: "/projects/rotaract",
-    image: "/src/assets/sports-club-community.jpg"
+    tags: ["Leadership", "Community Service", "Partnerships"],
+    link: "/projects/rotaract-vice-presidency",
+    image: "/lovable-uploads/3d3cfa69-a6dc-4a58-8aaf-ec6ba9295513.png"
+  },
+  {
+    title: "Student Ambassador Program Management",
+    description: "Professionalized BUE's Student Ambassador Program with structured recruitment, continuous training, and digital tracking for major admissions events.",
+    status: "live" as const,
+    role: "Program Manager – Student Ambassadors (STAMs), BUE",
+    date: "2023-Present",
+    tags: ["Leadership", "Training", "CRM"],
+    link: "/projects/student-ambassadors-program",
+    image: "/src/assets/student-cafe-concept.jpg"
   }
 ];
 

@@ -3,8 +3,19 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { SEO } from "@/components/SEO";
+import ProjectGallery from "@/components/ProjectGallery";
+import RelatedProjects from "@/components/RelatedProjects";
 
 import heroImage from "/src/assets/student-cafe-concept.jpg";
+
+const galleryItems = [
+  { type: 'image' as const, src: heroImage, alt: 'Student Ambassador Program', caption: 'Student Ambassadors during training session' },
+  { type: 'instagram' as const, src: 'https://www.instagram.com/p/placeholder1/', alt: 'Open Day event with STAMs' },
+  { type: 'instagram' as const, src: 'https://www.instagram.com/p/placeholder2/', alt: 'Focus Day campus tour leadership' },
+  { type: 'instagram' as const, src: 'https://www.instagram.com/reel/placeholder3/', alt: 'Under the Stars event coordination' },
+  { type: 'instagram' as const, src: 'https://www.instagram.com/p/placeholder4/', alt: 'Summer activities and recruitment' },
+  { type: 'instagram' as const, src: 'https://www.instagram.com/p/placeholder5/', alt: 'Student Ambassador training workshop' }
+];
 
 export default function StudentAmbassadorsProgram() {
   return (
@@ -191,6 +202,12 @@ export default function StudentAmbassadorsProgram() {
                 ))}
               </div>
             </section>
+
+            {/* Gallery */}
+            <ProjectGallery items={galleryItems} />
+
+            {/* Related Projects */}
+            <RelatedProjects currentProjectSlug="student-ambassadors-program" />
 
           </div>
         </div>
