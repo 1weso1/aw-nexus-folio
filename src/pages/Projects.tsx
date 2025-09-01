@@ -77,7 +77,7 @@ const projects = [
     tags: ["Leadership", "Training", "Recruitment", "Event Ops", "CRM"],
     link: "/projects/student-ambassadors-program",
     category: "leadership",
-    image: heroImage
+    image: "/lovable-uploads/19db5647-a818-44f1-a6fb-cc27bf6f9a1b.png"
   },
   {
     title: "GRACE Research Competition",
