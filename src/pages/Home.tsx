@@ -1,183 +1,159 @@
-import { ArrowRight, Download, Award, Users, Briefcase, Coffee } from "lucide-react";
-import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { ProjectCard } from "@/components/ProjectCard";
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Zap, Download, Users, Shield, Star, ArrowRight, Database, Workflow, Search } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
-const highlights = [
-  { name: "BUE", icon: Briefcase },
-  { name: "Rotaract", icon: Users },
-  { name: "Arab League", icon: Award },
-  { name: "Cairo Runners", icon: Users },
-];
+const Home = () => {
+  const { user } = useAuth();
 
-import heroImage from "/src/assets/student-cafe-concept.jpg";
-import couplesAppImage from "/src/assets/couples-app-mockup.jpg";
-import crmDashboardImage from "/src/assets/crm-automation-dashboard.jpg";
-import moveTeamImage from "/lovable-uploads/f9f1defa-84d4-4e38-910e-933f050d0cad.png";
+  const features = [
+    {
+      icon: <Database className="w-8 h-8" />,
+      title: "Extensive Workflow Library",
+      description: "Browse hundreds of pre-built n8n workflows across different categories and use cases."
+    },
+    {
+      icon: <Shield className="w-8 h-8" />,
+      title: "Secure Downloads",
+      description: "All workflows require authentication to ensure quality and track usage for creators."
+    },
+    {
+      icon: <Users className="w-8 h-8" />,
+      title: "User Collections",
+      description: "Organize your favorite workflows into custom collections and share them with others."
+    },
+    {
+      icon: <Search className="w-8 h-8" />,
+      title: "Advanced Search",
+      description: "Find exactly what you need with powerful filtering by category, complexity, and tags."
+    }
+  ];
 
-const featuredProjects = [
-  {
-    title: "Student Ambassadors' Café",
-    description: "From concept to board approval: a student-run café launching Summer 2026. Led the complete business plan and stakeholder alignment process.",
-    status: "planned" as const,
-    role: "Project Lead & Business Strategist",
-    date: "2025-2026",
-    tags: ["Leadership", "Business Development", "Stakeholder Management"],
-    link: "/projects/stam-cafe",
-    image: heroImage
-  },
-  {
-    title: "Strings 'Attached' (Couples App)",
-    description: "A playful app to strengthen relationships with smart nudges and interactive challenges. Currently in development using FlutterFlow.",
-    status: "progress" as const,
-    role: "Product Designer & Developer",
-    date: "2024-Present",
-    tags: ["Mobile App", "UX Design", "FlutterFlow"],
-    link: "/projects/strings-attached",
-    image: couplesAppImage
-  },
-  {
-    title: "CRM Automation Templates",
-    description: "Reusable n8n workflows designed to streamline CRM processes for small businesses and recruitment teams.",
-    status: "planned" as const,
-    role: "CRM Specialist & Automation Developer",
-    date: "Coming Soon",
-    tags: ["CRM", "Automation", "n8n", "HubSpot"],
-    link: "/projects/crm-automation",
-    image: crmDashboardImage
-  },
-  {
-    title: "Move Sports Club",
-    description: "Founded a campus sports club from zero and scaled it to a full program with regular activities and community partnerships.",
-    status: "live" as const,
-    role: "Founder & President",
-    date: "2023-Present", 
-    tags: ["Leadership", "Community Building", "Sports Management"],
-    link: "/projects/move",
-    image: moveTeamImage
-  }
-];
+  const stats = [
+    { label: "Active Workflows", value: "500+" },
+    { label: "Categories", value: "25+" },
+    { label: "Users", value: "1,000+" },
+    { label: "Downloads", value: "10,000+" }
+  ];
 
-export default function Home() {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8 pt-20">
-        <div className="absolute inset-0 gradient-hero opacity-90" />
-        <div className="relative z-10 max-w-6xl mx-auto text-center">
-          {/* Hero Logo */}
-          <div className="mb-8 animate-fade-in">
-            <img 
-              src="/lovable-uploads/d565c3d6-458e-41eb-8e16-a1ddcfbdc719.png" 
-              alt="Ahmed Wesam Logo" 
-              className="h-24 w-24 mx-auto neon-glow animate-glow-pulse"
-            />
+      <section className="pt-20 pb-16 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-accent/5"></div>
+        <div className="relative container mx-auto text-center">
+          <div className="w-20 h-20 rounded-full bg-gradient-to-r from-primary to-accent flex items-center justify-center mx-auto mb-8 animate-pulse-glow">
+            <Zap className="w-10 h-10 text-white" />
           </div>
-
-          {/* Hero Text */}
-          <div className="space-y-6 animate-fade-in">
-            <h1 className="hero-text animate-gradient-x">
-              Building smarter connections through CRM, automation, and community projects
-            </h1>
-            <p className="text-xl md:text-2xl body-large max-w-3xl mx-auto">
-              CRM & Recruitment specialist blending data-driven outreach with digital innovation
-            </p>
-          </div>
-
-          {/* Hero CTAs */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mt-10 animate-fade-in">
-            <Button asChild variant="hero" size="xl">
-              <Link to="/projects">
-                Explore My Work
-                <ArrowRight className="h-5 w-5" />
+          
+          <h1 className="text-5xl md:text-7xl font-bold text-foreground mb-6 gradient-text">
+            Automation Hub
+          </h1>
+          
+          <p className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-3xl mx-auto">
+            Professional n8n workflow automation platform. Browse, download, and manage 
+            automation workflows with user accounts and collections.
+          </p>
+          
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+            <Button asChild size="lg" className="bg-gradient-to-r from-primary to-accent hover:opacity-90 text-lg px-8 py-3">
+              <Link to="/workflows">
+                <Workflow className="mr-2 h-5 w-5" />
+                Browse Workflows
               </Link>
             </Button>
-            <Button asChild variant="glass" size="xl">
-              <Link to="/book">
-                Book a Call
-              </Link>
-            </Button>
+            
+            {!user ? (
+              <Button asChild variant="outline" size="lg" className="glass border-primary/20 text-lg px-8 py-3">
+                <Link to="/auth">
+                  <Users className="mr-2 h-5 w-5" />
+                  Create Account
+                </Link>
+              </Button>
+            ) : (
+              <Button asChild variant="outline" size="lg" className="glass border-primary/20 text-lg px-8 py-3">
+                <Link to="/dashboard">
+                  <Star className="mr-2 h-5 w-5" />
+                  My Dashboard
+                </Link>
+              </Button>
+            )}
           </div>
 
-          {/* Highlights Strip */}
-          <div className="mt-16 animate-fade-in">
-            <p className="text-text-secondary mb-6">Trusted by organizations</p>
-            <div className="flex flex-wrap justify-center gap-8">
-              {highlights.map((item) => (
-                <div key={item.name} className="flex items-center space-x-2 text-text-secondary hover:text-neon-primary transition-colors">
-                  <item.icon className="h-5 w-5" />
-                  <span className="font-medium">{item.name}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Featured Projects */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="section-heading">Featured Projects</h2>
-            <p className="body-large max-w-2xl mx-auto">
-              A selection of recent initiatives spanning leadership, technology, and community impact
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {featuredProjects.map((project) => (
-              <ProjectCard key={project.title} {...project} />
+          {/* Stats */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-16">
+            {stats.map((stat, index) => (
+              <Card key={index} className="glass border-primary/20 p-6 hover-lift">
+                <div className="text-3xl font-bold text-primary mb-2">{stat.value}</div>
+                <div className="text-sm text-muted-foreground">{stat.label}</div>
+              </Card>
             ))}
           </div>
+        </div>
+      </section>
 
-          <div className="text-center mt-12">
-            <Button asChild variant="neon" size="lg">
-              <Link to="/projects">
-                View All Projects
-                <ArrowRight className="h-5 w-5" />
-              </Link>
-            </Button>
+      {/* Features Section */}
+      <section className="py-16 px-4 sm:px-6 lg:px-8">
+        <div className="container mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-foreground mb-4">
+              Everything You Need for Automation
+            </h2>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              Discover, organize, and deploy powerful n8n workflows with our comprehensive platform
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {features.map((feature, index) => (
+              <Card key={index} className="glass border-primary/20 p-6 hover-lift text-center">
+                <div className="w-16 h-16 rounded-full bg-gradient-to-r from-primary/20 to-accent/20 flex items-center justify-center mx-auto mb-4 text-primary">
+                  {feature.icon}
+                </div>
+                <h3 className="text-xl font-semibold text-foreground mb-3">{feature.title}</h3>
+                <p className="text-muted-foreground">{feature.description}</p>
+              </Card>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Quick Bio */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-4xl mx-auto">
-          <div className="glass rounded-3xl p-8 md:p-12">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
-              <div className="md:col-span-2 space-y-6">
-                <h2 className="section-heading">About Ahmed</h2>
-                <p className="body-large">
-                  I optimize HubSpot CRM, lead student engagement, and build tools that make outreach more human and efficient. Previously founded a university sports club and served as Rotaract VP.
-                </p>
-                <div className="flex flex-wrap gap-4">
-                  <Button asChild variant="neon">
-                    <Link to="/about">
-                      More About Me
-                    </Link>
-                  </Button>
-                  <Button asChild variant="glass">
-                    <Link to="/cv">
-                      <Download className="h-4 w-4" />
-                      Download CV
-                    </Link>
-                  </Button>
-                </div>
-              </div>
-              <div className="flex justify-center">
-                <div className="w-48 h-48 rounded-2xl bg-gradient-surface border border-neon-primary/20 flex items-center justify-center p-8">
-                  <img 
-                    src="/lovable-uploads/d565c3d6-458e-41eb-8e16-a1ddcfbdc719.png" 
-                    alt="Ahmed Wesam Logo" 
-                    className="w-full h-full object-contain neon-glow"
-                  />
-                </div>
-              </div>
+      {/* CTA Section */}
+      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-primary/10 via-background to-accent/10">
+        <div className="container mx-auto text-center">
+          <Card className="glass border-primary/20 p-12 max-w-4xl mx-auto">
+            <h2 className="text-4xl font-bold text-foreground mb-4">
+              Ready to Automate Your Workflows?
+            </h2>
+            <p className="text-xl text-muted-foreground mb-8">
+              Join thousands of users who are already streamlining their processes with our curated n8n workflows
+            </p>
+            
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button asChild size="lg" className="bg-gradient-to-r from-primary to-accent hover:opacity-90">
+                <Link to="/workflows">
+                  <Download className="mr-2 h-5 w-5" />
+                  Start Browsing
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Link>
+              </Button>
+              
+              {!user && (
+                <Button asChild variant="outline" size="lg" className="glass border-primary/20">
+                  <Link to="/auth">
+                    Sign Up for Free
+                  </Link>
+                </Button>
+              )}
             </div>
-          </div>
+          </Card>
         </div>
       </section>
     </div>
   );
-}
+};
+
+export default Home;
