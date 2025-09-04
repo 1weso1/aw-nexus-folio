@@ -11,6 +11,7 @@ interface ProjectCardProps {
   tags: string[];
   link: string;
   image?: string;
+  featured?: boolean;
 }
 
 const statusStyles = {
@@ -33,10 +34,11 @@ export function ProjectCard({
   date, 
   tags, 
   link,
-  image 
+  image,
+  featured 
 }: ProjectCardProps) {
   return (
-    <div className="project-card group">
+    <div className={`project-card group ${featured ? 'ring-2 ring-neon-primary/50 bg-neon-primary/5' : ''}`}>
       {image && (
         <div className="relative h-48 mb-4 rounded-xl overflow-hidden">
           <img 

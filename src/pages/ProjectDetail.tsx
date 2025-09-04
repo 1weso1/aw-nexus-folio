@@ -6,12 +6,12 @@ import { ProjectCard } from "@/components/ProjectCard";
 // Sample project data - in a real app this would come from a CMS or API
 const projectData = {
   "crm-automation": {
-    title: "CRM Automation Library (2,000+ Workflows)",
+    title: "CRM Automation Library (2,046 Workflows)",
     role: "Automation Architect & CRM Specialist",
     status: "live" as const,
     date: "2024-Present",
     tags: ["n8n", "CRM", "AI Automation", "HubSpot", "Enterprise", "365+ Integrations"],
-    summary: "Built and curated a comprehensive library of 2,053 production-ready n8n automation workflows across 15 business categories. This enterprise-grade automation suite covers everything from CRM management and lead nurturing to AI-powered content generation and social media automation, serving as a complete business automation toolkit.",
+    summary: "Built and curated a comprehensive library of 2,046 production-ready n8n automation workflows across 15 business categories. This enterprise-grade automation suite covers everything from CRM management and lead nurturing to AI-powered content generation and social media automation, serving as a complete business automation toolkit.",
     problem: "Small businesses and CRM teams struggle with repetitive manual processes, inconsistent lead management, and fragmented marketing workflows. Existing automation solutions are often expensive, complex to implement, or lack the flexibility needed for diverse business requirements.",
     approach: [
       "Analyzed common business process pain points across 15 industry categories",
@@ -23,14 +23,14 @@ const projectData = {
       "Created detailed documentation and implementation guides for each workflow category",
       "Established quality assurance processes ensuring all workflows are production-ready"
     ],
-    outcome: "Delivered a comprehensive automation library with 2,053 workflows, 365 unique integrations, and 29,445 total automation nodes. The library covers 15 business categories with proven templates that reduce manual work by 70% and improve lead conversion rates by 45%. Now serves as the foundation for business automation consulting and CRM optimization services.",
+    outcome: "Delivered a comprehensive automation library with 2,046 workflows, 365 unique integrations, and 29,445 total automation nodes. The library covers 15 business categories with proven templates that reduce manual work by 70% and improve lead conversion rates by 45%. Now serves as the foundation for business automation consulting and CRM optimization services.",
     role_details: "Led the complete development and curation of this automation library. Responsible for workflow architecture, integration testing, categorization systems, performance optimization, and creating comprehensive documentation. Collaborated with CRM teams to ensure real-world applicability and business impact measurement.",
     timeline: [
       { period: "Q1 2024", milestone: "Initial workflow collection and analysis framework development" },
       { period: "Q2 2024", milestone: "Core CRM and lead generation workflow templates completed" },
       { period: "Q3 2024", milestone: "AI-powered workflows and advanced integrations implementation" },
       { period: "Q4 2024", milestone: "Enterprise-grade templates and documentation system launch" },
-      { period: "Q1 2025", milestone: "Full library deployment with 2,053 workflows across 15 categories" }
+      { period: "Q1 2025", milestone: "Full library deployment with 2,046 workflows across 15 categories" }
     ],
     tools: ["n8n", "HubSpot API", "Salesforce API", "OpenAI", "Google Workspace", "Slack", "Telegram", "Python", "SQLite", "FastAPI"],
     gallery: ["/src/assets/workflow-1.png", "/src/assets/workflow-2.png", "/src/assets/workflow-3.png", "/src/assets/workflow-4.png"],
@@ -331,7 +331,7 @@ export default function ProjectDetail() {
                     <div className="space-y-2">
                       <div className="flex items-center justify-center">
                         <Zap className="h-5 w-5 text-neon-primary mr-2" />
-                        <span className="text-2xl md:text-3xl font-bold neon-text">2,053</span>
+                        <span className="text-2xl md:text-3xl font-bold neon-text">2,046</span>
                       </div>
                       <p className="text-sm text-text-secondary">Total Workflows</p>
                     </div>

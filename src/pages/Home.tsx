@@ -17,6 +17,17 @@ import moveTeamImage from "/lovable-uploads/f9f1defa-84d4-4e38-910e-933f050d0cad
 
 const featuredProjects = [
   {
+    title: "CRM Automation Library (2,046 Workflows)",
+    description: "🚀 FEATURED: Comprehensive library of 2,046 production-ready n8n automation workflows across 15 business categories. Enterprise-grade automation suite for CRM management, lead nurturing, and AI-powered content generation.",
+    status: "live" as const,
+    role: "Automation Architect & CRM Specialist",
+    date: "2024-Present",
+    tags: ["🔥 Live Now", "n8n", "CRM", "AI Automation", "365+ Integrations"],
+    link: "/projects/crm-automation",
+    image: crmDashboardImage,
+    featured: true
+  },
+  {
     title: "Student Ambassadors' Café",
     description: "From concept to board approval: a student-run café launching Summer 2026. Led the complete business plan and stakeholder alignment process.",
     status: "planned" as const,
@@ -35,16 +46,6 @@ const featuredProjects = [
     tags: ["Mobile App", "UX Design", "FlutterFlow"],
     link: "/projects/strings-attached",
     image: couplesAppImage
-  },
-  {
-    title: "CRM Automation Templates",
-    description: "Reusable n8n workflows designed to streamline CRM processes for small businesses and recruitment teams.",
-    status: "planned" as const,
-    role: "CRM Specialist & Automation Developer",
-    date: "Coming Soon",
-    tags: ["CRM", "Automation", "n8n", "HubSpot"],
-    link: "/projects/crm-automation",
-    image: crmDashboardImage
   },
   {
     title: "Move Sports Club",

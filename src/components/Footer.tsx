@@ -31,6 +31,7 @@ export function Footer() {
               {[
                 { name: "About", href: "/about" },
                 { name: "Projects", href: "/projects" },
+                { name: "Automation", href: "/workflows" },
                 { name: "Apps", href: "/apps" },
                 { name: "Blog", href: "/blog" },
                 { name: "Contact", href: "/contact" },
