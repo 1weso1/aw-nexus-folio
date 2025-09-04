@@ -3,42 +3,39 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Zap, Download, Users, Star, ArrowRight, Play, Code, Shield } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
+import { Zap, Download, Search, Eye, Code, GitBranch, ArrowRight, Play } from 'lucide-react';
 
 const Home = () => {
-  const { user } = useAuth();
-
   const features = [
     {
-      icon: Zap,
-      title: 'Ready-to-Use Workflows',
-      description: 'Browse 2000+ production-ready n8n automation workflows from the community',
+      icon: Search,
+      title: 'Smart Search & Filter',
+      description: 'Find workflows by category, service, complexity, or keywords across 2000+ automations',
+    },
+    {
+      icon: Eye,
+      title: 'Interactive Preview',
+      description: 'Visualize workflow structure with our React Flow preview before downloading',
     },
     {
       icon: Download,
       title: 'Instant Download',
-      description: 'Download workflow JSON files instantly - sign in to unlock full access',
-    },
-    {
-      icon: Play,
-      title: 'Interactive Preview',
-      description: 'Visualize workflows with our interactive React Flow preview before downloading',
+      description: 'Download workflow JSON files ready for import into your n8n instance',
     },
     {
       icon: Code,
-      title: 'Developer Friendly',
-      description: 'All workflows are JSON-based and ready for import into your n8n instance',
+      title: 'Production Ready',
+      description: 'All workflows are tested and ready for production use in your automation setup',
     },
     {
-      icon: Shield,
+      icon: GitBranch,
       title: 'Community Driven',
-      description: 'Curated from the 1weso1/n8n-workflows repository with regular updates',
+      description: 'Curated from the n8n community with regular updates and new workflows',
     },
     {
-      icon: Users,
-      title: 'Collections & Favorites',
-      description: 'Save your favorite workflows and organize them into custom collections',
+      icon: Play,
+      title: 'Easy Integration',
+      description: 'JSON-based workflows that import seamlessly into any n8n installation',
     },
   ];
 
@@ -46,7 +43,7 @@ const Home = () => {
     { label: 'Workflows', value: '2000+' },
     { label: 'Categories', value: '25+' },
     { label: 'Services', value: '100+' },
-    { label: 'Updates', value: 'Daily' },
+    { label: 'Free Access', value: '100%' },
   ];
 
   return (
@@ -57,11 +54,11 @@ const Home = () => {
           <div className="mb-8">
             <Badge variant="outline" className="mb-4 glass border-brand-primary/30">
               <Zap className="w-3 h-3 mr-1" />
-              2000+ Automation Workflows
+              2000+ Ready-to-Use Workflows
             </Badge>
             <h1 className="hero-text text-5xl md:text-7xl mb-6">
               n8n Workflow
-              <span className="gradient-text"> Automation Hub</span>
+              <span className="gradient-text"> Library</span>
             </h1>
             <p className="body-large mb-8 max-w-3xl mx-auto">
               Discover, preview, and download production-ready n8n automation workflows. 
@@ -72,26 +69,16 @@ const Home = () => {
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
             <Button asChild size="lg" className="bg-gradient-to-r from-brand-primary to-brand-accent hover:shadow-glow">
               <Link to="/workflows">
-                <Zap className="mr-2 h-5 w-5" />
-                Explore Workflows
+                <Search className="mr-2 h-5 w-5" />
+                Browse Workflows
               </Link>
             </Button>
-            {!user && (
-              <Button asChild variant="outline" size="lg" className="glass border-brand-primary/20">
-                <Link to="/auth">
-                  <Download className="mr-2 h-5 w-5" />
-                  Sign Up for Downloads
-                </Link>
-              </Button>
-            )}
-            {user && (
-              <Button asChild variant="outline" size="lg" className="glass border-brand-primary/20">
-                <Link to="/dashboard">
-                  <Users className="mr-2 h-5 w-5" />
-                  My Dashboard
-                </Link>
-              </Button>
-            )}
+            <Button asChild variant="outline" size="lg" className="glass border-brand-primary/20">
+              <Link to="/workflows">
+                <Download className="mr-2 h-5 w-5" />
+                Start Downloading
+              </Link>
+            </Button>
           </div>
 
           {/* Stats */}
@@ -113,11 +100,11 @@ const Home = () => {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-text-primary mb-4">
-              Everything You Need for Automation
+              Everything You Need for n8n Automation
             </h2>
             <p className="body-large max-w-2xl mx-auto">
-              Built by automation enthusiasts, for automation enthusiasts. 
-              Our platform makes finding and implementing n8n workflows effortless.
+              Built for developers and automation enthusiasts. 
+              Our library makes finding and implementing n8n workflows effortless.
             </p>
           </div>
 
@@ -147,16 +134,16 @@ const Home = () => {
           <Card className="glass border-brand-primary/20 p-8">
             <CardHeader>
               <CardTitle className="text-2xl md:text-3xl text-text-primary mb-4">
-                Ready to Automate Your Workflows?
+                Ready to Supercharge Your Automations?
               </CardTitle>
               <CardDescription className="body-large mb-8">
-                Join thousands of developers and business professionals who trust our platform for their automation needs.
+                Join thousands of developers who use our workflow library to build powerful n8n automations faster.
               </CardDescription>
             </CardHeader>
             <CardContent>
               <Button asChild size="lg" className="bg-gradient-to-r from-brand-primary to-brand-accent hover:shadow-glow">
                 <Link to="/workflows">
-                  Get Started Now
+                  Explore Library Now
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
               </Button>
