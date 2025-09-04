@@ -361,10 +361,10 @@ export default function ProjectDetail() {
 
                 <div className="mt-8 text-center">
                   <Button asChild variant="default">
-                    <a href="https://automation.ahmedwesam.com" target="_blank" rel="noopener noreferrer">
+                    <Link to="/workflows">
                       <ExternalLink className="h-4 w-4 mr-2" />
                       Browse Workflow Library
-                    </a>
+                    </Link>
                   </Button>
                 </div>
               </section>

@@ -122,11 +122,9 @@ export default function Apps() {
                   {/* Action Buttons */}
                   <div className="flex flex-col sm:flex-row gap-3 pt-4">
                     {app.status === "live" || app.status === "preview" ? (
-                      <Button asChild variant="hero" size="lg" className="flex-1">
-                        <a href={`https://${app.demoUrl}`} target="_blank" rel="noopener noreferrer">
-                          <ExternalLink className="h-4 w-4" />
-                          {app.status === "live" ? "Open Live App" : "Open Preview"}
-                        </a>
+                      <Button variant="hero" size="lg" className="flex-1">
+                        <ExternalLink className="h-4 w-4" />
+                        {app.status === "live" ? "Open Live App" : "Open Preview"}
                       </Button>
                     ) : (
                       <div className="flex-1 text-center py-3 px-6 bg-text-secondary/20 text-text-secondary rounded-lg">
