@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Menu, Zap, User, LogOut } from 'lucide-react';
+import { Menu, Zap, User, LogOut, Home, FolderOpen, FileText, Mail, BookOpen, Smartphone, Code } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 export const Navbar = () => {
@@ -10,11 +10,25 @@ export const Navbar = () => {
   const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
 
-  const navigation = [
-    { name: 'Home', href: '/' },
-    { name: 'Workflows', href: '/workflows' },
-    { name: 'Collections', href: '/collections' },
+  // Determine if we're in automation hub or portfolio
+  const isAutomationHub = location.pathname.startsWith('/automation');
+
+  const portfolioNavigation = [
+    { name: 'Home', href: '/', icon: Home },
+    { name: 'About', href: '/about', icon: User },
+    { name: 'Projects', href: '/projects', icon: FolderOpen },
+    { name: 'Apps', href: '/apps', icon: Smartphone },
+    { name: 'Blog', href: '/blog', icon: BookOpen },
+    { name: 'Contact', href: '/contact', icon: Mail },
   ];
+
+  const automationNavigation = [
+    { name: 'Hub', href: '/automation', icon: Home },
+    { name: 'Workflows', href: '/automation/workflows', icon: Code },
+    { name: 'Collections', href: '/automation/collections', icon: FolderOpen },
+  ];
+
+  const navigation = isAutomationHub ? automationNavigation : portfolioNavigation;
 
   const isActive = (path: string) => {
     if (path === '/' && location.pathname === '/') return true;
@@ -32,12 +46,16 @@ export const Navbar = () => {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2">
+          <Link to={isAutomationHub ? "/automation" : "/"} className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-full bg-gradient-to-r from-primary to-accent flex items-center justify-center">
-              <Zap className="w-5 h-5 text-white" />
+              {isAutomationHub ? (
+                <Zap className="w-5 h-5 text-white" />
+              ) : (
+                <span className="text-sm font-bold text-white font-sora">AW</span>
+              )}
             </div>
             <span className="text-xl font-bold text-foreground font-sora">
-              Automation Hub
+              {isAutomationHub ? "Automation Hub" : "Ahmed Wesam"}
             </span>
           </Link>
 
@@ -60,21 +78,30 @@ export const Navbar = () => {
 
           {/* Desktop Auth */}
           <div className="hidden md:flex items-center gap-4">
-            {user ? (
-              <>
-                <Button variant="ghost" size="sm" asChild>
-                  <Link to="/dashboard" className="flex items-center gap-2">
-                    <User className="w-4 h-4" />
-                    Dashboard
-                  </Link>
+            {isAutomationHub ? (
+              user ? (
+                <>
+                  <Button variant="ghost" size="sm" asChild>
+                    <Link to="/automation/dashboard" className="flex items-center gap-2">
+                      <User className="w-4 h-4" />
+                      Dashboard
+                    </Link>
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={handleSignOut}>
+                    <LogOut className="w-4 h-4" />
+                  </Button>
+                </>
+              ) : (
+                <Button asChild className="bg-gradient-to-r from-primary to-accent hover:opacity-90">
+                  <Link to="/automation/auth">Sign In</Link>
                 </Button>
-                <Button variant="ghost" size="sm" onClick={handleSignOut}>
-                  <LogOut className="w-4 h-4" />
-                </Button>
-              </>
+              )
             ) : (
-              <Button asChild className="bg-gradient-to-r from-primary to-accent hover:opacity-90">
-                <Link to="/auth">Sign In</Link>
+              <Button asChild variant="hero">
+                <Link to="/automation">
+                  <Code className="w-4 h-4" />
+                  Automation Hub
+                </Link>
               </Button>
             )}
           </div>
@@ -104,23 +131,32 @@ export const Navbar = () => {
                 ))}
                 
                 <div className="border-t border-primary/20 pt-6">
-                  {user ? (
-                    <div className="flex flex-col gap-4">
-                      <Button variant="outline" className="glass border-primary/20" asChild>
-                        <Link to="/dashboard" onClick={() => setIsOpen(false)}>
-                          <User className="w-4 h-4 mr-2" />
-                          Dashboard
+                  {isAutomationHub ? (
+                    user ? (
+                      <div className="flex flex-col gap-4">
+                        <Button variant="outline" className="glass border-primary/20" asChild>
+                          <Link to="/automation/dashboard" onClick={() => setIsOpen(false)}>
+                            <User className="w-4 h-4 mr-2" />
+                            Dashboard
+                          </Link>
+                        </Button>
+                        <Button variant="ghost" onClick={handleSignOut}>
+                          <LogOut className="w-4 h-4 mr-2" />
+                          Sign Out
+                        </Button>
+                      </div>
+                    ) : (
+                      <Button asChild className="w-full bg-gradient-to-r from-primary to-accent hover:opacity-90">
+                        <Link to="/automation/auth" onClick={() => setIsOpen(false)}>
+                          Sign In
                         </Link>
                       </Button>
-                      <Button variant="ghost" onClick={handleSignOut}>
-                        <LogOut className="w-4 h-4 mr-2" />
-                        Sign Out
-                      </Button>
-                    </div>
+                    )
                   ) : (
                     <Button asChild className="w-full bg-gradient-to-r from-primary to-accent hover:opacity-90">
-                      <Link to="/auth" onClick={() => setIsOpen(false)}>
-                        Sign In
+                      <Link to="/automation" onClick={() => setIsOpen(false)}>
+                        <Code className="w-4 h-4 mr-2" />
+                        Automation Hub
                       </Link>
                     </Button>
                   )}

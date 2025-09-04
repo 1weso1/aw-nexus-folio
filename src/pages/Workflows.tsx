@@ -110,7 +110,7 @@ const Workflows = () => {
 
   const handleAuthRequired = () => {
     toast.error('Please sign in to download workflows');
-    navigate('/auth');
+    navigate('/automation/auth');
   };
 
   if (loading) {
@@ -207,7 +207,7 @@ const Workflows = () => {
               Showing {filteredWorkflows.length} of {workflows.length} workflows
             </p>
             {!user && (
-              <Button variant="outline" className="glass border-primary/20" onClick={() => navigate('/auth')}>
+              <Button variant="outline" className="glass border-primary/20" onClick={() => navigate('/automation/auth')}>
                 <User className="mr-2 h-4 w-4" />
                 Sign In for Downloads
               </Button>
@@ -256,7 +256,7 @@ const Workflows = () => {
 
                 <div className="flex items-center gap-2">
                   <Button variant="outline" size="sm" className="flex-1 glass border-primary/20" asChild>
-                    <Link to={`/workflows/${workflow.id}`}>
+                    <Link to={`/automation/workflows/${workflow.id}`}>
                       <Eye className="mr-2 h-4 w-4" />
                       View Details
                     </Link>
@@ -268,7 +268,7 @@ const Workflows = () => {
                       className="bg-gradient-to-r from-primary to-accent hover:opacity-90"
                       asChild
                     >
-                      <Link to={`/workflows/${workflow.id}`}>
+                      <Link to={`/automation/workflows/${workflow.id}`}>
                         <Download className="h-4 w-4" />
                       </Link>
                     </Button>
