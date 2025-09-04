@@ -1,70 +1,115 @@
-@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
-
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Ahmed Wesam Portfolio Design System */
-
 @layer base {
   :root {
-    /* Dark Theme Only */
-    --background: 222 47% 11%;
-    --foreground: 184 25% 90%;
+    --background: 220 10% 9%;
+    --foreground: 180 15% 92%;
+    --card: 220 12% 11%;
+    --card-foreground: 180 15% 92%;
+    --popover: 220 12% 11%;
+    --popover-foreground: 180 15% 92%;
+    --primary: 176 100% 45%;
+    --primary-foreground: 220 15% 12%;
+    --secondary: 220 14% 16%;
+    --secondary-foreground: 180 15% 92%;
+    --muted: 220 14% 16%;
+    --muted-foreground: 180 8% 65%;
+    --accent: 195 100% 50%;
+    --accent-foreground: 220 15% 12%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 20% 98%;
+    --border: 220 15% 20%;
+    --input: 220 15% 20%;
+    --ring: 176 100% 45%;
+    --radius: 0.75rem;
 
-    --card: 218 23% 11%;
-    --card-foreground: 184 25% 90%;
-
-    --popover: 218 23% 11%;
-    --popover-foreground: 184 25% 90%;
-
-    --primary: 180 100% 45%;
-    --primary-foreground: 222 47% 11%;
-
-    --secondary: 217 33% 18%;
-    --secondary-foreground: 184 25% 90%;
-
-    --muted: 217 33% 18%;
-    --muted-foreground: 210 15% 68%;
-
-    --accent: 217 33% 18%;
-    --accent-foreground: 184 25% 90%;
-
-    --destructive: 0 63% 31%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217 33% 18%;
-    --input: 217 33% 18%;
-    --ring: 180 100% 45%;
-
-    --radius: 1rem;
-
-    /* Premium Portfolio Colors */
-    --hero-bg: 222 47% 11%;
-    --surface-dark: 218 23% 11%;
-    --surface-card: 218 23% 11%;
-    --text-primary: 184 25% 90%;
-    --text-secondary: 210 15% 68%;
-    --neon-primary: 180 100% 45%;
-    --neon-accent: 195 100% 50%;
-    --neon-glow: 180 100% 45%;
-    
-    /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(180 100% 45%) 0%, hsl(195 100% 50%) 100%);
-    --gradient-surface: linear-gradient(135deg, hsl(218 23% 11%) 0%, hsl(222 47% 11%) 100%);
-    --gradient-hero: linear-gradient(135deg, hsl(222 47% 11%) 0%, hsl(218 23% 11%) 100%);
-    --gradient-glow: 0 0 40px hsl(180 100% 45% / 0.3);
-    
-    /* Glass Effects */
-    --glass-bg: hsl(218 23% 11% / 0.8);
-    --glass-border: hsl(180 100% 45% / 0.2);
-    --glass-blur: blur(20px);
-    
-    /* Animations */
-    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-bounce: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    /* Brand colors */
+    --brand-primary: 176 100% 45%;  /* #00E5D4 - teal */
+    --brand-accent: 195 100% 50%;   /* #00C8FF - cyan */
+    --hero-bg: 220 15% 8%;          /* #0E1116 */
+    --surface-dark: 220 12% 11%;    /* #12151C */
+    --surface-card: 220 14% 16%;    /* Card background */
+    --text-primary: 180 15% 92%;    /* #E6F2F2 */
+    --text-secondary: 180 8% 65%;   /* #AEB7C2 */
+    --neon-primary: 176 100% 45%;   /* Primary neon */
+    --neon-accent: 195 100% 50%;    /* Accent neon */
+    --neon-glow: 176 100% 70%;      /* Glow effect */
   }
 
+  .dark {
+    --background: 220 10% 9%;
+    --foreground: 180 15% 92%;
+    --card: 220 12% 11%;
+    --card-foreground: 180 15% 92%;
+    --popover: 220 12% 11%;
+    --popover-foreground: 180 15% 92%;
+    --primary: 176 100% 45%;
+    --primary-foreground: 220 15% 12%;
+    --secondary: 220 14% 16%;
+    --secondary-foreground: 180 15% 92%;
+    --muted: 220 14% 16%;
+    --muted-foreground: 180 8% 65%;
+    --accent: 195 100% 50%;
+    --accent-foreground: 220 15% 12%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 20% 98%;
+    --border: 220 15% 20%;
+    --input: 220 15% 20%;
+    --ring: 176 100% 45%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground font-inter;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-sora;
+  }
+}
+
+@layer utilities {
+  .glass {
+    @apply bg-card/50 backdrop-blur-md border border-primary/20;
+  }
+  
+  .glass-strong {
+    @apply bg-card/80 backdrop-blur-lg border border-primary/30;
+  }
+  
+  .neon-glow {
+    box-shadow: 0 0 20px hsl(var(--neon-primary) / 0.3),
+                0 0 40px hsl(var(--neon-primary) / 0.2),
+                0 0 60px hsl(var(--neon-primary) / 0.1);
+  }
+  
+  .neon-text {
+    text-shadow: 0 0 10px hsl(var(--neon-primary) / 0.8),
+                 0 0 20px hsl(var(--neon-primary) / 0.6),
+                 0 0 30px hsl(var(--neon-primary) / 0.4);
+  }
+  
+  .gradient-primary {
+    background: linear-gradient(135deg, hsl(var(--brand-primary)), hsl(var(--brand-accent)));
+  }
+  
+  .gradient-text {
+    background: linear-gradient(135deg, hsl(var(--brand-primary)), hsl(var(--brand-accent)));
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  
+  .hover-lift {
+    @apply transition-all duration-300 hover:translate-y-[-2px] hover:shadow-lg hover:shadow-primary/20;
+  }
 }
 
 @layer base {
