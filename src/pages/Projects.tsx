@@ -23,15 +23,16 @@ const projects = [
     image: couplesAppImage
   },
   {
-    title: "CRM Automation Library (2,000+ Workflows)",
-    description: "Comprehensive n8n automation library featuring 2,053 production-ready workflows across 15 business categories. Includes CRM integrations, AI-powered lead scoring, social media automation, and enterprise-grade templates for HubSpot, Salesforce, and more.",
+    title: "CRM Automation Library (2,046 Workflows)",
+    description: "Comprehensive n8n automation library featuring 2,046 production-ready workflows across 15 business categories. Includes CRM integrations, AI-powered lead scoring, social media automation, and enterprise-grade templates for HubSpot, Salesforce, and more.",
     status: "live" as const,
     role: "Automation Architect & CRM Specialist", 
     date: "2024-Present",
     tags: ["n8n", "CRM", "AI Automation", "HubSpot", "Enterprise", "365+ Integrations"],
     link: "/projects/crm-automation",
     category: "tech",
-    image: crmDashboardImage
+    image: crmDashboardImage,
+    featured: true
   },
 
   // Leadership Projects
@@ -137,6 +138,7 @@ export default function Projects() {
                 tags={project.tags}
                 link={project.link}
                 image={project.image}
+                featured={project.featured}
               />
             ))}
           </div>

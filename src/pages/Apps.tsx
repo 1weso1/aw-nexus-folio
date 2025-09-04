@@ -9,7 +9,7 @@ const apps = [
   {
     name: "Strings 'Attached'",
     description: "A playful app to strengthen relationships with smart nudges and interactive challenges. Features couple goals, conversation starters, and relationship milestones.",
-    status: "preview" as const,
+    status: "in-progress" as const,
     tech: ["FlutterFlow", "Supabase", "Mobile"],
     demoUrl: "couples.ahmedwesam.com",
     caseStudyUrl: "/projects/strings-attached",
@@ -18,13 +18,13 @@ const apps = [
   },
   {
     name: "CRM Automation Library",
-    description: "Comprehensive automation library with 2,053+ n8n workflows across 15 business categories. Interactive browser for CRM, AI, and marketing automation templates with live previews and implementation guides.",
+    description: "Comprehensive automation library with 2,046+ n8n workflows across 15 business categories. Interactive browser for CRM, AI, and marketing automation templates with live previews and implementation guides.",
     status: "live" as const,
     tech: ["n8n", "React", "AI Integration", "365+ APIs"],
-    demoUrl: "automation.ahmedwesam.com",
+    demoUrl: "/workflows",
     caseStudyUrl: "/projects/crm-automation",
     image: crmDashboardImage,
-    features: ["2,053 Workflows", "15 Categories", "365+ Integrations", "AI-Powered Templates"]
+    features: ["2,046 Workflows", "15 Categories", "365+ Integrations", "AI-Powered Templates"]
   }
 ];
 
@@ -121,10 +121,12 @@ export default function Apps() {
 
                   {/* Action Buttons */}
                   <div className="flex flex-col sm:flex-row gap-3 pt-4">
-                    {app.status === "live" || app.status === "preview" ? (
-                      <Button variant="hero" size="lg" className="flex-1">
-                        <ExternalLink className="h-4 w-4" />
-                        {app.status === "live" ? "Open Live App" : "Open Preview"}
+                    {app.status === "live" ? (
+                      <Button asChild variant="hero" size="lg" className="flex-1">
+                        <Link to={app.demoUrl.startsWith('/') ? app.demoUrl : `https://${app.demoUrl}`}>
+                          <ExternalLink className="h-4 w-4" />
+                          Open Live App
+                        </Link>
                       </Button>
                     ) : (
                       <div className="flex-1 text-center py-3 px-6 bg-text-secondary/20 text-text-secondary rounded-lg">
