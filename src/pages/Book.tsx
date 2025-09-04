@@ -1,196 +1,209 @@
-import { Calendar, Clock, Video, MessageSquare, CheckCircle, ArrowLeft } from "lucide-react";
+import { useState } from "react";
+import { ArrowLeft, Calendar, Clock, User, Mail, MessageSquare } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-
-const meetingTypes = [
-  {
-    title: "Quick Chat",
-    duration: "15 minutes",
-    description: "Brief discussion about a project, collaboration, or quick question. Perfect for initial conversations.",
-    features: ["Video or phone call", "Project overview", "Quick Q&A", "Next steps planning"],
-    price: "Free",
-    bookingUrl: "#", // Replace with actual booking link
-    icon: MessageSquare,
-    popular: false
-  },
-  {
-    title: "Project Discussion",
-    duration: "30 minutes", 
-    description: "In-depth conversation about CRM automation, student engagement strategies, or collaboration opportunities.",
-    features: ["Detailed project review", "Strategy discussion", "Resource planning", "Implementation roadmap"],
-    price: "Free",
-    bookingUrl: "#", // Replace with actual booking link
-    icon: Video,
-    popular: true
-  },
-  {
-    title: "Consultation",
-    duration: "60 minutes",
-    description: "Comprehensive consultation for CRM optimization, automation setup, or student program development.",
-    features: ["Full assessment", "Custom recommendations", "Tool evaluation", "Step-by-step plan", "Follow-up resources"],
-    price: "Contact for pricing",
-    bookingUrl: "#", // Replace with actual booking link
-    icon: CheckCircle,
-    popular: false
-  }
-];
-
-const availability = [
-  { day: "Monday - Thursday", time: "9:00 AM - 6:00 PM" },
-  { day: "Friday", time: "9:00 AM - 2:00 PM" },
-  { day: "Saturday - Sunday", time: "By appointment" }
-];
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
 
 export default function Book() {
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    window_text: "",
+    notes: ""
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    try {
+      const { error } = await supabase
+        .from('booking_requests')
+        .insert([formData]);
+
+      if (error) throw error;
+
+      toast({
+        title: "Booking Request Submitted!",
+        description: "Thanks—I'll reply with a time.",
+      });
+
+      setFormData({ name: "", email: "", window_text: "", notes: "" });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: "Failed to submit request. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div className="min-h-screen pt-20 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
+      <div className="max-w-4xl mx-auto">
+        {/* Back Button */}
         <div className="mb-8">
-          <Button asChild variant="ghost" className="mb-6">
-            <Link to="/contact">
+          <Button asChild variant="ghost">
+            <Link to="/">
               <ArrowLeft className="h-4 w-4" />
-              Back to Contact
+              Back to Home
             </Link>
           </Button>
-          
-          <div className="text-center mb-12">
-            <h1 className="hero-text mb-6">Book a Call</h1>
-            <p className="text-xl body-large max-w-3xl mx-auto">
-              Let's discuss your CRM needs, automation ideas, or collaboration opportunities. 
-              Choose the format that works best for your goals.
-            </p>
-          </div>
         </div>
 
-        {/* Meeting Types */}
-        <section className="py-12">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {meetingTypes.map((meeting) => (
-              <div key={meeting.title} className={`project-card relative ${meeting.popular ? 'border-neon-primary/50' : ''}`}>
-                {meeting.popular && (
-                  <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                    <span className="bg-neon-primary px-3 py-1 rounded-full text-sm font-medium text-hero-bg">
-                      Most Popular
-                    </span>
-                  </div>
-                )}
-                
-                <div className="space-y-6">
-                  <div className="text-center">
-                    <div className="w-16 h-16 bg-neon-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <meeting.icon className="h-8 w-8 text-neon-primary" />
-                    </div>
-                    <h3 className="text-2xl font-bold font-sora text-text-primary mb-2">{meeting.title}</h3>
-                    <div className="flex items-center justify-center text-text-secondary mb-3">
-                      <Clock className="h-4 w-4 mr-2" />
-                      <span>{meeting.duration}</span>
-                    </div>
-                    <p className="body-large text-sm">{meeting.description}</p>
-                  </div>
-
-                  <div className="space-y-3">
-                    <h4 className="font-sora font-semibold text-text-primary">What's included:</h4>
-                    <ul className="space-y-2">
-                      {meeting.features.map((feature, index) => (
-                        <li key={index} className="flex items-start text-sm text-text-secondary">
-                          <CheckCircle className="h-4 w-4 text-neon-primary mr-2 flex-shrink-0 mt-0.5" />
-                          {feature}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  <div className="text-center space-y-4">
-                    <div className="text-2xl font-bold text-neon-primary">{meeting.price}</div>
-                    <Button 
-                      className={`w-full ${meeting.popular ? 'bg-gradient-to-r from-neon-primary to-neon-accent' : 'variant-hero'}`}
-                      onClick={() => {
-                        // For now, redirect to contact page
-                        // In a real implementation, this would open a booking widget
-                        window.location.href = '/contact';
-                      }}
-                    >
-                      <Calendar className="h-4 w-4" />
-                      Book Now
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+        {/* Header */}
+        <section className="text-center mb-12">
+          <h1 className="hero-text text-4xl md:text-5xl mb-6">Book a Call</h1>
+          <p className="text-xl body-large max-w-3xl mx-auto">
+            Let's connect and discuss your CRM automation needs, community projects, or collaboration opportunities.
+          </p>
         </section>
 
-        {/* Availability */}
-        <section className="py-16">
-          <div className="glass rounded-3xl p-8 md:p-12">
-            <h2 className="section-heading text-center mb-8">Availability</h2>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+          {/* Information */}
+          <div className="space-y-6">
+            <div className="glass rounded-2xl p-6">
+              <h2 className="text-xl font-sora font-semibold text-text-primary mb-4">What to Expect</h2>
               <div className="space-y-4">
-                <h3 className="text-xl font-sora font-semibold text-text-primary mb-4">Timezone & Hours</h3>
-                {availability.map((slot, index) => (
-                  <div key={index} className="flex justify-between items-center p-3 bg-surface-card/50 rounded-lg">
-                    <span className="font-medium text-text-primary">{slot.day}</span>
-                    <span className="text-text-secondary">{slot.time}</span>
+                <div className="flex items-start space-x-3">
+                  <Clock className="h-5 w-5 text-neon-primary mt-1 flex-shrink-0" />
+                  <div>
+                    <h3 className="font-medium text-text-primary">Duration</h3>
+                    <p className="body-large text-sm">30-60 minutes depending on your needs</p>
                   </div>
-                ))}
-                <div className="text-sm text-text-secondary mt-4">
-                  <strong>Timezone:</strong> Cairo, Egypt (GMT+2)
                 </div>
-              </div>
-
-              <div className="space-y-6">
-                <h3 className="text-xl font-sora font-semibold text-text-primary">Before We Meet</h3>
-                <div className="space-y-4">
-                  <div className="flex items-start space-x-3">
-                    <div className="w-6 h-6 bg-neon-primary/20 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                      <span className="text-neon-primary text-sm font-bold">1</span>
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-text-primary">Prepare Your Questions</h4>
-                      <p className="text-sm text-text-secondary">Think about your main goals and challenges</p>
-                    </div>
+                <div className="flex items-start space-x-3">
+                  <Calendar className="h-5 w-5 text-neon-primary mt-1 flex-shrink-0" />
+                  <div>
+                    <h3 className="font-medium text-text-primary">Timeline</h3>
+                    <p className="body-large text-sm">I'll reply within 24 hours with available slots</p>
                   </div>
-                  <div className="flex items-start space-x-3">
-                    <div className="w-6 h-6 bg-neon-primary/20 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                      <span className="text-neon-primary text-sm font-bold">2</span>
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-text-primary">Share Context</h4>
-                      <p className="text-sm text-text-secondary">Brief overview of your project or organization</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start space-x-3">
-                    <div className="w-6 h-6 bg-neon-primary/20 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                      <span className="text-neon-primary text-sm font-bold">3</span>
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-text-primary">Test Your Setup</h4>
-                      <p className="text-sm text-text-secondary">Ensure your camera and microphone work</p>
-                    </div>
+                </div>
+                <div className="flex items-start space-x-3">
+                  <MessageSquare className="h-5 w-5 text-neon-primary mt-1 flex-shrink-0" />
+                  <div>
+                    <h3 className="font-medium text-text-primary">Format</h3>
+                    <p className="body-large text-sm">Video call, phone, or in-person (Cairo area)</p>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-        </section>
 
-        {/* Alternative Contact */}
-        <section className="py-16 text-center">
-          <div className="glass rounded-2xl p-8">
-            <h3 className="section-heading mb-4">Prefer Email?</h3>
-            <p className="body-large mb-6">
-              Not ready for a call? Send me a message first and we can schedule something that works for both of us.
-            </p>
-            <Button asChild variant="hero">
-              <Link to="/contact">
-                <MessageSquare className="h-4 w-4" />
-                Send Message Instead
-              </Link>
-            </Button>
+            <div className="glass rounded-2xl p-6">
+              <h2 className="text-xl font-sora font-semibold text-text-primary mb-4">Great for discussing</h2>
+              <ul className="space-y-2 body-large text-sm">
+                <li className="flex items-center space-x-2">
+                  <div className="w-1.5 h-1.5 bg-neon-primary rounded-full"></div>
+                  <span>CRM automation strategy</span>
+                </li>
+                <li className="flex items-center space-x-2">
+                  <div className="w-1.5 h-1.5 bg-neon-primary rounded-full"></div>
+                  <span>HubSpot workflow optimization</span>
+                </li>
+                <li className="flex items-center space-x-2">
+                  <div className="w-1.5 h-1.5 bg-neon-primary rounded-full"></div>
+                  <span>Community building projects</span>
+                </li>
+                <li className="flex items-center space-x-2">
+                  <div className="w-1.5 h-1.5 bg-neon-primary rounded-full"></div>
+                  <span>Leadership & collaboration opportunities</span>
+                </li>
+              </ul>
+            </div>
           </div>
-        </section>
+
+          {/* Booking Form */}
+          <div className="glass rounded-2xl p-8">
+            <h2 className="text-xl font-sora font-semibold text-text-primary mb-6">Request a Slot</h2>
+            
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-text-primary mb-2">
+                  <User className="h-4 w-4 inline mr-1" />
+                  Name
+                </label>
+                <input
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  required
+                  className="w-full px-4 py-3 glass rounded-lg text-text-primary placeholder-text-secondary focus:outline-none focus:border-neon-primary/50"
+                  placeholder="Your full name"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-text-primary mb-2">
+                  <Mail className="h-4 w-4 inline mr-1" />
+                  Email
+                </label>
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  required
+                  className="w-full px-4 py-3 glass rounded-lg text-text-primary placeholder-text-secondary focus:outline-none focus:border-neon-primary/50"
+                  placeholder="your@email.com"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-text-primary mb-2">
+                  <Calendar className="h-4 w-4 inline mr-1" />
+                  Preferred Time Window
+                </label>
+                <input
+                  type="text"
+                  name="window_text"
+                  value={formData.window_text}
+                  onChange={handleChange}
+                  required
+                  className="w-full px-4 py-3 glass rounded-lg text-text-primary placeholder-text-secondary focus:outline-none focus:border-neon-primary/50"
+                  placeholder="e.g., Weekdays 2-5 PM, Weekend mornings"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-text-primary mb-2">
+                  <MessageSquare className="h-4 w-4 inline mr-1" />
+                  What would you like to discuss? (optional)
+                </label>
+                <textarea
+                  name="notes"
+                  value={formData.notes}
+                  onChange={handleChange}
+                  rows={4}
+                  className="w-full px-4 py-3 glass rounded-lg text-text-primary placeholder-text-secondary focus:outline-none focus:border-neon-primary/50 resize-none"
+                  placeholder="Brief overview of your project or questions..."
+                />
+              </div>
+
+              <Button
+                type="submit"
+                variant="hero"
+                size="lg"
+                className="w-full"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? "Submitting..." : "Send Request"}
+              </Button>
+            </form>
+
+            <p className="text-text-secondary text-sm text-center mt-4">
+              I'll review your request and get back to you within 24 hours with available times.
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -56,9 +56,7 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
-				// Brand colors
-				'brand-primary': 'hsl(var(--brand-primary))',
-				'brand-accent': 'hsl(var(--brand-accent))',
+				// Portfolio specific colors
 				'hero-bg': 'hsl(var(--hero-bg))',
 				'surface-dark': 'hsl(var(--surface-dark))',
 				'surface-card': 'hsl(var(--surface-card))',
