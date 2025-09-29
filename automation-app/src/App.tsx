@@ -13,6 +13,7 @@ import WorkflowDetail from "./pages/WorkflowDetail";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Collections from "./pages/Collections";
+import GenerateDescriptions from "./pages/GenerateDescriptions";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -34,6 +35,7 @@ const App = () => (
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/collections" element={<Collections />} />
+                <Route path="/generate-descriptions" element={<GenerateDescriptions />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </main>
