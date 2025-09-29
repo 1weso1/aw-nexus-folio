@@ -7,38 +7,61 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
+  console.log('🔥 Function called, method:', req.method);
+  
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { offset = 0, limit = 10 } = await req.json();
+    const body = await req.json();
+    console.log('📦 Request body:', body);
+    const { offset = 0, limit = 10 } = body;
     
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
+    console.log('🔑 Environment check:', {
+      hasLovableKey: !!LOVABLE_API_KEY,
+      hasSupabaseUrl: !!SUPABASE_URL,
+      hasServiceRole: !!SUPABASE_SERVICE_ROLE_KEY,
+    });
+
     if (!LOVABLE_API_KEY || !SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-      throw new Error('Missing required environment variables');
+      const missing = [];
+      if (!LOVABLE_API_KEY) missing.push('LOVABLE_API_KEY');
+      if (!SUPABASE_URL) missing.push('SUPABASE_URL');
+      if (!SUPABASE_SERVICE_ROLE_KEY) missing.push('SUPABASE_SERVICE_ROLE_KEY');
+      throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
     }
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
     // Fetch workflows that don't have descriptions yet
+    console.log(`📊 Fetching workflows with offset ${offset}, limit ${limit}`);
     const { data: allWorkflows, error: allError } = await supabase
       .from('workflows')
       .select('id, name, category, node_count, has_credentials, complexity, raw_url')
       .range(offset, offset + limit - 1);
     
-    if (allError) throw allError;
+    console.log(`✅ Fetched ${allWorkflows?.length || 0} workflows`);
+    if (allError) {
+      console.error('❌ Error fetching workflows:', allError);
+      throw allError;
+    }
 
     // Filter out ones that already have descriptions
     const { data: existingDescriptions } = await supabase
       .from('workflow_descriptions')
       .select('workflow_id');
     
+    console.log(`📝 Found ${existingDescriptions?.length || 0} existing descriptions`);
+    
     const existingIds = new Set(existingDescriptions?.map(d => d.workflow_id) || []);
     const workflowsToProcess = allWorkflows?.filter(w => !existingIds.has(w.id)) || [];
+    
+    console.log(`🎯 Processing ${workflowsToProcess.length} workflows without descriptions`);
     
     const stats = {
       processed: 0,
