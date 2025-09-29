@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Download, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import N8nPreview from "@/components/N8nPreview";
+import { supabase } from "@/integrations/supabase/client";
 
 // Remove old n8n-demo declarations as we're using React Flow now
 
@@ -32,11 +33,18 @@ interface WorkflowData {
   tags?: any[];
 }
 
+interface WorkflowDescription {
+  description: string;
+  use_cases: string | null;
+  setup_guide: string | null;
+}
+
 const WorkflowDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [workflow, setWorkflow] = useState<Workflow | null>(null);
   const [workflowData, setWorkflowData] = useState<WorkflowData | null>(null);
+  const [workflowDescription, setWorkflowDescription] = useState<WorkflowDescription | null>(null);
   const [loading, setLoading] = useState(true);
   const [dataLoading, setDataLoading] = useState(false);
   const [previewError, setPreviewError] = useState<string | null>(null);
@@ -112,6 +120,17 @@ const WorkflowDetail = () => {
         } else {
           console.warn('No raw_url provided for workflow');
           setPreviewError('No workflow data URL available');
+        }
+
+        // Fetch AI-generated description
+        const { data: descriptionData } = await supabase
+          .from('workflow_descriptions')
+          .select('description, use_cases, setup_guide')
+          .eq('workflow_id', id)
+          .maybeSingle();
+
+        if (descriptionData) {
+          setWorkflowDescription(descriptionData);
         }
       } catch (error) {
         console.error('Error:', error);
@@ -248,6 +267,31 @@ const WorkflowDetail = () => {
               </Badge>
             </div>
           </div>
+
+          {workflowDescription && (
+            <div className="mb-6 pb-6 border-b border-brand-primary/20">
+              <h2 className="text-xl font-semibold text-text-high mb-3">Description</h2>
+              <p className="text-text-mid mb-4 leading-relaxed">{workflowDescription.description}</p>
+              
+              {workflowDescription.use_cases && (
+                <div className="mb-4">
+                  <h3 className="text-lg font-semibold text-text-high mb-2">Use Cases</h3>
+                  <div className="text-text-mid whitespace-pre-line leading-relaxed">
+                    {workflowDescription.use_cases}
+                  </div>
+                </div>
+              )}
+
+              {workflowDescription.setup_guide && (
+                <div>
+                  <h3 className="text-lg font-semibold text-text-high mb-2">Setup Guide</h3>
+                  <div className="text-text-mid whitespace-pre-line leading-relaxed">
+                    {workflowDescription.setup_guide}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="flex items-center gap-4 text-sm">
             <div className="flex items-center gap-2">

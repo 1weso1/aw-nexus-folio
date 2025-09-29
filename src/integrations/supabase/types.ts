@@ -203,6 +203,41 @@ export type Database = {
         }
         Relationships: []
       }
+      workflow_descriptions: {
+        Row: {
+          description: string
+          generated_at: string
+          id: string
+          setup_guide: string | null
+          use_cases: string | null
+          workflow_id: string
+        }
+        Insert: {
+          description: string
+          generated_at?: string
+          id?: string
+          setup_guide?: string | null
+          use_cases?: string | null
+          workflow_id: string
+        }
+        Update: {
+          description?: string
+          generated_at?: string
+          id?: string
+          setup_guide?: string | null
+          use_cases?: string | null
+          workflow_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workflow_descriptions_workflow_id_fkey"
+            columns: ["workflow_id"]
+            isOneToOne: true
+            referencedRelation: "workflows"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       workflow_downloads: {
         Row: {
           downloaded_at: string | null

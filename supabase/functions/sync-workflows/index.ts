@@ -245,8 +245,9 @@ Deno.serve(async (req) => {
 
   } catch (error) {
     console.error('Sync workflows function error:', error)
+    const errorMsg = error instanceof Error ? error.message : 'Unknown error';
     return new Response(JSON.stringify({ 
-      error: error.message,
+      error: errorMsg,
       status: 'error'
     }), {
       status: 500,
