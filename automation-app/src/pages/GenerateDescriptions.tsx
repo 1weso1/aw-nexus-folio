@@ -14,6 +14,12 @@ const GenerateDescriptions = () => {
     success: 0,
     failed: 0,
   });
+  const [verifying, setVerifying] = useState(false);
+  const [verificationResult, setVerificationResult] = useState<{
+    total: number;
+    matched: number;
+    mismatched: number;
+  } | null>(null);
 
   const startGeneration = async () => {
     setIsGenerating(true);
@@ -81,6 +87,31 @@ const GenerateDescriptions = () => {
     }
   };
 
+  const verifyDescriptions = async () => {
+    setVerifying(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('verify-workflow-descriptions');
+      
+      if (error) {
+        toast.error('Verification failed: ' + error.message);
+        return;
+      }
+
+      setVerificationResult(data);
+      
+      if (data.mismatched === 0) {
+        toast.success(`Verification passed! All ${data.total} sampled workflows have matching descriptions.`);
+      } else {
+        toast.warning(`Found ${data.mismatched} potential mismatches out of ${data.total} samples.`);
+      }
+    } catch (error) {
+      console.error('Verification error:', error);
+      toast.error('Verification failed. Check console for details.');
+    } finally {
+      setVerifying(false);
+    }
+  };
+
   return (
     <div className="min-h-screen pt-20 pb-16">
       <div className="container mx-auto px-4 max-w-4xl">
@@ -128,13 +159,44 @@ const GenerateDescriptions = () => {
             </div>
           )}
 
-          <Button
-            onClick={startGeneration}
-            disabled={isGenerating}
-            className="w-full bg-gradient-to-r from-brand-primary to-brand-accent hover:opacity-90"
-          >
-            {isGenerating ? 'Generating...' : 'Start Generation'}
-          </Button>
+          <div className="space-y-3">
+            <Button
+              onClick={startGeneration}
+              disabled={isGenerating}
+              className="w-full bg-gradient-to-r from-brand-primary to-brand-accent hover:opacity-90"
+            >
+              {isGenerating ? 'Generating...' : 'Start Generation'}
+            </Button>
+
+            <Button
+              onClick={verifyDescriptions}
+              disabled={verifying || isGenerating}
+              variant="outline"
+              className="w-full"
+            >
+              {verifying ? 'Verifying...' : 'Verify Descriptions'}
+            </Button>
+          </div>
+
+          {verificationResult && (
+            <div className="mt-4 p-4 rounded-lg bg-card border border-border">
+              <h3 className="text-sm font-semibold text-text-high mb-2">Verification Results:</h3>
+              <div className="grid grid-cols-3 gap-4 text-center">
+                <div>
+                  <div className="text-2xl font-bold text-blue-400">{verificationResult.total}</div>
+                  <div className="text-xs text-text-mid">Sampled</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-green-400">{verificationResult.matched}</div>
+                  <div className="text-xs text-text-mid">Matched</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-red-400">{verificationResult.mismatched}</div>
+                  <div className="text-xs text-text-mid">Mismatched</div>
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="mt-6 p-4 rounded-lg bg-card border border-border">
             <h3 className="text-sm font-semibold text-text-high mb-2">What happens during generation:</h3>

@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.generate-workflow-descriptions]
 verify_jwt = false
+
+[functions.verify-workflow-descriptions]
+verify_jwt = false
