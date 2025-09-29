@@ -16,6 +16,7 @@ const GenerateDescriptions = () => {
   });
 
   const startGeneration = async () => {
+    console.log('🚀 START GENERATION CLICKED');
     setIsGenerating(true);
     setProgress(0);
     
