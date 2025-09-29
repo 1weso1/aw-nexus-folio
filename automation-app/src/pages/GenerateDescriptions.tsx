@@ -19,6 +19,8 @@ const GenerateDescriptions = () => {
     total: number;
     matched: number;
     mismatched: number;
+    mismatchDetails?: string[];
+    confidence: number;
   } | null>(null);
 
   const startGeneration = async () => {
@@ -99,10 +101,12 @@ const GenerateDescriptions = () => {
 
       setVerificationResult(data);
       
-      if (data.mismatched === 0) {
-        toast.success(`Verification passed! All ${data.total} sampled workflows have matching descriptions.`);
+      if (data.confidence >= 90) {
+        toast.success(`Verification passed! ${data.confidence}% confidence based on ${data.total} samples.`);
+      } else if (data.confidence >= 70) {
+        toast.info(`Good match! ${data.confidence}% confidence. ${data.mismatched} potential issues found.`);
       } else {
-        toast.warning(`Found ${data.mismatched} potential mismatches out of ${data.total} samples.`);
+        toast.warning(`Verification concerns: ${data.confidence}% confidence. Found ${data.mismatched} mismatches.`);
       }
     } catch (error) {
       console.error('Verification error:', error);
@@ -179,21 +183,54 @@ const GenerateDescriptions = () => {
           </div>
 
           {verificationResult && (
-            <div className="mt-4 p-4 rounded-lg bg-card border border-border">
-              <h3 className="text-sm font-semibold text-text-high mb-2">Verification Results:</h3>
-              <div className="grid grid-cols-3 gap-4 text-center">
-                <div>
-                  <div className="text-2xl font-bold text-blue-400">{verificationResult.total}</div>
-                  <div className="text-xs text-text-mid">Sampled</div>
+            <div className="mt-4 p-4 rounded-lg bg-card border border-border space-y-4">
+              <div>
+                <h3 className="text-sm font-semibold text-text-high mb-2">Deep Verification Results:</h3>
+                <div className="grid grid-cols-4 gap-4 text-center mb-4">
+                  <div>
+                    <div className="text-2xl font-bold text-blue-400">{verificationResult.total}</div>
+                    <div className="text-xs text-text-mid">Sampled</div>
+                  </div>
+                  <div>
+                    <div className="text-2xl font-bold text-green-400">{verificationResult.matched}</div>
+                    <div className="text-xs text-text-mid">Matched</div>
+                  </div>
+                  <div>
+                    <div className="text-2xl font-bold text-red-400">{verificationResult.mismatched}</div>
+                    <div className="text-xs text-text-mid">Mismatched</div>
+                  </div>
+                  <div>
+                    <div className={`text-2xl font-bold ${
+                      verificationResult.confidence >= 90 ? 'text-green-400' : 
+                      verificationResult.confidence >= 70 ? 'text-yellow-400' : 
+                      'text-red-400'
+                    }`}>
+                      {verificationResult.confidence}%
+                    </div>
+                    <div className="text-xs text-text-mid">Confidence</div>
+                  </div>
                 </div>
-                <div>
-                  <div className="text-2xl font-bold text-green-400">{verificationResult.matched}</div>
-                  <div className="text-xs text-text-mid">Matched</div>
+              </div>
+              
+              {verificationResult.mismatchDetails && verificationResult.mismatchDetails.length > 0 && (
+                <div className="border-t border-border pt-3">
+                  <h4 className="text-xs font-semibold text-text-high mb-2">Issues Found:</h4>
+                  <ul className="text-xs text-text-mid space-y-1">
+                    {verificationResult.mismatchDetails.map((detail, idx) => (
+                      <li key={idx} className="flex items-start">
+                        <span className="text-red-400 mr-2">•</span>
+                        <span>{detail}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-                <div>
-                  <div className="text-2xl font-bold text-red-400">{verificationResult.mismatched}</div>
-                  <div className="text-xs text-text-mid">Mismatched</div>
-                </div>
+              )}
+              
+              <div className="border-t border-border pt-3">
+                <p className="text-xs text-text-mid">
+                  This verification fetches actual workflow JSON and checks if services mentioned in descriptions 
+                  actually exist in the workflows. It also detects hallucinated services.
+                </p>
               </div>
             </div>
           )}
