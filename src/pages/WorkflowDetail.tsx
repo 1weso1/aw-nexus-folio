@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { ArrowLeft, Download, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import N8nPreview from "@/components/N8nPreview";
@@ -271,28 +272,44 @@ const WorkflowDetail = () => {
 
           {workflowDescription && (
             <div className="mb-6 pb-6 border-b border-brand-primary/20">
-              <h2 className="text-xl font-semibold text-text-high mb-3">Description</h2>
-              <div className="prose prose-lg max-w-none [&>*]:text-text-mid [&_strong]:text-text-high [&_strong]:font-semibold [&_ol]:space-y-2 [&_ul]:space-y-2 [&_li]:text-text-mid [&_p]:text-text-mid [&_h3]:text-text-high [&_h3]:font-semibold">
-                <ReactMarkdown>{workflowDescription.description}</ReactMarkdown>
-              </div>
-              
-              {workflowDescription.use_cases && (
-                <div className="mb-4 mt-6">
-                  <h3 className="text-lg font-semibold text-text-high mb-3">Use Cases</h3>
-                  <div className="prose prose-lg max-w-none [&>*]:text-text-mid [&_strong]:text-text-high [&_strong]:font-semibold [&_ol]:space-y-2 [&_ul]:space-y-2 [&_li]:text-text-mid [&_p]:text-text-mid [&_h3]:text-text-high [&_h3]:font-semibold">
-                    <ReactMarkdown>{workflowDescription.use_cases}</ReactMarkdown>
-                  </div>
-                </div>
-              )}
+              <Accordion type="single" collapsible className="w-full">
+                <AccordionItem value="description" className="border-brand-primary/20">
+                  <AccordionTrigger className="text-xl font-semibold text-text-high hover:text-brand-accent">
+                    Description
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <div className="prose prose-lg max-w-none [&>*]:text-text-mid [&_strong]:text-text-high [&_strong]:font-semibold [&_ol]:space-y-2 [&_ul]:space-y-2 [&_li]:text-text-mid [&_p]:text-text-mid [&_h3]:text-text-high [&_h3]:font-semibold pt-2">
+                      <ReactMarkdown>{workflowDescription.description}</ReactMarkdown>
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
 
-              {workflowDescription.setup_guide && (
-                <div className="mt-6">
-                  <h3 className="text-lg font-semibold text-text-high mb-3">Setup Guide</h3>
-                  <div className="prose prose-lg max-w-none [&>*]:text-text-mid [&_strong]:text-text-high [&_strong]:font-semibold [&_ol]:space-y-2 [&_ul]:space-y-2 [&_li]:text-text-mid [&_p]:text-text-mid [&_h3]:text-text-high [&_h3]:font-semibold">
-                    <ReactMarkdown>{workflowDescription.setup_guide}</ReactMarkdown>
-                  </div>
-                </div>
-              )}
+                {workflowDescription.use_cases && (
+                  <AccordionItem value="use-cases" className="border-brand-primary/20">
+                    <AccordionTrigger className="text-xl font-semibold text-text-high hover:text-brand-accent">
+                      Use Cases
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <div className="prose prose-lg max-w-none [&>*]:text-text-mid [&_strong]:text-text-high [&_strong]:font-semibold [&_ol]:space-y-2 [&_ul]:space-y-2 [&_li]:text-text-mid [&_p]:text-text-mid [&_h3]:text-text-high [&_h3]:font-semibold pt-2">
+                        <ReactMarkdown>{workflowDescription.use_cases}</ReactMarkdown>
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                )}
+
+                {workflowDescription.setup_guide && (
+                  <AccordionItem value="setup-guide" className="border-brand-primary/20">
+                    <AccordionTrigger className="text-xl font-semibold text-text-high hover:text-brand-accent">
+                      Setup Guide
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <div className="prose prose-lg max-w-none [&>*]:text-text-mid [&_strong]:text-text-high [&_strong]:font-semibold [&_ol]:space-y-2 [&_ul]:space-y-2 [&_li]:text-text-mid [&_p]:text-text-mid [&_h3]:text-text-high [&_h3]:font-semibold pt-2">
+                        <ReactMarkdown>{workflowDescription.setup_guide}</ReactMarkdown>
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                )}
+              </Accordion>
             </div>
           )}
 
