@@ -36,7 +36,6 @@ serve(async (req) => {
           setup_guide
         )
       `)
-      .not('workflow_descriptions', 'is', null)
       .range(offset, offset + limit - 1);
 
     if (fetchError) {
@@ -62,9 +61,17 @@ serve(async (req) => {
       .in('workflow_id', workflowIds);
 
     const existingIds = new Set(existingEmbeddings?.map(e => e.workflow_id) || []);
-    const workflowsToProcess = workflows.filter(w => !existingIds.has(w.id));
+    
+    // Filter workflows that have descriptions AND don't have embeddings yet
+    const workflowsToProcess = workflows.filter(w => {
+      const hasDescription = Array.isArray(w.workflow_descriptions) && 
+                            w.workflow_descriptions.length > 0 &&
+                            w.workflow_descriptions[0]?.description;
+      const hasEmbedding = existingIds.has(w.id);
+      return hasDescription && !hasEmbedding;
+    });
 
-    console.log(`Processing ${workflowsToProcess.length} workflows (${existingIds.size} already have embeddings)`);
+    console.log(`Processing ${workflowsToProcess.length} workflows (${existingIds.size} already have embeddings, ${workflows.length - workflowsToProcess.length - existingIds.size} missing descriptions)`);
 
     let successCount = 0;
     let failCount = 0;
@@ -72,14 +79,15 @@ serve(async (req) => {
 
     for (const workflow of workflowsToProcess) {
       try {
-        const descriptions = workflow.workflow_descriptions as any;
-        if (!descriptions || descriptions.length === 0) {
-          console.log(`No description found for workflow ${workflow.id}`);
+        const descriptions = workflow.workflow_descriptions as any[];
+        const desc = descriptions[0];
+        
+        // Validate we have the required fields
+        if (!desc.description) {
+          console.log(`Workflow ${workflow.id} has empty description`);
           failCount++;
           continue;
         }
-
-        const desc = descriptions[0];
         
         // Create compact text for embedding (use existing description)
         const textForEmbedding = `${workflow.name}\n\n${desc.description}\n\nUse Cases:\n${desc.use_cases || ''}\n\nSetup:\n${desc.setup_guide || ''}`;
@@ -143,6 +151,9 @@ serve(async (req) => {
 
     const hasMore = workflows.length === limit;
     const nextOffset = hasMore ? offset + limit : null;
+    
+    // Calculate workflows without descriptions
+    const workflowsWithoutDescriptions = workflows.length - workflowsToProcess.length - existingIds.size;
 
     return new Response(JSON.stringify({
       success: true,
@@ -153,6 +164,7 @@ serve(async (req) => {
       hasMore,
       nextOffset,
       totalSkipped: existingIds.size,
+      missingDescriptions: workflowsWithoutDescriptions,
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

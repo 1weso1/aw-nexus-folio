@@ -9,13 +9,19 @@ import { Sparkles, RefreshCw } from 'lucide-react';
 const GenerateEmbeddings = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [stats, setStats] = useState({ processed: 0, successful: 0, failed: 0, totalSkipped: 0 });
+  const [stats, setStats] = useState({ 
+    processed: 0, 
+    successful: 0, 
+    failed: 0, 
+    totalSkipped: 0,
+    missingDescriptions: 0 
+  });
   const [logs, setLogs] = useState<string[]>([]);
 
   const generateEmbeddings = async () => {
     setIsGenerating(true);
     setProgress(0);
-    setStats({ processed: 0, successful: 0, failed: 0, totalSkipped: 0 });
+    setStats({ processed: 0, successful: 0, failed: 0, totalSkipped: 0, missingDescriptions: 0 });
     setLogs([]);
     
     let offset = 0;
@@ -37,7 +43,8 @@ const GenerateEmbeddings = () => {
             processed: prev.processed + data.processed,
             successful: prev.successful + data.successful,
             failed: prev.failed + data.failed,
-            totalSkipped: prev.totalSkipped + (data.totalSkipped || 0)
+            totalSkipped: prev.totalSkipped + (data.totalSkipped || 0),
+            missingDescriptions: prev.missingDescriptions + (data.missingDescriptions || 0)
           }));
 
           const logMsg = `Batch ${Math.floor(offset / batchSize) + 1}: ${data.successful} successful, ${data.failed} failed`;
@@ -125,8 +132,8 @@ const GenerateEmbeddings = () => {
               </div>
             )}
 
-            {(stats.processed > 0 || stats.totalSkipped > 0) && (
-              <div className="grid grid-cols-4 gap-4 p-4 bg-bg-card rounded-lg">
+            {(stats.processed > 0 || stats.totalSkipped > 0 || stats.missingDescriptions > 0) && (
+              <div className="grid grid-cols-5 gap-4 p-4 bg-bg-card rounded-lg">
                 <div>
                   <p className="text-sm text-text-mid">Processed</p>
                   <p className="text-2xl font-bold text-text-high">{stats.processed}</p>
@@ -142,6 +149,10 @@ const GenerateEmbeddings = () => {
                 <div>
                   <p className="text-sm text-text-mid">Already Exist</p>
                   <p className="text-2xl font-bold text-text-mid">{stats.totalSkipped}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-text-mid">No Description</p>
+                  <p className="text-2xl font-bold text-yellow-500">{stats.missingDescriptions}</p>
                 </div>
               </div>
             )}
@@ -161,7 +172,8 @@ const GenerateEmbeddings = () => {
           <div className="border-t pt-4 space-y-2">
             <p className="text-sm font-medium">Important Notes:</p>
             <ul className="text-sm text-text-mid space-y-1 list-disc list-inside">
-              <li>This will generate embeddings for all workflows that don't have them yet</li>
+              <li>This will generate embeddings for workflows that have AI-generated descriptions</li>
+              <li>Workflows without descriptions will be skipped (check the "No Description" count)</li>
               <li>Gemini API is free until October 5th - generate embeddings now!</li>
               <li>Embeddings are stored permanently and don't need regeneration</li>
               <li>This enables semantic search on the /workflows page</li>
