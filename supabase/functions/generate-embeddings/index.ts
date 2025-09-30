@@ -135,7 +135,8 @@ serve(async (req) => {
 
       } catch (error) {
         console.error(`Error processing workflow ${workflow.id}:`, error);
-        errors.push(`Workflow ${workflow.id}: ${error.message}`);
+        const errorMsg = error instanceof Error ? error.message : String(error);
+        errors.push(`Workflow ${workflow.id}: ${errorMsg}`);
         failCount++;
       }
     }
@@ -158,8 +159,9 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Error in generate-embeddings function:', error);
+    const errorMsg = error instanceof Error ? error.message : String(error);
     return new Response(JSON.stringify({ 
-      error: error.message,
+      error: errorMsg,
       success: false 
     }), {
       status: 500,

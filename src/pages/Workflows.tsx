@@ -6,8 +6,10 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Download, Search, Shield, ShieldCheck, Filter, X, Eye } from 'lucide-react';
+import { Download, Search, Shield, ShieldCheck, Filter, X, Eye, Sparkles } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 
 interface Workflow {
   id: string;
@@ -32,19 +34,70 @@ const Workflows = () => {
   const [triggerTypeFilter, setTriggerTypeFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
+  const [useSemanticSearch, setUseSemanticSearch] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
+  const [semanticResults, setSemanticResults] = useState<any[]>([]);
 
   useEffect(() => {
     fetchWorkflows();
   }, []);
 
+  // Semantic search handler
+  const performSemanticSearch = async (query: string) => {
+    if (!query.trim()) {
+      setSemanticResults([]);
+      return;
+    }
+
+    setIsSearching(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('semantic-search', {
+        body: { query, limit: 50 }
+      });
+
+      if (error) throw error;
+
+      if (data?.success && data?.results) {
+        setSemanticResults(data.results);
+      } else {
+        throw new Error('No results from semantic search');
+      }
+    } catch (error) {
+      console.error('Semantic search error:', error);
+      toast({
+        title: "Semantic Search Unavailable",
+        description: "Falling back to text search. Try generating embeddings first.",
+        variant: "default",
+      });
+      setUseSemanticSearch(false);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  useEffect(() => {
+    if (useSemanticSearch && searchTerm) {
+      performSemanticSearch(searchTerm);
+    }
+  }, [searchTerm, useSemanticSearch]);
+
   useEffect(() => {
     let filtered = workflows.filter(workflow => {
+      // If semantic search is active and has results, filter by those IDs
+      if (useSemanticSearch && semanticResults.length > 0) {
+        const semanticIds = new Set(semanticResults.map(r => r.workflow_id));
+        if (!semanticIds.has(workflow.id)) {
+          return false;
+        }
+      }
+
       // Search filter - enhanced with service detection
       const serviceCategory = getServiceCategory(workflow);
       const triggerType = getTriggerType(workflow);
       const enhancedComplexity = getEnhancedComplexity(workflow.node_count);
       
-      const matchesSearch = workflow.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      const matchesSearch = useSemanticSearch || 
+                           workflow.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            workflow.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            serviceCategory.includes(searchTerm.toLowerCase());
       
@@ -80,9 +133,15 @@ const Workflows = () => {
              matchesComplexity && matchesCredentials && matchesNodeCount;
     });
     
+    // Sort by semantic similarity if active
+    if (useSemanticSearch && semanticResults.length > 0) {
+      const similarityMap = new Map(semanticResults.map(r => [r.workflow_id, r.similarity]));
+      filtered.sort((a, b) => (similarityMap.get(b.id) || 0) - (similarityMap.get(a.id) || 0));
+    }
+    
     setFilteredWorkflows(filtered);
     setCurrentPage(1);
-  }, [searchTerm, workflows, categoryFilter, serviceFilter, triggerTypeFilter, complexityFilter, credentialsFilter, nodeCountFilter]);
+  }, [searchTerm, workflows, categoryFilter, serviceFilter, triggerTypeFilter, complexityFilter, credentialsFilter, nodeCountFilter, useSemanticSearch, semanticResults]);
 
   const fetchWorkflows = async () => {
     try {
@@ -339,16 +398,43 @@ const Workflows = () => {
           </p>
           
           <div className="space-y-6 mb-8">
-            <div className="relative max-w-xl">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-              <Input
-                type="text"
-                placeholder="Search workflows by name or category..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-12 h-12 glass border-neon-primary/20 focus:border-neon-primary/50 bg-surface-card/50"
-              />
+            <div className="flex items-center gap-4">
+              <div className="relative flex-1 max-w-xl">
+                {useSemanticSearch ? (
+                  <Sparkles className="absolute left-4 top-1/2 transform -translate-y-1/2 text-brand-primary w-4 h-4" />
+                ) : (
+                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                )}
+                <Input
+                  type="text"
+                  placeholder={useSemanticSearch ? "Describe what you're looking for..." : "Search workflows by name or category..."}
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-12 h-12 glass border-neon-primary/20 focus:border-neon-primary/50 bg-surface-card/50"
+                />
+                {isSearching && (
+                  <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
+                    <div className="animate-spin w-4 h-4 border-2 border-brand-primary border-t-transparent rounded-full"></div>
+                  </div>
+                )}
+              </div>
+              <div className="flex items-center space-x-2 glass px-4 py-2 rounded-lg">
+                <Switch
+                  id="semantic-search"
+                  checked={useSemanticSearch}
+                  onCheckedChange={setUseSemanticSearch}
+                />
+                <Label htmlFor="semantic-search" className="cursor-pointer flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-brand-primary" />
+                  <span className="text-sm">Smart Search</span>
+                </Label>
+              </div>
             </div>
+            {useSemanticSearch && semanticResults.length > 0 && searchTerm && (
+              <div className="text-sm text-text-mid">
+                ✨ Found {semanticResults.length} semantically similar workflows
+              </div>
+            )}
             
             <div className="flex flex-wrap gap-3 items-center">
               <div className="flex items-center gap-2">

@@ -18,6 +18,7 @@ import WorkflowDetail from "./pages/WorkflowDetail";
 import Book from "./pages/Book";
 import CV from "./pages/CV";
 import GenerateDescriptions from "./pages/GenerateDescriptions";
+import GenerateEmbeddings from "./pages/admin/GenerateEmbeddings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -44,6 +45,7 @@ const App = () => (
               <Route path="/book" element={<Book />} />
               <Route path="/cv" element={<CV />} />
               <Route path="/generate-descriptions" element={<GenerateDescriptions />} />
+              <Route path="/admin/generate-embeddings" element={<GenerateEmbeddings />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
