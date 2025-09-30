@@ -24,18 +24,10 @@ serve(async (req) => {
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-    // Fetch workflows that don't have embeddings yet
-    const { data: workflows, error: fetchError } = await supabase
+    // Fetch workflows with descriptions using proper join
+    const { data: workflowsRaw, error: fetchError } = await supabase
       .from('workflows')
-      .select(`
-        id,
-        name,
-        workflow_descriptions (
-          description,
-          use_cases,
-          setup_guide
-        )
-      `)
+      .select('id, name')
       .range(offset, offset + limit - 1);
 
     if (fetchError) {
@@ -43,7 +35,7 @@ serve(async (req) => {
       throw fetchError;
     }
 
-    if (!workflows || workflows.length === 0) {
+    if (!workflowsRaw || workflowsRaw.length === 0) {
       return new Response(JSON.stringify({ 
         success: true, 
         processed: 0, 
@@ -53,8 +45,24 @@ serve(async (req) => {
       });
     }
 
+    // Fetch descriptions for these workflows
+    const workflowIds = workflowsRaw.map(w => w.id);
+    const { data: descriptions, error: descError } = await supabase
+      .from('workflow_descriptions')
+      .select('workflow_id, description, use_cases, setup_guide')
+      .in('workflow_id', workflowIds);
+
+    if (descError) {
+      console.error('Error fetching descriptions:', descError);
+      throw descError;
+    }
+
+    // Create a map of workflow_id to description
+    const descriptionMap = new Map(
+      (descriptions || []).map(d => [d.workflow_id, d])
+    );
+
     // Check which workflows already have embeddings
-    const workflowIds = workflows.map(w => w.id);
     const { data: existingEmbeddings } = await supabase
       .from('workflow_vectors')
       .select('workflow_id')
@@ -62,34 +70,39 @@ serve(async (req) => {
 
     const existingIds = new Set(existingEmbeddings?.map(e => e.workflow_id) || []);
     
-    // Filter workflows that have descriptions AND don't have embeddings yet
-    const workflowsToProcess = workflows.filter(w => {
-      const hasDescription = Array.isArray(w.workflow_descriptions) && 
-                            w.workflow_descriptions.length > 0 &&
-                            w.workflow_descriptions[0]?.description;
-      const hasEmbedding = existingIds.has(w.id);
-      return hasDescription && !hasEmbedding;
-    });
+    // Combine workflow data with descriptions and filter
+    const workflows = workflowsRaw
+      .map(w => ({
+        id: w.id,
+        name: w.name,
+        description: descriptionMap.get(w.id)
+      }))
+      .filter(w => {
+        const hasDescription = w.description && w.description.description;
+        const hasEmbedding = existingIds.has(w.id);
+        return hasDescription && !hasEmbedding;
+      });
 
-    console.log(`Processing ${workflowsToProcess.length} workflows (${existingIds.size} already have embeddings, ${workflows.length - workflowsToProcess.length - existingIds.size} missing descriptions)`);
+    const workflowsWithoutDescriptions = workflowsRaw.length - workflows.length - existingIds.size;
+
+    console.log(`Processing ${workflows.length} workflows (${existingIds.size} already have embeddings, ${workflowsWithoutDescriptions} missing descriptions)`);
 
     let successCount = 0;
     let failCount = 0;
     const errors: string[] = [];
 
-    for (const workflow of workflowsToProcess) {
+    for (const workflow of workflows) {
       try {
-        const descriptions = workflow.workflow_descriptions as any[];
-        const desc = descriptions[0];
+        const desc = workflow.description;
         
-        // Validate we have the required fields
-        if (!desc.description) {
+        // Validate we have the required fields (already checked in filter above)
+        if (!desc || !desc.description) {
           console.log(`Workflow ${workflow.id} has empty description`);
           failCount++;
           continue;
         }
         
-        // Create compact text for embedding (use existing description)
+        // Create compact text for embedding
         const textForEmbedding = `${workflow.name}\n\n${desc.description}\n\nUse Cases:\n${desc.use_cases || ''}\n\nSetup:\n${desc.setup_guide || ''}`;
 
         // Generate embedding using Gemini text-embedding-004
@@ -149,15 +162,12 @@ serve(async (req) => {
       }
     }
 
-    const hasMore = workflows.length === limit;
+    const hasMore = workflowsRaw.length === limit;
     const nextOffset = hasMore ? offset + limit : null;
-    
-    // Calculate workflows without descriptions
-    const workflowsWithoutDescriptions = workflows.length - workflowsToProcess.length - existingIds.size;
 
     return new Response(JSON.stringify({
       success: true,
-      processed: workflowsToProcess.length,
+      processed: workflows.length,
       successful: successCount,
       failed: failCount,
       errors: errors.slice(0, 10), // Return first 10 errors
