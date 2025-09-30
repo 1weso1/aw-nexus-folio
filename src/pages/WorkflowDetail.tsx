@@ -278,7 +278,7 @@ const WorkflowDetail = () => {
                     Description
                   </AccordionTrigger>
                   <AccordionContent>
-                    <div className="prose prose-lg max-w-none [&>*]:text-text-mid [&_strong]:text-text-high [&_strong]:font-semibold [&_ol]:space-y-2 [&_ul]:space-y-2 [&_li]:text-text-mid [&_p]:text-text-mid [&_h3]:text-text-high [&_h3]:font-semibold pt-2">
+                    <div className="prose prose-lg max-w-none [&>*]:text-text-mid [&_strong]:text-text-high [&_strong]:font-semibold [&_ol]:space-y-2 [&_ul]:space-y-2 [&_li]:text-text-mid [&_p]:text-text-mid [&_h3]:text-text-high [&_h3]:font-semibold [&_code]:text-brand-accent [&_code]:bg-brand-primary/10 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-sm [&_code]:font-mono pt-2">
                       <ReactMarkdown>{workflowDescription.description}</ReactMarkdown>
                     </div>
                   </AccordionContent>
@@ -290,7 +290,7 @@ const WorkflowDetail = () => {
                       Use Cases
                     </AccordionTrigger>
                     <AccordionContent>
-                      <div className="prose prose-lg max-w-none [&>*]:text-text-mid [&_strong]:text-text-high [&_strong]:font-semibold [&_ol]:space-y-2 [&_ul]:space-y-2 [&_li]:text-text-mid [&_p]:text-text-mid [&_h3]:text-text-high [&_h3]:font-semibold pt-2">
+                      <div className="prose prose-lg max-w-none [&>*]:text-text-mid [&_strong]:text-text-high [&_strong]:font-semibold [&_ol]:space-y-2 [&_ul]:space-y-2 [&_li]:text-text-mid [&_p]:text-text-mid [&_h3]:text-text-high [&_h3]:font-semibold [&_code]:text-brand-accent [&_code]:bg-brand-primary/10 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-sm [&_code]:font-mono pt-2">
                         <ReactMarkdown>{workflowDescription.use_cases}</ReactMarkdown>
                       </div>
                     </AccordionContent>
@@ -303,7 +303,7 @@ const WorkflowDetail = () => {
                       Setup Guide
                     </AccordionTrigger>
                     <AccordionContent>
-                      <div className="prose prose-lg max-w-none [&>*]:text-text-mid [&_strong]:text-text-high [&_strong]:font-semibold [&_ol]:space-y-2 [&_ul]:space-y-2 [&_li]:text-text-mid [&_p]:text-text-mid [&_h3]:text-text-high [&_h3]:font-semibold pt-2">
+                      <div className="prose prose-lg max-w-none [&>*]:text-text-mid [&_strong]:text-text-high [&_strong]:font-semibold [&_ol]:space-y-2 [&_ul]:space-y-2 [&_li]:text-text-mid [&_p]:text-text-mid [&_h3]:text-text-high [&_h3]:font-semibold [&_code]:text-brand-accent [&_code]:bg-brand-primary/10 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-sm [&_code]:font-mono pt-2">
                         <ReactMarkdown>{workflowDescription.setup_guide}</ReactMarkdown>
                       </div>
                     </AccordionContent>
