@@ -14,11 +14,11 @@ serve(async (req) => {
   try {
     const { offset = 0, limit = 50 } = await req.json();
     
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
-    if (!LOVABLE_API_KEY || !SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+    if (!OPENAI_API_KEY || !SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
       throw new Error('Missing required environment variables');
     }
 
@@ -105,15 +105,15 @@ serve(async (req) => {
         // Create compact text for embedding
         const textForEmbedding = `${workflow.name}\n\n${desc.description}\n\nUse Cases:\n${desc.use_cases || ''}\n\nSetup:\n${desc.setup_guide || ''}`;
 
-        // Generate embedding using Gemini text-embedding-004
-        const embeddingResponse = await fetch('https://ai.gateway.lovable.dev/v1/embeddings', {
+        // Generate embedding using OpenAI's text-embedding-3-small model
+        const embeddingResponse = await fetch('https://api.openai.com/v1/embeddings', {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+            'Authorization': `Bearer ${OPENAI_API_KEY}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'text-embedding-004',
+            model: 'text-embedding-3-small',
             input: textForEmbedding,
           }),
         });
