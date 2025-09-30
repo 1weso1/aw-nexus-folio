@@ -14,11 +14,11 @@ serve(async (req) => {
   try {
     const { offset = 0, limit = 50 } = await req.json();
     
-    const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
+    const GOOGLE_API_KEY = Deno.env.get('GOOGLE_API_KEY');
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
-    if (!OPENAI_API_KEY || !SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+    if (!GOOGLE_API_KEY || !SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
       throw new Error('Missing required environment variables');
     }
 
@@ -105,18 +105,21 @@ serve(async (req) => {
         // Create compact text for embedding
         const textForEmbedding = `${workflow.name}\n\n${desc.description}\n\nUse Cases:\n${desc.use_cases || ''}\n\nSetup:\n${desc.setup_guide || ''}`;
 
-        // Generate embedding using OpenAI's text-embedding-3-small model
-        const embeddingResponse = await fetch('https://api.openai.com/v1/embeddings', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${OPENAI_API_KEY}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            model: 'text-embedding-3-small',
-            input: textForEmbedding,
-          }),
-        });
+        // Generate embedding using Google's text-embedding-004 model (free)
+        const embeddingResponse = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:embedContent?key=${GOOGLE_API_KEY}`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              content: {
+                parts: [{ text: textForEmbedding }]
+              }
+            }),
+          }
+        );
 
         if (!embeddingResponse.ok) {
           const errorText = await embeddingResponse.text();
@@ -127,7 +130,7 @@ serve(async (req) => {
         }
 
         const embeddingData = await embeddingResponse.json();
-        const embedding = embeddingData.data?.[0]?.embedding;
+        const embedding = embeddingData.embedding?.values;
 
         if (!embedding) {
           console.error(`No embedding returned for workflow ${workflow.id}`);
