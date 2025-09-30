@@ -7,6 +7,7 @@ import { ArrowLeft, Download, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import N8nPreview from "@/components/N8nPreview";
 import { supabase } from "@/integrations/supabase/client";
+import ReactMarkdown from "react-markdown";
 
 // Remove old n8n-demo declarations as we're using React Flow now
 
@@ -271,13 +272,15 @@ const WorkflowDetail = () => {
           {workflowDescription && (
             <div className="mb-6 pb-6 border-b border-brand-primary/20">
               <h2 className="text-xl font-semibold text-text-high mb-3">Description</h2>
-              <p className="text-text-mid mb-4 leading-relaxed">{workflowDescription.description}</p>
+              <div className="text-text-mid mb-4 leading-relaxed prose prose-invert prose-sm max-w-none">
+                <ReactMarkdown>{workflowDescription.description}</ReactMarkdown>
+              </div>
               
               {workflowDescription.use_cases && (
                 <div className="mb-4">
                   <h3 className="text-lg font-semibold text-text-high mb-2">Use Cases</h3>
-                  <div className="text-text-mid whitespace-pre-line leading-relaxed">
-                    {workflowDescription.use_cases}
+                  <div className="text-text-mid leading-relaxed prose prose-invert prose-sm max-w-none">
+                    <ReactMarkdown>{workflowDescription.use_cases}</ReactMarkdown>
                   </div>
                 </div>
               )}
@@ -285,8 +288,8 @@ const WorkflowDetail = () => {
               {workflowDescription.setup_guide && (
                 <div>
                   <h3 className="text-lg font-semibold text-text-high mb-2">Setup Guide</h3>
-                  <div className="text-text-mid whitespace-pre-line leading-relaxed">
-                    {workflowDescription.setup_guide}
+                  <div className="text-text-mid leading-relaxed prose prose-invert prose-sm max-w-none">
+                    <ReactMarkdown>{workflowDescription.setup_guide}</ReactMarkdown>
                   </div>
                 </div>
               )}
