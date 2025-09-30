@@ -272,23 +272,23 @@ const WorkflowDetail = () => {
           {workflowDescription && (
             <div className="mb-6 pb-6 border-b border-brand-primary/20">
               <h2 className="text-xl font-semibold text-text-high mb-3">Description</h2>
-              <div className="text-text-mid mb-4 leading-relaxed prose prose-invert prose-sm max-w-none">
+              <div className="prose prose-lg max-w-none [&>*]:text-text-mid [&_strong]:text-text-high [&_strong]:font-semibold">
                 <ReactMarkdown>{workflowDescription.description}</ReactMarkdown>
               </div>
               
               {workflowDescription.use_cases && (
-                <div className="mb-4">
-                  <h3 className="text-lg font-semibold text-text-high mb-2">Use Cases</h3>
-                  <div className="text-text-mid leading-relaxed prose prose-invert prose-sm max-w-none">
+                <div className="mb-4 mt-6">
+                  <h3 className="text-lg font-semibold text-text-high mb-3">Use Cases</h3>
+                  <div className="prose prose-lg max-w-none [&>*]:text-text-mid [&_strong]:text-text-high [&_strong]:font-semibold [&_ul]:space-y-2">
                     <ReactMarkdown>{workflowDescription.use_cases}</ReactMarkdown>
                   </div>
                 </div>
               )}
 
               {workflowDescription.setup_guide && (
-                <div>
-                  <h3 className="text-lg font-semibold text-text-high mb-2">Setup Guide</h3>
-                  <div className="text-text-mid leading-relaxed prose prose-invert prose-sm max-w-none">
+                <div className="mt-6">
+                  <h3 className="text-lg font-semibold text-text-high mb-3">Setup Guide</h3>
+                  <div className="prose prose-lg max-w-none [&>*]:text-text-mid [&_strong]:text-text-high [&_strong]:font-semibold [&_ol]:space-y-2 [&_ul]:space-y-2">
                     <ReactMarkdown>{workflowDescription.setup_guide}</ReactMarkdown>
                   </div>
                 </div>

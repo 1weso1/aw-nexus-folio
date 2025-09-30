@@ -71,6 +71,45 @@ export default {
 				md: 'calc(var(--radius) - 2px)',
 				sm: 'calc(var(--radius) - 4px)'
 			},
+			typography: {
+				DEFAULT: {
+					css: {
+						'--tw-prose-body': 'hsl(var(--text-mid))',
+						'--tw-prose-headings': 'hsl(var(--text-high))',
+						'--tw-prose-bold': 'hsl(var(--text-high))',
+						'--tw-prose-links': 'hsl(var(--brand-accent))',
+						'--tw-prose-code': 'hsl(var(--brand-primary))',
+						'--tw-prose-bullets': 'hsl(var(--brand-primary))',
+						'--tw-prose-counters': 'hsl(var(--brand-primary))',
+						maxWidth: 'none',
+						p: {
+							marginTop: '0.75em',
+							marginBottom: '0.75em',
+						},
+						strong: {
+							color: 'hsl(var(--text-high))',
+							fontWeight: '600',
+						},
+						ul: {
+							marginTop: '0.75em',
+							marginBottom: '0.75em',
+						},
+						li: {
+							marginTop: '0.25em',
+							marginBottom: '0.25em',
+						},
+						'ul > li::marker': {
+							color: 'hsl(var(--brand-primary))',
+						},
+						h3: {
+							color: 'hsl(var(--text-high))',
+							fontWeight: '600',
+							marginTop: '1.5em',
+							marginBottom: '0.5em',
+						},
+					},
+				},
+			},
 			keyframes: {
 				'accordion-down': {
 					from: {
@@ -124,5 +163,5 @@ export default {
 			}
 		}
 	},
-	plugins: [require("tailwindcss-animate"), require("@tailwindcss/line-clamp")],
+	plugins: [require("tailwindcss-animate"), require("@tailwindcss/line-clamp"), require("@tailwindcss/typography")],
 } satisfies Config;
