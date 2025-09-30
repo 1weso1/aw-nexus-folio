@@ -107,7 +107,7 @@ serve(async (req) => {
 
         // Generate embedding using Google's text-embedding-004 model (free)
         const embeddingResponse = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:embedContent?key=${GOOGLE_API_KEY}`,
+          `https://generativelanguage.googleapis.com/v1/models/text-embedding-004:embedContent?key=${GOOGLE_API_KEY}`,
           {
             method: 'POST',
             headers: {

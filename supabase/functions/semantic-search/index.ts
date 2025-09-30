@@ -30,9 +30,9 @@ serve(async (req) => {
 
     console.log('Generating embedding for query:', query);
 
-    // Generate embedding for the search query using Google's Gemini (free)
+    // Generate embedding for the search query using Google's Gemini embedding API
     const embeddingResponse = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:embedContent?key=${GOOGLE_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1/models/text-embedding-004:embedContent?key=${GOOGLE_API_KEY}`,
       {
         method: 'POST',
         headers: {
