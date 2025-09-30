@@ -19,6 +19,7 @@ interface Workflow {
   has_credentials: boolean;
   raw_url: string;
   complexity: string;
+  size_bytes?: number;
 }
 
 const Workflows = () => {
@@ -32,6 +33,7 @@ const Workflows = () => {
   const [credentialsFilter, setCredentialsFilter] = useState('all');
   const [nodeCountFilter, setNodeCountFilter] = useState('all');
   const [triggerTypeFilter, setTriggerTypeFilter] = useState('all');
+  const [fileSizeFilter, setFileSizeFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
   const [useSemanticSearch, setUseSemanticSearch] = useState(false);
@@ -111,11 +113,13 @@ const Workflows = () => {
       // Trigger type filter
       const matchesTrigger = triggerTypeFilter === 'all' || triggerType === triggerTypeFilter;
       
-      // Complexity filter - enhanced
+      // Complexity filter - enhanced with granular levels
       const matchesComplexity = complexityFilter === 'all' || 
-                               (complexityFilter === 'low' && enhancedComplexity === 'low') ||
-                               (complexityFilter === 'medium' && enhancedComplexity === 'medium') ||  
-                               (complexityFilter === 'high' && enhancedComplexity === 'high') ||
+                               (complexityFilter === 'beginner' && enhancedComplexity === 'beginner') ||
+                               (complexityFilter === 'easy' && enhancedComplexity === 'easy') ||
+                               (complexityFilter === 'intermediate' && enhancedComplexity === 'intermediate') ||  
+                               (complexityFilter === 'advanced' && enhancedComplexity === 'advanced') ||
+                               (complexityFilter === 'expert' && enhancedComplexity === 'expert') ||
                                workflow.complexity?.toLowerCase() === complexityFilter.toLowerCase();
       
       // Credentials filter
@@ -129,8 +133,16 @@ const Workflows = () => {
                               (nodeCountFilter === '6-15' && workflow.node_count >= 6 && workflow.node_count <= 15) ||
                               (nodeCountFilter === '16+' && workflow.node_count >= 16);
       
+      // File size filter (in KB)
+      const fileSizeKB = (workflow.size_bytes || 0) / 1024;
+      const matchesFileSize = fileSizeFilter === 'all' ||
+                             (fileSizeFilter === 'tiny' && fileSizeKB < 10) ||
+                             (fileSizeFilter === 'small' && fileSizeKB >= 10 && fileSizeKB < 50) ||
+                             (fileSizeFilter === 'medium' && fileSizeKB >= 50 && fileSizeKB < 150) ||
+                             (fileSizeFilter === 'large' && fileSizeKB >= 150);
+      
       return matchesSearch && matchesCategory && matchesService && matchesTrigger && 
-             matchesComplexity && matchesCredentials && matchesNodeCount;
+             matchesComplexity && matchesCredentials && matchesNodeCount && matchesFileSize;
     });
     
     // Sort by semantic similarity if active
@@ -173,7 +185,7 @@ const Workflows = () => {
         console.log(`Fetching batch ${i + 1}/${batches} (records ${start}-${end})`);
         
         const response = await fetch(
-          `https://ugjeubqwmgnqvohmrkyv.supabase.co/rest/v1/workflows?select=id,name,category,node_count,has_credentials,raw_url,complexity&order=name.asc`,
+          `https://ugjeubqwmgnqvohmrkyv.supabase.co/rest/v1/workflows?select=id,name,category,node_count,has_credentials,raw_url,complexity,size_bytes&order=name.asc`,
           {
             headers: {
               'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVnamV1YnF3bWducXZvaG1ya3l2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY0Nzc5NDEsImV4cCI6MjA3MjA1Mzk0MX0.esXYyxM-eQbKBXhG2NKrzLsdiveNo4lBsK_rlv_ebjo',
@@ -331,14 +343,46 @@ const Workflows = () => {
     return 'simple';
   };
 
-  // Enhanced complexity categorization
+  // Enhanced complexity categorization with granular levels
   const getEnhancedComplexity = (nodeCount: number) => {
-    if (nodeCount <= 5) return 'low';
-    if (nodeCount <= 15) return 'medium';
-    return 'high';
+    if (nodeCount <= 3) return 'beginner';
+    if (nodeCount <= 7) return 'easy';
+    if (nodeCount <= 12) return 'intermediate';
+    if (nodeCount <= 20) return 'advanced';
+    return 'expert';
+  };
+  
+  const getGranularComplexityLabel = (nodeCount: number) => {
+    const complexity = getEnhancedComplexity(nodeCount);
+    const labels = {
+      'beginner': 'Beginner',
+      'easy': 'Easy',
+      'intermediate': 'Intermediate',
+      'advanced': 'Advanced',
+      'expert': 'Expert'
+    };
+    return labels[complexity as keyof typeof labels] || complexity;
   };
 
-  const getComplexityColor = (complexity: string) => {
+  const getComplexityColor = (complexity: string, nodeCount?: number) => {
+    // Use node count for more accurate granular coloring if available
+    if (nodeCount) {
+      const granular = getEnhancedComplexity(nodeCount);
+      switch (granular) {
+        case 'beginner':
+          return 'bg-emerald-500/20 text-emerald-300 border-emerald-400/30';
+        case 'easy':
+          return 'bg-green-500/20 text-green-300 border-green-400/30';
+        case 'intermediate':
+          return 'bg-yellow-500/20 text-yellow-300 border-yellow-400/30';
+        case 'advanced':
+          return 'bg-orange-500/20 text-orange-300 border-orange-400/30';
+        case 'expert':
+          return 'bg-red-500/20 text-red-300 border-red-400/30';
+      }
+    }
+    
+    // Fallback to original complexity string
     switch (complexity?.toLowerCase()) {
       case 'easy':
         return 'bg-green-400/20 text-green-300 border-green-400/30';
@@ -349,6 +393,14 @@ const Workflows = () => {
       default:
         return 'bg-neon-primary/20 text-neon-primary border-neon-primary/30';
     }
+  };
+  
+  const formatFileSize = (bytes?: number) => {
+    if (!bytes) return 'Unknown';
+    const kb = bytes / 1024;
+    if (kb < 1) return `${bytes}B`;
+    if (kb < 1024) return `${kb.toFixed(1)}KB`;
+    return `${(kb / 1024).toFixed(1)}MB`;
   };
 
   const paginatedWorkflows = filteredWorkflows.slice(
@@ -369,11 +421,13 @@ const Workflows = () => {
     setComplexityFilter('all');
     setCredentialsFilter('all');
     setNodeCountFilter('all');
+    setFileSizeFilter('all');
   };
   
   const hasActiveFilters = searchTerm || categoryFilter !== 'all' || serviceFilter !== 'all' || 
                           triggerTypeFilter !== 'all' || complexityFilter !== 'all' || 
-                          credentialsFilter !== 'all' || nodeCountFilter !== 'all';
+                          credentialsFilter !== 'all' || nodeCountFilter !== 'all' || 
+                          fileSizeFilter !== 'all';
 
   if (loading) {
     return (
@@ -479,14 +533,16 @@ const Workflows = () => {
               </Select>
               
               <Select value={complexityFilter} onValueChange={setComplexityFilter}>
-                <SelectTrigger className="w-32 glass border-neon-primary/20">
+                <SelectTrigger className="w-40 glass border-neon-primary/20">
                   <SelectValue placeholder="Complexity" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Levels</SelectItem>
-                  <SelectItem value="low">🟢 Low (≤5)</SelectItem>
-                  <SelectItem value="medium">🟡 Medium (6-15)</SelectItem>
-                  <SelectItem value="high">🔴 High (16+)</SelectItem>
+                  <SelectItem value="beginner">🌱 Beginner (≤3)</SelectItem>
+                  <SelectItem value="easy">🟢 Easy (4-7)</SelectItem>
+                  <SelectItem value="intermediate">🟡 Intermediate (8-12)</SelectItem>
+                  <SelectItem value="advanced">🟠 Advanced (13-20)</SelectItem>
+                  <SelectItem value="expert">🔴 Expert (21+)</SelectItem>
                 </SelectContent>
               </Select>
               
@@ -502,14 +558,27 @@ const Workflows = () => {
               </Select>
               
               <Select value={nodeCountFilter} onValueChange={setNodeCountFilter}>
-                <SelectTrigger className="w-32 glass border-neon-primary/20">
-                  <SelectValue placeholder="Size" />
+                <SelectTrigger className="w-36 glass border-neon-primary/20">
+                  <SelectValue placeholder="Node Count" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Any Size</SelectItem>
-                  <SelectItem value="1-5">📱 Small (1-5)</SelectItem>
+                  <SelectItem value="all">Any Node Count</SelectItem>
+                  <SelectItem value="1-5">📱 Tiny (1-5)</SelectItem>
                   <SelectItem value="6-15">💻 Medium (6-15)</SelectItem>
                   <SelectItem value="16+">🖥️ Large (16+)</SelectItem>
+                </SelectContent>
+              </Select>
+              
+              <Select value={fileSizeFilter} onValueChange={setFileSizeFilter}>
+                <SelectTrigger className="w-36 glass border-neon-primary/20">
+                  <SelectValue placeholder="File Size" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Any File Size</SelectItem>
+                  <SelectItem value="tiny">🪶 Tiny (&lt;10KB)</SelectItem>
+                  <SelectItem value="small">📄 Small (10-50KB)</SelectItem>
+                  <SelectItem value="medium">📋 Medium (50-150KB)</SelectItem>
+                  <SelectItem value="large">📦 Large (150KB+)</SelectItem>
                 </SelectContent>
               </Select>
               
@@ -550,33 +619,42 @@ const Workflows = () => {
           {paginatedWorkflows.map((workflow) => (
             <div key={workflow.id} className="project-card hover-lift hover-glow group cursor-pointer">
               <Link to={`/workflows/${workflow.id}`} className="block">
-                <div className="flex justify-between items-start gap-3 mb-4">
+                <div className="flex justify-between items-start gap-3 mb-3">
                   <h3 className="text-text-primary text-lg font-semibold font-sora line-clamp-2 flex-1 group-hover:text-brand-accent transition-colors">
                     {workflow.name}
                   </h3>
-                  <Badge className={getComplexityColor(workflow.complexity)}>
-                    {workflow.complexity}
+                  <Badge className={getComplexityColor(workflow.complexity, workflow.node_count)}>
+                    {getGranularComplexityLabel(workflow.node_count)}
                   </Badge>
                 </div>
                 
-                <p className="text-text-secondary text-sm mb-4 capitalize">
+                <p className="text-text-secondary text-sm mb-3 capitalize">
                   {workflow.category}
                 </p>
 
-                <div className="flex items-center justify-between mb-6">
+                <div className="space-y-2 mb-6">
                   <div className="flex items-center gap-4 text-sm text-text-secondary">
                     <span className="flex items-center gap-1">
                       <span className="w-2 h-2 bg-neon-primary rounded-full"></span>
                       {workflow.node_count} nodes
                     </span>
-                    <div className="flex items-center gap-1">
-                      {workflow.has_credentials ? (
+                    <span className="flex items-center gap-1">
+                      <span className="w-2 h-2 bg-brand-accent rounded-full"></span>
+                      {formatFileSize(workflow.size_bytes)}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1 text-sm">
+                    {workflow.has_credentials ? (
+                      <>
                         <Shield className="w-4 h-4 text-yellow-400" />
-                      ) : (
+                        <span className="text-yellow-400">Auth Required</span>
+                      </>
+                    ) : (
+                      <>
                         <ShieldCheck className="w-4 h-4 text-green-400" />
-                      )}
-                      <span>{workflow.has_credentials ? 'Auth Required' : 'No Auth'}</span>
-                    </div>
+                        <span className="text-green-400">No Auth</span>
+                      </>
+                    )}
                   </div>
                 </div>
               </Link>
