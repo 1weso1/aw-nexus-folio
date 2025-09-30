@@ -115,11 +115,12 @@ const Workflows = () => {
       
       // Complexity filter - enhanced with granular levels
       const matchesComplexity = complexityFilter === 'all' || 
-                               (complexityFilter === 'beginner' && enhancedComplexity === 'beginner') ||
-                               (complexityFilter === 'easy' && enhancedComplexity === 'easy') ||
+                               (complexityFilter === 'starter' && enhancedComplexity === 'starter') ||
+                               (complexityFilter === 'basic' && enhancedComplexity === 'basic') ||
                                (complexityFilter === 'intermediate' && enhancedComplexity === 'intermediate') ||  
                                (complexityFilter === 'advanced' && enhancedComplexity === 'advanced') ||
                                (complexityFilter === 'expert' && enhancedComplexity === 'expert') ||
+                               (complexityFilter === 'enterprise' && enhancedComplexity === 'enterprise') ||
                                workflow.complexity?.toLowerCase() === complexityFilter.toLowerCase();
       
       // Credentials filter
@@ -345,21 +346,23 @@ const Workflows = () => {
 
   // Enhanced complexity categorization with granular levels
   const getEnhancedComplexity = (nodeCount: number) => {
-    if (nodeCount <= 3) return 'beginner';
-    if (nodeCount <= 7) return 'easy';
-    if (nodeCount <= 12) return 'intermediate';
-    if (nodeCount <= 20) return 'advanced';
-    return 'expert';
+    if (nodeCount <= 5) return 'starter';
+    if (nodeCount <= 15) return 'basic';
+    if (nodeCount <= 30) return 'intermediate';
+    if (nodeCount <= 50) return 'advanced';
+    if (nodeCount <= 70) return 'expert';
+    return 'enterprise';
   };
   
   const getGranularComplexityLabel = (nodeCount: number) => {
     const complexity = getEnhancedComplexity(nodeCount);
     const labels = {
-      'beginner': 'Beginner',
-      'easy': 'Easy',
+      'starter': 'Starter',
+      'basic': 'Basic',
       'intermediate': 'Intermediate',
       'advanced': 'Advanced',
-      'expert': 'Expert'
+      'expert': 'Expert',
+      'enterprise': 'Enterprise'
     };
     return labels[complexity as keyof typeof labels] || complexity;
   };
@@ -369,9 +372,9 @@ const Workflows = () => {
     if (nodeCount) {
       const granular = getEnhancedComplexity(nodeCount);
       switch (granular) {
-        case 'beginner':
+        case 'starter':
           return 'bg-emerald-500/20 text-emerald-300 border-emerald-400/30';
-        case 'easy':
+        case 'basic':
           return 'bg-green-500/20 text-green-300 border-green-400/30';
         case 'intermediate':
           return 'bg-yellow-500/20 text-yellow-300 border-yellow-400/30';
@@ -379,6 +382,8 @@ const Workflows = () => {
           return 'bg-orange-500/20 text-orange-300 border-orange-400/30';
         case 'expert':
           return 'bg-red-500/20 text-red-300 border-red-400/30';
+        case 'enterprise':
+          return 'bg-purple-500/20 text-purple-300 border-purple-400/30';
       }
     }
     
@@ -533,16 +538,17 @@ const Workflows = () => {
               </Select>
               
               <Select value={complexityFilter} onValueChange={setComplexityFilter}>
-                <SelectTrigger className="w-40 glass border-neon-primary/20">
+                <SelectTrigger className="w-44 glass border-neon-primary/20">
                   <SelectValue placeholder="Complexity" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Levels</SelectItem>
-                  <SelectItem value="beginner">🌱 Beginner (≤3)</SelectItem>
-                  <SelectItem value="easy">🟢 Easy (4-7)</SelectItem>
-                  <SelectItem value="intermediate">🟡 Intermediate (8-12)</SelectItem>
-                  <SelectItem value="advanced">🟠 Advanced (13-20)</SelectItem>
-                  <SelectItem value="expert">🔴 Expert (21+)</SelectItem>
+                  <SelectItem value="starter">🌱 Starter (1-5)</SelectItem>
+                  <SelectItem value="basic">🟢 Basic (6-15)</SelectItem>
+                  <SelectItem value="intermediate">🟡 Intermediate (16-30)</SelectItem>
+                  <SelectItem value="advanced">🟠 Advanced (31-50)</SelectItem>
+                  <SelectItem value="expert">🔴 Expert (51-70)</SelectItem>
+                  <SelectItem value="enterprise">🟣 Enterprise (71+)</SelectItem>
                 </SelectContent>
               </Select>
               
