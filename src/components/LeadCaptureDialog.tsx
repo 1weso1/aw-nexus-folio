@@ -190,7 +190,7 @@ export function LeadCaptureDialog({ open, onClose, workflowId, workflowName, onS
                   value={formData.full_name || ""}
                   onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
                   placeholder="John Doe"
-                  className="bg-surface-secondary border-surface-tertiary text-white placeholder:text-text-secondary focus:text-white"
+                  className="bg-card border-border text-text-primary placeholder:text-muted-foreground"
                 />
               </div>
 
@@ -205,7 +205,7 @@ export function LeadCaptureDialog({ open, onClose, workflowId, workflowName, onS
                   value={formData.email || ""}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   placeholder="john@company.com"
-                  className="bg-surface-secondary border-surface-tertiary text-white placeholder:text-text-secondary focus:text-white"
+                  className="bg-card border-border text-text-primary placeholder:text-muted-foreground"
                 />
               </div>
 
@@ -215,12 +215,12 @@ export function LeadCaptureDialog({ open, onClose, workflowId, workflowName, onS
                   Your Role <span className="text-destructive">*</span>
                 </Label>
                 <Select value={formData.role || ""} onValueChange={(value) => setFormData({ ...formData, role: value })}>
-                  <SelectTrigger className="bg-surface-secondary border-surface-tertiary text-text-primary">
+                  <SelectTrigger className="bg-card border-border text-text-primary">
                     <SelectValue placeholder="Select your role" />
                   </SelectTrigger>
-                <SelectContent className="bg-surface-secondary border-surface-tertiary">
+                <SelectContent className="bg-card border-border">
                   {roleOptions.map((role) => (
-                    <SelectItem key={role} value={role} className="text-text-primary hover:bg-surface-tertiary">
+                    <SelectItem key={role} value={role} className="text-text-primary hover:bg-muted focus:bg-muted">
                       {role}
                     </SelectItem>
                   ))}
@@ -236,12 +236,12 @@ export function LeadCaptureDialog({ open, onClose, workflowId, workflowName, onS
                 <div className="space-y-2">
                   {interestOptions.map((option) => (
                     <div key={option.id} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={option.id}
-                        checked={formData.interests?.includes(option.id)}
-                        onCheckedChange={() => handleInterestToggle(option.id)}
-                        className="border-surface-tertiary"
-                      />
+                       <Checkbox
+                         id={option.id}
+                         checked={formData.interests?.includes(option.id)}
+                         onCheckedChange={() => handleInterestToggle(option.id)}
+                         className="border-border"
+                       />
                       <label htmlFor={option.id} className="text-sm text-text-primary cursor-pointer">
                         {option.label}
                       </label>
@@ -266,7 +266,7 @@ export function LeadCaptureDialog({ open, onClose, workflowId, workflowName, onS
                   value={formData.company_name || ""}
                   onChange={(e) => setFormData({ ...formData, company_name: e.target.value })}
                   placeholder="Acme Inc. or 'Not applicable'"
-                  className="bg-surface-secondary border-surface-tertiary text-white placeholder:text-text-secondary focus:text-white"
+                  className="bg-card border-border text-text-primary placeholder:text-muted-foreground"
                 />
               </div>
 
@@ -279,12 +279,12 @@ export function LeadCaptureDialog({ open, onClose, workflowId, workflowName, onS
                   value={formData.company_size || ""}
                   onValueChange={(value) => setFormData({ ...formData, company_size: value })}
                 >
-                  <SelectTrigger className="bg-surface-secondary border-surface-tertiary text-text-primary">
+                  <SelectTrigger className="bg-card border-border text-text-primary">
                     <SelectValue placeholder="Select company size" />
                   </SelectTrigger>
-                  <SelectContent className="bg-surface-secondary border-surface-tertiary">
+                  <SelectContent className="bg-card border-border">
                     {companySizeOptions.map((size) => (
-                      <SelectItem key={size} value={size} className="text-text-primary hover:bg-surface-tertiary">
+                      <SelectItem key={size} value={size} className="text-text-primary hover:bg-muted focus:bg-muted">
                         {size}
                       </SelectItem>
                     ))}
@@ -302,7 +302,7 @@ export function LeadCaptureDialog({ open, onClose, workflowId, workflowName, onS
                   value={formData.automation_challenge || ""}
                   onChange={(e) => setFormData({ ...formData, automation_challenge: e.target.value })}
                   placeholder="Tell us about the workflows or tasks you'd like to automate..."
-                  className="bg-surface-secondary border-surface-tertiary text-white placeholder:text-text-secondary focus:text-white min-h-[100px]"
+                  className="bg-card border-border text-text-primary placeholder:text-muted-foreground min-h-[100px]"
                 />
               </div>
 
