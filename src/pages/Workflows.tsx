@@ -284,6 +284,14 @@ const Workflows = () => {
       // Get stored email from localStorage
       const storedEmail = localStorage.getItem('lead_email');
       
+      // If no stored email, treat as first download (skip eligibility check)
+      if (!storedEmail) {
+        await performDownload(workflow);
+        setPendingWorkflow(workflow);
+        setShowLeadCaptureDialog(true);
+        return;
+      }
+      
       // Get IP address
       let ipAddress = '';
       try {
@@ -294,7 +302,7 @@ const Workflows = () => {
         console.error('Error getting IP:', error);
       }
 
-      // Check download eligibility
+      // Check download eligibility (only for users with stored email)
       const { data: eligibilityData, error: eligibilityError } = await supabase.rpc(
         'check_download_eligibility',
         {

@@ -49,9 +49,22 @@ const handler = async (req: Request): Promise<Response> => {
       throw updateError;
     }
 
-    // Create verification URL - use the origin from the request or fallback to URL env var
-    const origin = req.headers.get("origin") || Deno.env.get("URL") || "https://ugjeubqwmgnqvohmrkyv.supabase.co";
-    const verificationUrl = `${origin}/verify-email?token=${verificationToken}${workflow_id ? `&workflow=${workflow_id}` : ""}`;
+    // Create verification URL - use referer header to get the actual site URL
+    const referer = req.headers.get("referer") || req.headers.get("origin") || "";
+    let baseUrl = "https://ahmedwesam.com"; // Production fallback
+    
+    if (referer) {
+      try {
+        const refererUrl = new URL(referer);
+        baseUrl = `${refererUrl.protocol}//${refererUrl.host}`;
+      } catch (e) {
+        console.log("Could not parse referer, using default:", e);
+      }
+    }
+    
+    const verificationUrl = `${baseUrl}/verify-email?token=${verificationToken}${workflow_id ? `&workflow=${workflow_id}` : ""}`;
+    
+    console.log("Generated verification URL:", verificationUrl);
 
     // Send email via Resend
     const emailResponse = await resend.emails.send({
