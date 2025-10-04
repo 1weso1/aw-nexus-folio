@@ -223,12 +223,43 @@ export default function Users() {
 
   if (!isAdmin) {
     return (
-      <div className="container mx-auto p-6">
+      <div className="container mx-auto p-6 max-w-2xl">
         <Card>
           <CardHeader>
-            <CardTitle>Access Denied</CardTitle>
-            <CardDescription>You do not have permission to view this page.</CardDescription>
+            <CardTitle className="flex items-center gap-2">
+              <ShieldAlert className="h-5 w-5" />
+              Admin Access Required
+            </CardTitle>
+            <CardDescription>
+              You need admin privileges to access this page.
+            </CardDescription>
           </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="bg-muted p-4 rounded-lg space-y-3">
+              <p className="text-sm font-medium">Setup Instructions:</p>
+              <ol className="list-decimal list-inside space-y-2 text-sm">
+                <li>
+                  Sign up with your email:{" "}
+                  <code className="bg-background px-2 py-1 rounded text-xs">
+                    ahmed.wesamfahmy@gmail.com
+                  </code>
+                </li>
+                <li>
+                  Open Supabase SQL Editor and run:
+                  <pre className="bg-background p-3 rounded mt-2 text-xs overflow-x-auto">
+                    {`-- Find your user ID
+SELECT id, email FROM auth.users 
+WHERE email = 'ahmed.wesamfahmy@gmail.com';
+
+-- Grant admin role (replace YOUR_USER_ID)
+INSERT INTO public.user_roles (user_id, role)
+VALUES ('YOUR_USER_ID', 'admin');`}
+                  </pre>
+                </li>
+                <li>Refresh this page</li>
+              </ol>
+            </div>
+          </CardContent>
         </Card>
       </div>
     );
