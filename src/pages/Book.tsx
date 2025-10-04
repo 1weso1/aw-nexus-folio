@@ -20,6 +20,7 @@ const Book = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loadingAvailability, setLoadingAvailability] = useState(true);
   const [availableSlots, setAvailableSlots] = useState<GroupedSlots>({});
+  const [eventTypeUri, setEventTypeUri] = useState<string>("");
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [showManualForm, setShowManualForm] = useState(false);
@@ -42,6 +43,7 @@ const Book = () => {
         
         if (data?.slots) {
           setAvailableSlots(data.slots);
+          setEventTypeUri(data.eventType?.uri || "");
           console.log("Loaded availability:", Object.keys(data.slots).length, "days");
         }
       } catch (error) {
@@ -74,21 +76,47 @@ const Book = () => {
       return;
     }
 
+    if (!eventTypeUri) {
+      toast.error("Event type information is missing. Please refresh and try again.");
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
       const timeString = format(new Date(selectedTime), 'MMMM d, yyyy h:mm a');
       
-      const { error } = await supabase
+      // First, create the Calendly booking
+      const { data: calendlyData, error: calendlyError } = await supabase.functions.invoke('create-calendly-booking', {
+        body: {
+          event_type_uri: eventTypeUri,
+          start_time: selectedTime,
+          invitee_name: formData.name,
+          invitee_email: formData.email,
+          invitee_phone: formData.phone,
+          notes: formData.notes,
+        }
+      });
+
+      if (calendlyError || !calendlyData?.success) {
+        throw new Error(calendlyData?.error || calendlyError?.message || "Failed to create Calendly booking");
+      }
+
+      console.log("Calendly booking created:", calendlyData);
+
+      // Then store in our database
+      const { error: dbError } = await supabase
         .from("booking_requests")
         .insert([{
           ...formData,
           window_text: timeString,
         }]);
 
-      if (error) throw error;
+      if (dbError) {
+        console.error("DB insert error (booking already created in Calendly):", dbError);
+      }
 
-      toast.success("Call booked successfully! Check your email for confirmation.");
+      toast.success("Call booked successfully! You'll receive a calendar invite and confirmation email shortly.");
       setFormData({
         name: "",
         email: "",
@@ -98,9 +126,9 @@ const Book = () => {
       });
       setSelectedDate(null);
       setSelectedTime(null);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error booking call:", error);
-      toast.error("Failed to book call. Please try again.");
+      toast.error(error.message || "Failed to book call. Please try again.");
     } finally {
       setIsSubmitting(false);
     }

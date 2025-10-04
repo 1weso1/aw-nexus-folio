@@ -23,3 +23,6 @@ verify_jwt = false
 
 [functions.get-calendly-availability]
 verify_jwt = false
+
+[functions.create-calendly-booking]
+verify_jwt = false
