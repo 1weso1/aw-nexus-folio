@@ -452,7 +452,7 @@ const Workflows = () => {
         <div className="mb-12">
           <h1 className="hero-text text-4xl md:text-5xl mb-6">n8n Workflows</h1>
           <p className="body-large mb-8 max-w-3xl">
-            Browse and download automation workflows from the 1weso1/n8n-workflows repository. 
+            Browse and download automation workflows. 
             Each workflow is production-ready and includes detailed integration information.
           </p>
           
