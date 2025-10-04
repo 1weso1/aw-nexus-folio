@@ -71,6 +71,63 @@ export type Database = {
         }
         Relationships: []
       }
+      leads: {
+        Row: {
+          automation_challenge: string | null
+          company_name: string | null
+          company_size: string | null
+          created_at: string | null
+          download_count: number | null
+          download_limit: number | null
+          email: string
+          email_verified: boolean | null
+          full_name: string
+          id: string
+          interests: string[] | null
+          ip_address: unknown | null
+          role: string
+          updated_at: string | null
+          verification_sent_at: string | null
+          verification_token: string | null
+        }
+        Insert: {
+          automation_challenge?: string | null
+          company_name?: string | null
+          company_size?: string | null
+          created_at?: string | null
+          download_count?: number | null
+          download_limit?: number | null
+          email: string
+          email_verified?: boolean | null
+          full_name: string
+          id?: string
+          interests?: string[] | null
+          ip_address?: unknown | null
+          role: string
+          updated_at?: string | null
+          verification_sent_at?: string | null
+          verification_token?: string | null
+        }
+        Update: {
+          automation_challenge?: string | null
+          company_name?: string | null
+          company_size?: string | null
+          created_at?: string | null
+          download_count?: number | null
+          download_limit?: number | null
+          email?: string
+          email_verified?: boolean | null
+          full_name?: string
+          id?: string
+          interests?: string[] | null
+          ip_address?: unknown | null
+          role?: string
+          updated_at?: string | null
+          verification_sent_at?: string | null
+          verification_token?: string | null
+        }
+        Relationships: []
+      }
       subscribers: {
         Row: {
           created_at: string
@@ -246,6 +303,7 @@ export type Database = {
           downloaded_at: string | null
           id: string
           ip_address: unknown | null
+          lead_email: string | null
           user_agent: string | null
           user_id: string
           workflow_id: string
@@ -254,6 +312,7 @@ export type Database = {
           downloaded_at?: string | null
           id?: string
           ip_address?: unknown | null
+          lead_email?: string | null
           user_agent?: string | null
           user_id: string
           workflow_id: string
@@ -262,11 +321,19 @@ export type Database = {
           downloaded_at?: string | null
           id?: string
           ip_address?: unknown | null
+          lead_email?: string | null
           user_agent?: string | null
           user_id?: string
           workflow_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_lead_email"
+            columns: ["lead_email"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["email"]
+          },
           {
             foreignKeyName: "workflow_downloads_workflow_id_fkey"
             columns: ["workflow_id"]
@@ -426,6 +493,16 @@ export type Database = {
       binary_quantize: {
         Args: { "": string } | { "": unknown }
         Returns: unknown
+      }
+      check_download_eligibility: {
+        Args: { p_email?: string; p_ip_address?: unknown }
+        Returns: {
+          can_download: boolean
+          downloads_remaining: number
+          downloads_used: number
+          message: string
+          requires_verification: boolean
+        }[]
       }
       halfvec_avg: {
         Args: { "": number[] }

@@ -10,6 +10,9 @@ import { Download, Search, Shield, ShieldCheck, Filter, X, Eye, Sparkles } from 
 import { toast } from '@/hooks/use-toast';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { LeadCaptureDialog } from '@/components/LeadCaptureDialog';
+import { VerificationReminderDialog } from '@/components/VerificationReminderDialog';
+import { LimitReachedDialog } from '@/components/LimitReachedDialog';
 
 interface Workflow {
   id: string;
@@ -39,10 +42,43 @@ const Workflows = () => {
   const [useSemanticSearch, setUseSemanticSearch] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [semanticResults, setSemanticResults] = useState<any[]>([]);
+  
+  // Lead capture state
+  const [showLeadCaptureDialog, setShowLeadCaptureDialog] = useState(false);
+  const [showVerificationReminder, setShowVerificationReminder] = useState(false);
+  const [showLimitReached, setShowLimitReached] = useState(false);
+  const [pendingWorkflow, setPendingWorkflow] = useState<Workflow | null>(null);
+  const [downloadsRemaining, setDownloadsRemaining] = useState(10);
 
   useEffect(() => {
     fetchWorkflows();
+    checkDownloadStatus();
   }, []);
+
+  // Check download status on mount
+  const checkDownloadStatus = async () => {
+    const storedEmail = localStorage.getItem('lead_email');
+    if (!storedEmail) return;
+
+    try {
+      const ipResponse = await fetch('https://api.ipify.org?format=json');
+      const { ip } = await ipResponse.json();
+
+      const { data: eligibilityData, error } = await supabase.rpc(
+        'check_download_eligibility',
+        {
+          p_email: storedEmail,
+          p_ip_address: ip || null,
+        }
+      );
+
+      if (!error && eligibilityData && eligibilityData[0]) {
+        setDownloadsRemaining(eligibilityData[0].downloads_remaining);
+      }
+    } catch (error) {
+      console.error('Error checking download status:', error);
+    }
+  };
 
   // Semantic search handler
   const performSemanticSearch = async (query: string) => {
@@ -219,29 +255,116 @@ const Workflows = () => {
     }
   };
 
+  const performDownload = async (workflow: Workflow) => {
+    const response = await fetch(workflow.raw_url);
+    if (!response.ok) throw new Error('Failed to fetch workflow');
+    
+    const workflowData = await response.json();
+    const blob = new Blob([JSON.stringify(workflowData, null, 2)], { 
+      type: 'application/json' 
+    });
+    
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${workflow.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    toast({
+      title: "Success",
+      description: `Downloaded ${workflow.name}`,
+    });
+  };
+
   const downloadWorkflow = async (workflow: Workflow) => {
     try {
-      const response = await fetch(workflow.raw_url);
-      if (!response.ok) throw new Error('Failed to fetch workflow');
+      // Get stored email from localStorage
+      const storedEmail = localStorage.getItem('lead_email');
       
-      const workflowData = await response.json();
-      const blob = new Blob([JSON.stringify(workflowData, null, 2)], { 
-        type: 'application/json' 
-      });
-      
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${workflow.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.json`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      
-      toast({
-        title: "Success",
-        description: `Downloaded ${workflow.name}`,
-      });
+      // Get IP address
+      let ipAddress = '';
+      try {
+        const ipResponse = await fetch('https://api.ipify.org?format=json');
+        const ipData = await ipResponse.json();
+        ipAddress = ipData.ip;
+      } catch (error) {
+        console.error('Error getting IP:', error);
+      }
+
+      // Check download eligibility
+      const { data: eligibilityData, error: eligibilityError } = await supabase.rpc(
+        'check_download_eligibility',
+        {
+          p_email: storedEmail,
+          p_ip_address: ipAddress || null,
+        }
+      );
+
+      if (eligibilityError) {
+        console.error('Error checking eligibility:', eligibilityError);
+        throw eligibilityError;
+      }
+
+      const eligibility = eligibilityData[0];
+      console.log('Download eligibility:', eligibility);
+
+      // Update downloads remaining display
+      setDownloadsRemaining(eligibility.downloads_remaining);
+
+      // Handle different scenarios
+      if (!eligibility.can_download) {
+        if (eligibility.requires_verification) {
+          // Show verification reminder
+          setPendingWorkflow(workflow);
+          setShowVerificationReminder(true);
+          return;
+        } else {
+          // Limit reached - show book a call dialog
+          setShowLimitReached(true);
+          return;
+        }
+      }
+
+      // First download (free, no capture yet) OR verified user with remaining downloads
+      if (eligibility.downloads_used === 0) {
+        // First download - instant, then show lead capture
+        await performDownload(workflow);
+        setPendingWorkflow(workflow);
+        setShowLeadCaptureDialog(true);
+      } else {
+        // Subsequent downloads - user is verified
+        await performDownload(workflow);
+
+        // Track download in database
+        if (storedEmail) {
+          const { error: downloadError } = await supabase.from('workflow_downloads').insert({
+            lead_email: storedEmail,
+            workflow_id: workflow.id,
+            ip_address: ipAddress || null,
+            user_agent: navigator.userAgent,
+          } as any);
+
+          if (downloadError) {
+            console.error('Error tracking download:', downloadError);
+          }
+
+          // Increment download count
+          const { error: updateError } = await supabase
+            .from('leads')
+            .update({ download_count: eligibility.downloads_used + 1 })
+            .eq('email', storedEmail);
+
+          if (updateError) {
+            console.error('Error updating download count:', updateError);
+          }
+
+          // Update remaining downloads
+          setDownloadsRemaining(eligibility.downloads_remaining - 1);
+        }
+      }
     } catch (error) {
       console.error('Error downloading workflow:', error);
       toast({
@@ -455,6 +578,26 @@ const Workflows = () => {
             Browse and download automation workflows. 
             Each workflow is production-ready and includes detailed integration information.
           </p>
+          
+          {/* Downloads Remaining Indicator */}
+          {localStorage.getItem('lead_email') && downloadsRemaining > 0 && downloadsRemaining < 10 && (
+            <div className="mb-6 glass border border-neon-primary/20 rounded-lg p-4 max-w-md">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Download className="w-5 h-5 text-neon-primary" />
+                  <span className="text-text-primary font-medium">
+                    {downloadsRemaining} free {downloadsRemaining === 1 ? 'download' : 'downloads'} remaining
+                  </span>
+                </div>
+                <div className="w-16 h-2 bg-surface-secondary rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-gradient-to-r from-neon-primary to-brand-accent transition-all duration-300"
+                    style={{ width: `${(downloadsRemaining / 10) * 100}%` }}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
           
           <div className="space-y-6 mb-8">
             <div className="flex items-center gap-4">
@@ -742,6 +885,34 @@ const Workflows = () => {
           </div>
         )}
       </div>
+
+      {/* Lead Capture Dialogs */}
+      <LeadCaptureDialog
+        open={showLeadCaptureDialog}
+        onClose={() => setShowLeadCaptureDialog(false)}
+        workflowId={pendingWorkflow?.id}
+        workflowName={pendingWorkflow?.name}
+        onSuccess={() => {
+          toast({
+            title: "Success!",
+            description: "Check your email to verify and unlock 9 more downloads.",
+          });
+        }}
+      />
+
+      <VerificationReminderDialog
+        open={showVerificationReminder}
+        onClose={() => setShowVerificationReminder(false)}
+        email={localStorage.getItem('lead_email') || ''}
+        workflowId={pendingWorkflow?.id}
+        workflowName={pendingWorkflow?.name}
+      />
+
+      <LimitReachedDialog
+        open={showLimitReached}
+        onClose={() => setShowLimitReached(false)}
+        downloadsUsed={10}
+      />
     </div>
   );
 };
