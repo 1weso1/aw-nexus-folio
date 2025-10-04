@@ -73,9 +73,11 @@ export function VerificationReminderDialog({
 
   const handleChangeEmail = () => {
     localStorage.removeItem("lead_email");
+    toast({
+      title: "Email cleared",
+      description: "Click download again to enter a new email address.",
+    });
     onClose();
-    // The user will now be prompted to enter their email again on next download
-    window.location.reload();
   };
 
   return (

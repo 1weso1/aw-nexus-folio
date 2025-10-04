@@ -49,8 +49,9 @@ const handler = async (req: Request): Promise<Response> => {
       throw updateError;
     }
 
-    // Create verification URL
-    const verificationUrl = `${Deno.env.get("URL")}/verify-email?token=${verificationToken}${workflow_id ? `&workflow=${workflow_id}` : ""}`;
+    // Create verification URL - use the origin from the request or fallback to URL env var
+    const origin = req.headers.get("origin") || Deno.env.get("URL") || "https://ugjeubqwmgnqvohmrkyv.supabase.co";
+    const verificationUrl = `${origin}/verify-email?token=${verificationToken}${workflow_id ? `&workflow=${workflow_id}` : ""}`;
 
     // Send email via Resend
     const emailResponse = await resend.emails.send({
