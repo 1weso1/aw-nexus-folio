@@ -174,21 +174,6 @@ const WorkflowDetail = () => {
     return "Simple";
   };
 
-  const downloadWorkflow = () => {
-    if (!workflowData || !workflow) return;
-    
-    const dataStr = JSON.stringify(workflowData, null, 2);
-    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-    
-    const exportFileDefaultName = `${workflow.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.json`;
-    
-    const linkElement = document.createElement('a');
-    linkElement.setAttribute('href', dataUri);
-    linkElement.setAttribute('download', exportFileDefaultName);
-    linkElement.click();
-    
-    toast.success("Workflow downloaded successfully");
-  };
 
   if (loading) {
     return (
@@ -238,17 +223,6 @@ const WorkflowDetail = () => {
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Workflows
           </Button>
-          
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              onClick={downloadWorkflow}
-              className="glass border-brand-primary/20 hover:border-brand-primary/40"
-            >
-              <Download className="mr-2 h-4 w-4" />
-              Download JSON
-            </Button>
-          </div>
         </div>
 
         {/* Workflow Info */}

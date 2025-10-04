@@ -230,7 +230,7 @@ const Leads = () => {
         description="Admin dashboard for managing workflow download leads"
       />
       
-      <div className="container mx-auto py-8 px-4 max-w-7xl">
+      <div className="container mx-auto py-24 px-4 max-w-7xl">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-text-primary mb-2">Lead Management</h1>
