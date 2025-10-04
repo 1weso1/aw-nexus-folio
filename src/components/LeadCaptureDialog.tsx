@@ -218,12 +218,12 @@ export function LeadCaptureDialog({ open, onClose, workflowId, workflowName, onS
                   <SelectTrigger className="bg-surface-secondary border-surface-tertiary text-text-primary">
                     <SelectValue placeholder="Select your role" />
                   </SelectTrigger>
-                  <SelectContent className="bg-surface-primary border-surface-tertiary">
-                    {roleOptions.map((role) => (
-                      <SelectItem key={role} value={role} className="text-text-primary">
-                        {role}
-                      </SelectItem>
-                    ))}
+                <SelectContent className="bg-surface-secondary border-surface-tertiary">
+                  {roleOptions.map((role) => (
+                    <SelectItem key={role} value={role} className="text-text-primary hover:bg-surface-tertiary">
+                      {role}
+                    </SelectItem>
+                  ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -242,7 +242,7 @@ export function LeadCaptureDialog({ open, onClose, workflowId, workflowName, onS
                         onCheckedChange={() => handleInterestToggle(option.id)}
                         className="border-surface-tertiary"
                       />
-                      <label htmlFor={option.id} className="text-sm text-text-secondary cursor-pointer">
+                      <label htmlFor={option.id} className="text-sm text-text-primary cursor-pointer">
                         {option.label}
                       </label>
                     </div>
@@ -282,9 +282,9 @@ export function LeadCaptureDialog({ open, onClose, workflowId, workflowName, onS
                   <SelectTrigger className="bg-surface-secondary border-surface-tertiary text-text-primary">
                     <SelectValue placeholder="Select company size" />
                   </SelectTrigger>
-                  <SelectContent className="bg-surface-primary border-surface-tertiary">
+                  <SelectContent className="bg-surface-secondary border-surface-tertiary">
                     {companySizeOptions.map((size) => (
-                      <SelectItem key={size} value={size} className="text-text-primary">
+                      <SelectItem key={size} value={size} className="text-text-primary hover:bg-surface-tertiary">
                         {size}
                       </SelectItem>
                     ))}
