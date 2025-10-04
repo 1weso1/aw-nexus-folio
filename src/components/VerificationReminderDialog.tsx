@@ -73,6 +73,7 @@ export function VerificationReminderDialog({
 
   const handleChangeEmail = () => {
     localStorage.removeItem("lead_email");
+    localStorage.removeItem("has_downloaded");
     toast({
       title: "Email cleared",
       description: "Click download again to enter a new email address.",

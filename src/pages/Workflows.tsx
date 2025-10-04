@@ -281,97 +281,67 @@ const Workflows = () => {
 
   const downloadWorkflow = async (workflow: Workflow) => {
     try {
-      // Get stored email from localStorage
       const storedEmail = localStorage.getItem('lead_email');
+      const hasDownloaded = localStorage.getItem('has_downloaded');
       
-      // If no stored email, treat as first download (skip eligibility check)
-      if (!storedEmail) {
-        await performDownload(workflow);
-        setPendingWorkflow(workflow);
-        setShowLeadCaptureDialog(true);
-        return;
-      }
-      
-      // Get IP address
-      let ipAddress = '';
-      try {
-        const ipResponse = await fetch('https://api.ipify.org?format=json');
-        const ipData = await ipResponse.json();
-        ipAddress = ipData.ip;
-      } catch (error) {
-        console.error('Error getting IP:', error);
-      }
+      // If user already downloaded once but hasn't verified email yet
+      if (hasDownloaded === 'true' && storedEmail) {
+        // Check if they're verified
+        const { data: eligibilityData, error: eligibilityError } = await supabase.rpc(
+          'check_download_eligibility',
+          {
+            p_email: storedEmail,
+            p_ip_address: null,
+          }
+        );
 
-      // Check download eligibility (only for users with stored email)
-      const { data: eligibilityData, error: eligibilityError } = await supabase.rpc(
-        'check_download_eligibility',
-        {
-          p_email: storedEmail,
-          p_ip_address: ipAddress || null,
-        }
-      );
+        if (eligibilityError) throw eligibilityError;
 
-      if (eligibilityError) {
-        console.error('Error checking eligibility:', eligibilityError);
-        throw eligibilityError;
-      }
-
-      const eligibility = eligibilityData[0];
-      console.log('Download eligibility:', eligibility);
-
-      // Update downloads remaining display
-      setDownloadsRemaining(eligibility.downloads_remaining);
-
-      // Handle different scenarios
-      if (!eligibility.can_download) {
+        const eligibility = eligibilityData[0];
+        
+        // If not verified, show reminder
         if (eligibility.requires_verification) {
-          // Show verification reminder
           setPendingWorkflow(workflow);
           setShowVerificationReminder(true);
           return;
-        } else {
-          // Limit reached - show book a call dialog
+        }
+        
+        // If verified but limit reached
+        if (!eligibility.can_download) {
           setShowLimitReached(true);
           return;
         }
-      }
-
-      // First download (free, no capture yet) OR verified user with remaining downloads
-      if (eligibility.downloads_used === 0) {
-        // First download - instant, then show lead capture
+        
+        // Verified and can download - proceed
         await performDownload(workflow);
+        
+        // Track and increment
+        const { error: downloadError } = await supabase.from('workflow_downloads').insert({
+          lead_email: storedEmail,
+          workflow_id: workflow.id,
+          user_agent: navigator.userAgent,
+        } as any);
+
+        if (downloadError) console.error('Error tracking download:', downloadError);
+
+        const { error: updateError } = await supabase
+          .from('leads')
+          .update({ download_count: eligibility.downloads_used + 1 })
+          .eq('email', storedEmail);
+
+        if (updateError) console.error('Error updating download count:', updateError);
+        
+        setDownloadsRemaining(eligibility.downloads_remaining - 1);
+        return;
+      }
+      
+      // First download - no email stored yet
+      if (!storedEmail) {
+        await performDownload(workflow);
+        localStorage.setItem('has_downloaded', 'true');
         setPendingWorkflow(workflow);
         setShowLeadCaptureDialog(true);
-      } else {
-        // Subsequent downloads - user is verified
-        await performDownload(workflow);
-
-        // Track download in database
-        if (storedEmail) {
-          const { error: downloadError } = await supabase.from('workflow_downloads').insert({
-            lead_email: storedEmail,
-            workflow_id: workflow.id,
-            ip_address: ipAddress || null,
-            user_agent: navigator.userAgent,
-          } as any);
-
-          if (downloadError) {
-            console.error('Error tracking download:', downloadError);
-          }
-
-          // Increment download count
-          const { error: updateError } = await supabase
-            .from('leads')
-            .update({ download_count: eligibility.downloads_used + 1 })
-            .eq('email', storedEmail);
-
-          if (updateError) {
-            console.error('Error updating download count:', updateError);
-          }
-
-          // Update remaining downloads
-          setDownloadsRemaining(eligibility.downloads_remaining - 1);
-        }
+        return;
       }
     } catch (error) {
       console.error('Error downloading workflow:', error);
