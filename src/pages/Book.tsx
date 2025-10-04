@@ -148,60 +148,68 @@ const Book = () => {
       </div>
 
       {/* Header */}
-      <div className="max-w-6xl mx-auto text-center mb-12">
-        <h1 className="text-4xl md:text-5xl font-bold mb-4 text-high">
-          Book a Call
+      <div className="max-w-6xl mx-auto text-center mb-16 animate-fade-in">
+        <h1 className="text-5xl md:text-6xl font-bold mb-6 text-high">
+          Book a <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">Call</span>
         </h1>
-        <p className="text-xl text-mid max-w-2xl mx-auto">
+        <p className="text-xl text-mid max-w-2xl mx-auto leading-relaxed">
           Let's connect and discuss your CRM automation needs, community projects, or collaboration opportunities.
         </p>
       </div>
 
       <div className="max-w-6xl mx-auto">
         {/* What to Expect Section */}
-        <div className="grid md:grid-cols-2 gap-8 mb-12">
-          <div className="glass p-6 rounded-lg">
+        <div className="grid md:grid-cols-2 gap-6 mb-16">
+          <div className="glass p-8 rounded-lg hover:scale-105 transition-transform duration-300 border border-transparent hover:border-primary/30">
             <div className="flex items-start gap-4">
-              <Clock className="h-6 w-6 text-primary flex-shrink-0 mt-1" />
+              <div className="p-3 rounded-lg bg-primary/10">
+                <Clock className="h-7 w-7 text-primary flex-shrink-0" />
+              </div>
               <div>
-                <h3 className="text-lg font-semibold mb-2 text-high">Duration</h3>
-                <p className="text-mid">
+                <h3 className="text-xl font-semibold mb-2 text-high">Duration</h3>
+                <p className="text-mid leading-relaxed">
                   30-minute focused conversation tailored to your needs
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="glass p-6 rounded-lg">
+          <div className="glass p-8 rounded-lg hover:scale-105 transition-transform duration-300 border border-transparent hover:border-primary/30">
             <div className="flex items-start gap-4">
-              <Calendar className="h-6 w-6 text-primary flex-shrink-0 mt-1" />
+              <div className="p-3 rounded-lg bg-primary/10">
+                <Calendar className="h-7 w-7 text-primary flex-shrink-0" />
+              </div>
               <div>
-                <h3 className="text-lg font-semibold mb-2 text-high">Response Time</h3>
-                <p className="text-mid">
+                <h3 className="text-xl font-semibold mb-2 text-high">Response Time</h3>
+                <p className="text-mid leading-relaxed">
                   Instant booking with real-time availability
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="glass p-6 rounded-lg">
+          <div className="glass p-8 rounded-lg hover:scale-105 transition-transform duration-300 border border-transparent hover:border-primary/30">
             <div className="flex items-start gap-4">
-              <Video className="h-6 w-6 text-primary flex-shrink-0 mt-1" />
+              <div className="p-3 rounded-lg bg-primary/10">
+                <Video className="h-7 w-7 text-primary flex-shrink-0" />
+              </div>
               <div>
-                <h3 className="text-lg font-semibold mb-2 text-high">Format</h3>
-                <p className="text-mid">
+                <h3 className="text-xl font-semibold mb-2 text-high">Format</h3>
+                <p className="text-mid leading-relaxed">
                   Video call via Google Meet or Zoom - your choice
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="glass p-6 rounded-lg">
+          <div className="glass p-8 rounded-lg hover:scale-105 transition-transform duration-300 border border-transparent hover:border-primary/30">
             <div className="flex items-start gap-4">
-              <MessageSquare className="h-6 w-6 text-primary flex-shrink-0 mt-1" />
+              <div className="p-3 rounded-lg bg-primary/10">
+                <MessageSquare className="h-7 w-7 text-primary flex-shrink-0" />
+              </div>
               <div>
-                <h3 className="text-lg font-semibold mb-2 text-high">Topics</h3>
-                <p className="text-mid">
+                <h3 className="text-xl font-semibold mb-2 text-high">Topics</h3>
+                <p className="text-mid leading-relaxed">
                   CRM strategy, recruitment automation, or collaboration opportunities
                 </p>
               </div>
@@ -211,10 +219,12 @@ const Book = () => {
 
         {/* Calendar Booking Section */}
         {!showManualForm && !loadingAvailability && Object.keys(availableSlots).length > 0 && (
-          <div className="mb-12 space-y-6">
-            <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold text-high mb-2">Book Your Call</h2>
-              <p className="text-mid">Select a date and time that works for you</p>
+          <div className="mb-12 space-y-8 animate-fade-in">
+            <div className="text-center mb-12">
+              <h2 className="text-4xl font-bold text-high mb-3 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                Book Your Call
+              </h2>
+              <p className="text-lg text-mid">Select a date and time that works for you</p>
             </div>
 
             <CalendarGrid
@@ -233,9 +243,12 @@ const Book = () => {
             )}
 
             {selectedTime && (
-              <div className="glass p-8 rounded-lg max-w-2xl mx-auto">
-                <h3 className="text-xl font-semibold mb-4 text-high">Complete Your Booking</h3>
-                <div className="space-y-4">
+              <div className="glass p-8 rounded-lg max-w-2xl mx-auto animate-fade-in border border-primary/20">
+                <h3 className="text-2xl font-semibold mb-6 text-high flex items-center gap-2">
+                  <MessageSquare className="h-6 w-6 text-primary" />
+                  Complete Your Booking
+                </h3>
+                <div className="space-y-5">
                   <div>
                     <Label htmlFor="quick-name">Name *</Label>
                     <Input
@@ -292,9 +305,17 @@ const Book = () => {
                   <Button
                     onClick={handleQuickBook}
                     disabled={isSubmitting}
-                    className="w-full"
+                    className="w-full text-lg py-6 mt-2"
+                    size="lg"
                   >
-                    {isSubmitting ? "Booking..." : `Confirm Booking for ${format(new Date(selectedTime), 'MMM d, h:mm a')}`}
+                    {isSubmitting ? (
+                      <>
+                        <div className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-solid border-white border-r-transparent mr-2"></div>
+                        Booking...
+                      </>
+                    ) : (
+                      `Confirm Booking for ${format(new Date(selectedTime), 'MMM d, h:mm a')}`
+                    )}
                   </Button>
                 </div>
               </div>
@@ -303,98 +324,24 @@ const Book = () => {
         )}
 
         {loadingAvailability && (
-          <div className="text-center py-12">
-            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent"></div>
-            <p className="text-mid mt-4">Loading available times...</p>
+          <div className="text-center py-16">
+            <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent"></div>
+            <p className="text-mid mt-6 text-lg">Loading available times...</p>
           </div>
         )}
 
-        {/* Manual Request Form */}
-        <div className="glass p-8 rounded-lg max-w-2xl mx-auto">
-          <div className="text-center mb-6">
-            <h2 className="text-2xl font-bold text-high mb-2">
-              {showManualForm || Object.keys(availableSlots).length === 0 ? "Request a Time Slot" : "Or Request a Custom Time"}
-            </h2>
-            <p className="text-mid text-sm">
-              Can't find a suitable time? Let me know your availability
+        {!loadingAvailability && Object.keys(availableSlots).length === 0 && (
+          <div className="glass p-12 rounded-lg max-w-2xl mx-auto text-center">
+            <Calendar className="h-16 w-16 text-mid mx-auto mb-4" />
+            <h3 className="text-2xl font-bold text-high mb-2">No Available Slots</h3>
+            <p className="text-mid">
+              Please check back later or contact me directly at{" "}
+              <a href="mailto:contact@ahmedwesam.com" className="text-primary hover:underline">
+                contact@ahmedwesam.com
+              </a>
             </p>
           </div>
-
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <Label htmlFor="name">Name *</Label>
-              <Input
-                id="name"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                placeholder="Your full name"
-                required
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="email">Email *</Label>
-              <Input
-                id="email"
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                placeholder="your.email@example.com"
-                required
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="phone">Phone (Optional)</Label>
-              <div className="relative">
-                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-mid" />
-                <Input
-                  id="phone"
-                  type="tel"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  placeholder="+20 123 456 7890"
-                  className="pl-10"
-                />
-              </div>
-            </div>
-
-            <div>
-              <Label htmlFor="window_text">Preferred Time Window *</Label>
-              <Input
-                id="window_text"
-                name="window_text"
-                value={formData.window_text}
-                onChange={handleChange}
-                placeholder="e.g., Weekday mornings, Tuesdays 2-5 PM"
-                required
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="notes">What would you like to discuss? (Optional)</Label>
-              <Textarea
-                id="notes"
-                name="notes"
-                value={formData.notes}
-                onChange={handleChange}
-                placeholder="Brief overview of topics you'd like to cover..."
-                rows={4}
-              />
-            </div>
-
-            <Button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full"
-            >
-              {isSubmitting ? "Sending..." : "Send Request"}
-            </Button>
-          </form>
-        </div>
+        )}
       </div>
     </div>
   );
