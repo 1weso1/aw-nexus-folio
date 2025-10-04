@@ -2,11 +2,12 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Shield, ShieldAlert, ShieldCheck, User, X } from "lucide-react";
+import { Shield, ShieldAlert, ShieldCheck, User, X, AlertCircle } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 type AppRole = 'admin' | 'moderator' | 'user';
@@ -223,41 +224,94 @@ export default function Users() {
 
   if (!isAdmin) {
     return (
-      <div className="container mx-auto p-6 max-w-2xl">
+      <div className="container mx-auto p-6 max-w-3xl">
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <ShieldAlert className="h-5 w-5" />
-              Admin Access Required
+              Admin Setup Required
             </CardTitle>
             <CardDescription>
-              You need admin privileges to access this page.
+              Create your first admin account to access user management.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="bg-muted p-4 rounded-lg space-y-3">
-              <p className="text-sm font-medium">Setup Instructions:</p>
-              <ol className="list-decimal list-inside space-y-2 text-sm">
-                <li>
-                  Sign up with your email:{" "}
-                  <code className="bg-background px-2 py-1 rounded text-xs">
-                    ahmed.wesamfahmy@gmail.com
-                  </code>
-                </li>
-                <li>
-                  Open Supabase SQL Editor and run:
-                  <pre className="bg-background p-3 rounded mt-2 text-xs overflow-x-auto">
-                    {`-- Find your user ID
+          <CardContent className="space-y-6">
+            <Alert>
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>No authenticated users found</AlertTitle>
+              <AlertDescription>
+                Being a lead (from downloading workflows) is different from being an authenticated user. 
+                You need to create a user account first.
+              </AlertDescription>
+            </Alert>
+
+            <div className="bg-muted p-4 rounded-lg space-y-4">
+              <p className="text-sm font-semibold">Step 1: Create a User Account</p>
+              <div className="space-y-2 text-sm">
+                <p>Go to Supabase SQL Editor and run:</p>
+                <pre className="bg-background p-3 rounded text-xs overflow-x-auto">
+{`-- Create your admin user account
+INSERT INTO auth.users (
+  instance_id,
+  id,
+  aud,
+  role,
+  email,
+  encrypted_password,
+  email_confirmed_at,
+  raw_app_meta_data,
+  raw_user_meta_data,
+  created_at,
+  updated_at,
+  confirmation_token,
+  email_change,
+  email_change_token_new,
+  recovery_token
+) VALUES (
+  '00000000-0000-0000-0000-000000000000',
+  gen_random_uuid(),
+  'authenticated',
+  'authenticated',
+  'ahmed.wesamfahmy@gmail.com',
+  crypt('your-secure-password-here', gen_salt('bf')),
+  NOW(),
+  '{"provider":"email","providers":["email"]}',
+  '{"full_name":"Ahmed Wesam"}',
+  NOW(),
+  NOW(),
+  '',
+  '',
+  '',
+  ''
+);`}
+                </pre>
+                <p className="text-muted-foreground">Replace 'your-secure-password-here' with your desired password.</p>
+              </div>
+            </div>
+
+            <div className="bg-muted p-4 rounded-lg space-y-4">
+              <p className="text-sm font-semibold">Step 2: Grant Admin Role</p>
+              <div className="space-y-2 text-sm">
+                <p>After creating the user, grant them admin privileges:</p>
+                <pre className="bg-background p-3 rounded text-xs overflow-x-auto">
+{`-- Find your user ID
 SELECT id, email FROM auth.users 
 WHERE email = 'ahmed.wesamfahmy@gmail.com';
 
--- Grant admin role (replace YOUR_USER_ID)
+-- Grant admin role (replace YOUR_USER_ID with the id from above)
 INSERT INTO public.user_roles (user_id, role)
 VALUES ('YOUR_USER_ID', 'admin');`}
-                  </pre>
-                </li>
-                <li>Refresh this page</li>
-              </ol>
+                </pre>
+              </div>
+            </div>
+
+            <div className="bg-muted p-4 rounded-lg space-y-4">
+              <p className="text-sm font-semibold">Step 3: Sign In</p>
+              <p className="text-sm">
+                Use the authentication pages in the automation app at{" "}
+                <code className="bg-background px-2 py-1 rounded text-xs">/auth</code>
+                {" "}to sign in with your new credentials, then return to this page.
+              </p>
             </div>
           </CardContent>
         </Card>
