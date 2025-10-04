@@ -132,7 +132,7 @@ serve(async (req) => {
     `;
 
     const { data, error } = await resend.emails.send({
-      from: 'Ahmed Wesam Portfolio <onboarding@resend.dev>',
+      from: 'Ahmed Wesam Portfolio <noreply@ahmedwesam.com>',
       to: ['contact@ahmedwesam.com'],
       replyTo: payload.email,
       subject: `New Contact: ${payload.subject} - from ${payload.name}`,
