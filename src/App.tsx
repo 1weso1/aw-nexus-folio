@@ -12,6 +12,7 @@ import Projects from "./pages/Projects";
 import Apps from "./pages/Apps";
 import Blog from "./pages/Blog";
 import Contact from "./pages/Contact";
+import Auth from "./pages/Auth";
 import ProjectDetail from "./pages/ProjectDetail";
 import Workflows from "./pages/Workflows";
 import WorkflowDetail from "./pages/WorkflowDetail";
@@ -46,6 +47,7 @@ const App = () => (
               <Route path="/blog" element={<Blog />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/book" element={<Book />} />
+              <Route path="/auth" element={<Auth />} />
               <Route path="/cv" element={<CV />} />
               <Route path="/generate-descriptions" element={<GenerateDescriptions />} />
           <Route path="/admin/generate-embeddings" element={<GenerateEmbeddings />} />
