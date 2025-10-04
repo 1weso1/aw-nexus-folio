@@ -7,9 +7,31 @@ interface LimitReachedDialogProps {
   open: boolean;
   onClose: () => void;
   downloadsUsed: number;
+  accessTier?: 'free' | 'gold' | 'platinum';
 }
 
-export function LimitReachedDialog({ open, onClose, downloadsUsed }: LimitReachedDialogProps) {
+export function LimitReachedDialog({ open, onClose, downloadsUsed, accessTier = 'free' }: LimitReachedDialogProps) {
+  const getTierIcon = (tier: string) => {
+    if (tier === 'free') return '🌱';
+    if (tier === 'gold') return '👑';
+    return '💎';
+  };
+
+  const getTierName = (tier: string) => {
+    if (tier === 'free') return 'Free';
+    if (tier === 'gold') return 'Gold';
+    return 'Platinum';
+  };
+
+  const getUpgradeMessage = () => {
+    if (accessTier === 'free') {
+      return 'Upgrade to Gold (100 downloads + Expert workflows) or Platinum (unlimited + all workflows) to continue.';
+    }
+    if (accessTier === 'gold') {
+      return 'Upgrade to Platinum for unlimited downloads and access to Enterprise workflows.';
+    }
+    return 'Contact us to discuss enterprise options.';
+  };
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[500px] glass border-neon-primary/20">
@@ -20,10 +42,10 @@ export function LimitReachedDialog({ open, onClose, downloadsUsed }: LimitReache
             </div>
           </div>
           <DialogTitle className="text-2xl font-bold text-center text-text-primary">
-            You've Used All {downloadsUsed} Free Downloads! 🎉
+            {getTierIcon(accessTier)} You've Used All {downloadsUsed} {getTierName(accessTier)} Tier Downloads! 🎉
           </DialogTitle>
           <DialogDescription className="text-center text-text-secondary">
-            Looks like you're serious about automation. Let's talk about how I can help you further.
+            {getUpgradeMessage()}
           </DialogDescription>
         </DialogHeader>
 
@@ -50,7 +72,7 @@ export function LimitReachedDialog({ open, onClose, downloadsUsed }: LimitReache
           <div className="flex items-center justify-center gap-2 text-text-secondary">
             <Download className="w-4 h-4" />
             <span className="text-sm">
-              You've downloaded {downloadsUsed} workflows
+              You've downloaded {downloadsUsed} workflows ({getTierName(accessTier)} Tier)
             </span>
           </div>
 

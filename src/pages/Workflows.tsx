@@ -6,13 +6,14 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Download, Search, Shield, ShieldCheck, Filter, X, Eye, Sparkles } from 'lucide-react';
+import { Download, Search, Shield, ShieldCheck, Filter, X, Eye, Sparkles, Lock } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { LeadCaptureDialog } from '@/components/LeadCaptureDialog';
 import { VerificationReminderDialog } from '@/components/VerificationReminderDialog';
 import { LimitReachedDialog } from '@/components/LimitReachedDialog';
+import { UpgradeDialog } from '@/components/UpgradeDialog';
 
 interface Workflow {
   id: string;
@@ -47,8 +48,16 @@ const Workflows = () => {
   const [showLeadCaptureDialog, setShowLeadCaptureDialog] = useState(false);
   const [showVerificationReminder, setShowVerificationReminder] = useState(false);
   const [showLimitReached, setShowLimitReached] = useState(false);
+  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
   const [pendingWorkflow, setPendingWorkflow] = useState<Workflow | null>(null);
   const [downloadsRemaining, setDownloadsRemaining] = useState(10);
+  const [downloadsUsed, setDownloadsUsed] = useState(0);
+  const [downloadLimit, setDownloadLimit] = useState(10);
+  
+  // Tier state
+  const [userAccessTier, setUserAccessTier] = useState<'free' | 'gold' | 'platinum'>('free');
+  const [canAccessExpert, setCanAccessExpert] = useState(false);
+  const [canAccessEnterprise, setCanAccessEnterprise] = useState(false);
 
   useEffect(() => {
     fetchWorkflows();
@@ -73,7 +82,13 @@ const Workflows = () => {
       );
 
       if (!error && eligibilityData && eligibilityData[0]) {
-        setDownloadsRemaining(eligibilityData[0].downloads_remaining);
+        const eligibility = eligibilityData[0];
+        setDownloadsRemaining(eligibility.downloads_remaining);
+        setDownloadsUsed(eligibility.downloads_used);
+        setDownloadLimit(eligibility.downloads_used + eligibility.downloads_remaining);
+        setUserAccessTier((eligibility.access_tier as 'free' | 'gold' | 'platinum') || 'free');
+        setCanAccessExpert(eligibility.can_access_expert || false);
+        setCanAccessEnterprise(eligibility.can_access_enterprise || false);
       }
     } catch (error) {
       console.error('Error checking download status:', error);
@@ -284,6 +299,15 @@ const Workflows = () => {
       const storedEmail = localStorage.getItem('lead_email');
       const hasDownloaded = localStorage.getItem('has_downloaded');
       
+      // Check tier access before attempting download
+      const enhancedComplexity = getEnhancedComplexity(workflow.node_count);
+      if (!canDownloadWorkflow(enhancedComplexity)) {
+        const requiredTier = enhancedComplexity === 'enterprise' ? 'platinum' : 'gold';
+        setPendingWorkflow(workflow);
+        setShowUpgradeDialog(true);
+        return;
+      }
+      
       // If user already downloaded once but hasn't verified email yet
       if (hasDownloaded === 'true' && storedEmail) {
         // Check if they're verified
@@ -332,6 +356,7 @@ const Workflows = () => {
         if (updateError) console.error('Error updating download count:', updateError);
         
         setDownloadsRemaining(eligibility.downloads_remaining - 1);
+        setDownloadsUsed(eligibility.downloads_used + 1);
         return;
       }
       
@@ -351,6 +376,27 @@ const Workflows = () => {
         variant: "destructive",
       });
     }
+  };
+
+  // Check if user can download a workflow based on their tier
+  const canDownloadWorkflow = (complexity: string): boolean => {
+    if (complexity === 'expert') {
+      return canAccessExpert;
+    }
+    if (complexity === 'enterprise') {
+      return canAccessEnterprise;
+    }
+    return true; // Free tier workflows
+  };
+
+  const isWorkflowLocked = (complexity: string): boolean => {
+    return !canDownloadWorkflow(complexity);
+  };
+
+  const getRequiredTierForComplexity = (complexity: string): 'gold' | 'platinum' | null => {
+    if (complexity === 'expert') return 'gold';
+    if (complexity === 'enterprise') return 'platinum';
+    return null;
   };
 
   // Service categories based on workflow names and content
@@ -558,19 +604,26 @@ const Workflows = () => {
           </p>
           
           {/* Downloads Remaining Indicator */}
-          {localStorage.getItem('lead_email') && downloadsRemaining > 0 && downloadsRemaining < 10 && (
+          {localStorage.getItem('lead_email') && downloadsRemaining >= 0 && (
             <div className="mb-6 glass border border-neon-primary/20 rounded-lg p-4 max-w-md">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Download className="w-5 h-5 text-neon-primary" />
                   <span className="text-text-primary font-medium">
-                    {downloadsRemaining} free {downloadsRemaining === 1 ? 'download' : 'downloads'} remaining
+                    {downloadsRemaining} of {downloadLimit} downloads remaining 
+                    <span className="ml-2 text-text-secondary text-sm">
+                      ({userAccessTier === 'free' ? '🌱 Free' : userAccessTier === 'gold' ? '👑 Gold' : '💎 Platinum'} Tier)
+                    </span>
                   </span>
                 </div>
-                <div className="w-16 h-2 bg-surface-secondary rounded-full overflow-hidden">
+                <div className="w-24 h-2 bg-surface-secondary rounded-full overflow-hidden">
                   <div 
-                    className="h-full bg-gradient-to-r from-neon-primary to-brand-accent transition-all duration-300"
-                    style={{ width: `${(downloadsRemaining / 10) * 100}%` }}
+                    className={`h-full transition-all duration-300 ${
+                      userAccessTier === 'free' ? 'bg-gradient-to-r from-green-500 to-green-400' :
+                      userAccessTier === 'gold' ? 'bg-gradient-to-r from-yellow-500 to-yellow-400' :
+                      'bg-gradient-to-r from-purple-500 to-purple-400'
+                    }`}
+                    style={{ width: `${downloadLimit > 0 ? (downloadsRemaining / downloadLimit) * 100 : 0}%` }}
                   />
                 </div>
               </div>
@@ -743,77 +796,99 @@ const Workflows = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-          {paginatedWorkflows.map((workflow) => (
-            <div key={workflow.id} className="project-card hover-lift hover-glow group cursor-pointer">
-              <Link to={`/workflows/${workflow.id}`} className="block">
-                <div className="flex justify-between items-start gap-3 mb-3">
-                  <h3 className="text-text-primary text-lg font-semibold font-sora line-clamp-2 flex-1 group-hover:text-brand-accent transition-colors">
-                    {workflow.name}
-                  </h3>
-                  <Badge className={getComplexityColor(workflow.complexity, workflow.node_count)}>
-                    {getGranularComplexityLabel(workflow.node_count)}
-                  </Badge>
-                </div>
+          {paginatedWorkflows.map((workflow) => {
+            const enhancedComplexity = getEnhancedComplexity(workflow.node_count);
+            const locked = isWorkflowLocked(enhancedComplexity);
+            const requiredTier = getRequiredTierForComplexity(enhancedComplexity);
+            
+            return (
+              <div 
+                key={workflow.id} 
+                className={`project-card hover-lift hover-glow group cursor-pointer ${locked ? 'opacity-75' : ''}`}
+                style={locked ? { position: 'relative' } : {}}
+              >
+                {locked && (
+                  <div className="absolute top-3 right-3 z-10 bg-surface-card/90 backdrop-blur-sm border border-neon-primary/30 rounded-lg px-3 py-1 flex items-center gap-2">
+                    <Lock className="w-4 h-4 text-neon-primary" />
+                    <span className="text-xs font-semibold text-neon-primary">
+                      {requiredTier === 'gold' ? '👑 Gold' : '💎 Platinum'} Tier
+                    </span>
+                  </div>
+                )}
                 
-                <p className="text-text-secondary text-sm mb-3 capitalize">
-                  {workflow.category}
-                </p>
+                <Link to={`/workflows/${workflow.id}`} className="block">
+                  <div className="flex justify-between items-start gap-3 mb-3">
+                    <h3 className="text-text-primary text-lg font-semibold font-sora line-clamp-2 flex-1 group-hover:text-brand-accent transition-colors">
+                      {workflow.name}
+                    </h3>
+                    <Badge className={getComplexityColor(workflow.complexity, workflow.node_count)}>
+                      {getGranularComplexityLabel(workflow.node_count)}
+                    </Badge>
+                  </div>
+                  
+                  <p className="text-text-secondary text-sm mb-3 capitalize">
+                    {workflow.category}
+                  </p>
 
-                <div className="space-y-2 mb-6">
-                  <div className="flex items-center gap-4 text-sm text-text-secondary">
-                    <span className="flex items-center gap-1">
-                      <span className="w-2 h-2 bg-neon-primary rounded-full"></span>
-                      {workflow.node_count} nodes
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <span className="w-2 h-2 bg-brand-accent rounded-full"></span>
-                      {formatFileSize(workflow.size_bytes)}
-                    </span>
+                  <div className="space-y-2 mb-6">
+                    <div className="flex items-center gap-4 text-sm text-text-secondary">
+                      <span className="flex items-center gap-1">
+                        <span className="w-2 h-2 bg-neon-primary rounded-full"></span>
+                        {workflow.node_count} nodes
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <span className="w-2 h-2 bg-brand-accent rounded-full"></span>
+                        {formatFileSize(workflow.size_bytes)}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1 text-sm">
+                      {workflow.has_credentials ? (
+                        <>
+                          <Shield className="w-4 h-4 text-yellow-400" />
+                          <span className="text-yellow-400">Auth Required</span>
+                        </>
+                      ) : (
+                        <>
+                          <ShieldCheck className="w-4 h-4 text-green-400" />
+                          <span className="text-green-400">No Auth</span>
+                        </>
+                      )}
+                    </div>
                   </div>
-                  <div className="flex items-center gap-1 text-sm">
-                    {workflow.has_credentials ? (
-                      <>
-                        <Shield className="w-4 h-4 text-yellow-400" />
-                        <span className="text-yellow-400">Auth Required</span>
-                      </>
-                    ) : (
-                      <>
-                        <ShieldCheck className="w-4 h-4 text-green-400" />
-                        <span className="text-green-400">No Auth</span>
-                      </>
-                    )}
-                  </div>
-                </div>
-              </Link>
-              
-              <div className="flex gap-2">
-                <Link
-                  to={`/workflows/${workflow.id}`}
-                  className="flex-1"
-                >
-                  <Button
-                    className="w-full bg-brand-primary/20 hover:bg-brand-primary/30 text-brand-accent border border-brand-primary/30 hover:border-brand-primary/50 transition-all duration-300"
-                    size="sm"
-                    variant="outline"
-                  >
-                    <Eye className="w-4 h-4 mr-2" />
-                    View Preview
-                  </Button>
                 </Link>
-                <Button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    downloadWorkflow(workflow);
-                  }}
-                  className="gradient-primary hover:shadow-lg transition-all duration-300"
-                  size="sm"
-                >
-                  <Download className="w-4 h-4" />
-                </Button>
+                
+                <div className="flex gap-2">
+                  <Link
+                    to={`/workflows/${workflow.id}`}
+                    className="flex-1"
+                  >
+                    <Button
+                      className="w-full bg-brand-primary/20 hover:bg-brand-primary/30 text-brand-accent border border-brand-primary/30 hover:border-brand-primary/50 transition-all duration-300"
+                      size="sm"
+                      variant="outline"
+                    >
+                      <Eye className="w-4 h-4 mr-2" />
+                      View Preview
+                    </Button>
+                  </Link>
+                  <Button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      downloadWorkflow(workflow);
+                    }}
+                    className={locked ? 
+                      "gradient-primary hover:shadow-lg transition-all duration-300 relative" : 
+                      "gradient-primary hover:shadow-lg transition-all duration-300"
+                    }
+                    size="sm"
+                  >
+                    {locked ? <Lock className="w-4 h-4" /> : <Download className="w-4 h-4" />}
+                  </Button>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {filteredWorkflows.length === 0 && !loading && (
@@ -889,7 +964,20 @@ const Workflows = () => {
       <LimitReachedDialog
         open={showLimitReached}
         onClose={() => setShowLimitReached(false)}
-        downloadsUsed={10}
+        downloadsUsed={downloadsUsed}
+        accessTier={userAccessTier}
+      />
+
+      <UpgradeDialog
+        open={showUpgradeDialog}
+        onClose={() => {
+          setShowUpgradeDialog(false);
+          setPendingWorkflow(null);
+        }}
+        workflowName={pendingWorkflow?.name || ''}
+        requiredTier={pendingWorkflow ? getRequiredTierForComplexity(getEnhancedComplexity(pendingWorkflow.node_count)) || 'gold' : 'gold'}
+        currentTier={userAccessTier}
+        workflowComplexity={pendingWorkflow ? getGranularComplexityLabel(pendingWorkflow.node_count) : ''}
       />
     </div>
   );
