@@ -73,7 +73,10 @@ export type Database = {
       }
       leads: {
         Row: {
+          access_tier: string | null
           automation_challenge: string | null
+          can_access_enterprise: boolean | null
+          can_access_expert: boolean | null
           company_name: string | null
           company_size: string | null
           created_at: string | null
@@ -91,7 +94,10 @@ export type Database = {
           verification_token: string | null
         }
         Insert: {
+          access_tier?: string | null
           automation_challenge?: string | null
+          can_access_enterprise?: boolean | null
+          can_access_expert?: boolean | null
           company_name?: string | null
           company_size?: string | null
           created_at?: string | null
@@ -109,7 +115,10 @@ export type Database = {
           verification_token?: string | null
         }
         Update: {
+          access_tier?: string | null
           automation_challenge?: string | null
+          can_access_enterprise?: boolean | null
+          can_access_expert?: boolean | null
           company_name?: string | null
           company_size?: string | null
           created_at?: string | null
@@ -497,6 +506,9 @@ export type Database = {
       check_download_eligibility: {
         Args: { p_email?: string; p_ip_address?: unknown }
         Returns: {
+          access_tier: string
+          can_access_enterprise: boolean
+          can_access_expert: boolean
           can_download: boolean
           downloads_remaining: number
           downloads_used: number
