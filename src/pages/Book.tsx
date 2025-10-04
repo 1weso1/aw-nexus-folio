@@ -86,7 +86,7 @@ const Book = () => {
     try {
       const timeString = format(new Date(selectedTime), 'MMMM d, yyyy h:mm a');
       
-      // First, create the Calendly booking
+      // First, create the Calendly scheduling link
       const { data: calendlyData, error: calendlyError } = await supabase.functions.invoke('create-calendly-booking', {
         body: {
           event_type_uri: eventTypeUri,
@@ -102,9 +102,9 @@ const Book = () => {
         throw new Error(calendlyData?.error || calendlyError?.message || "Failed to create Calendly booking");
       }
 
-      console.log("Calendly booking created:", calendlyData);
+      console.log("Calendly scheduling link created:", calendlyData);
 
-      // Then store in our database
+      // Store in our database
       const { error: dbError } = await supabase
         .from("booking_requests")
         .insert([{
@@ -113,10 +113,15 @@ const Book = () => {
         }]);
 
       if (dbError) {
-        console.error("DB insert error (booking already created in Calendly):", dbError);
+        console.error("DB insert error:", dbError);
       }
 
-      toast.success("Call booked successfully! You'll receive a calendar invite and confirmation email shortly.");
+      // Redirect to Calendly to complete the booking
+      toast.success("Redirecting to complete your booking...");
+      setTimeout(() => {
+        window.open(calendlyData.booking_url, '_blank');
+      }, 1000);
+      
       setFormData({
         name: "",
         email: "",

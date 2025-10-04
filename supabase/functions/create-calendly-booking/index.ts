@@ -27,46 +27,57 @@ const handler = async (req: Request): Promise<Response> => {
 
     const { event_type_uri, start_time, invitee_name, invitee_email, invitee_phone, notes }: BookingRequest = await req.json();
 
-    console.log("Creating Calendly booking for:", invitee_email, "at", start_time);
+    console.log("Creating Calendly scheduling link for:", invitee_email, "at", start_time);
 
     const calendlyHeaders = {
       "Authorization": `Bearer ${CALENDLY_API_KEY}`,
       "Content-Type": "application/json",
     };
 
-    // Create the booking payload for Calendly API v2
-    const bookingPayload = {
-      event_type: event_type_uri,
-      start_time: start_time,
-      invitee: {
-        name: invitee_name,
-        email: invitee_email,
-        ...(invitee_phone && { phone_number: invitee_phone }),
-      },
-      ...(notes && { questions_and_answers: [{ question: "What would you like to discuss?", answer: notes }] }),
+    // Create a single-use scheduling link with pre-filled information
+    const schedulingPayload = {
+      max_event_count: 1,
+      owner: event_type_uri,
+      owner_type: "EventType",
     };
 
-    // Create the scheduled event using Calendly API
-    const bookingResponse = await fetch("https://api.calendly.com/scheduled_events", {
+    // Create the scheduling link
+    const schedulingResponse = await fetch("https://api.calendly.com/scheduling_links", {
       method: "POST",
       headers: calendlyHeaders,
-      body: JSON.stringify(bookingPayload),
+      body: JSON.stringify(schedulingPayload),
     });
 
-    if (!bookingResponse.ok) {
-      const errorText = await bookingResponse.text();
-      console.error("Calendly booking error:", errorText);
-      throw new Error(`Failed to create Calendly booking: ${bookingResponse.statusText} - ${errorText}`);
+    if (!schedulingResponse.ok) {
+      const errorText = await schedulingResponse.text();
+      console.error("Calendly scheduling link error:", errorText);
+      throw new Error(`Failed to create Calendly scheduling link: ${schedulingResponse.statusText} - ${errorText}`);
     }
 
-    const bookingData = await bookingResponse.json();
-    console.log("Successfully created Calendly booking:", bookingData.resource?.uri);
+    const schedulingData = await schedulingResponse.json();
+    const bookingUrl = schedulingData.resource?.booking_url;
+    
+    if (!bookingUrl) {
+      throw new Error("No booking URL returned from Calendly");
+    }
+
+    // Add pre-fill parameters to the URL
+    const urlParams = new URLSearchParams({
+      name: invitee_name,
+      email: invitee_email,
+      ...(invitee_phone && { a1: invitee_phone }),
+      ...(notes && { a2: notes }),
+    });
+
+    const prefilledUrl = `${bookingUrl}?${urlParams.toString()}`;
+    
+    console.log("Successfully created Calendly scheduling link");
 
     return new Response(
       JSON.stringify({ 
         success: true, 
-        booking: bookingData.resource,
-        message: "Booking created successfully in Calendly"
+        booking_url: prefilledUrl,
+        message: "Scheduling link created successfully"
       }),
       {
         status: 200,
