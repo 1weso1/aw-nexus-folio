@@ -32,7 +32,14 @@ export default function VerifyEmail() {
           .eq("verification_token", token)
           .maybeSingle();
 
-        if (findError || !lead) {
+        if (findError) {
+          console.error("Error finding lead:", findError);
+          setStatus("error");
+          setMessage("Error verifying your email. Please try again or request a new verification link.");
+          return;
+        }
+
+        if (!lead) {
           setStatus("error");
           setMessage("Verification link is invalid or has expired.");
           return;

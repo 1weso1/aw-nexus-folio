@@ -36,7 +36,7 @@ export function VerificationReminderDialog({
       if (leadError) throw leadError;
 
       // Resend verification email
-      const { error: emailError } = await supabase.functions.invoke("send-lead-verification", {
+      const { data, error: invokeError } = await supabase.functions.invoke("send-lead-verification", {
         body: {
           email,
           full_name: lead.full_name,
@@ -45,7 +45,15 @@ export function VerificationReminderDialog({
         },
       });
 
-      if (emailError) throw emailError;
+      if (invokeError) {
+        console.error("Invoke error:", invokeError);
+        throw invokeError;
+      }
+
+      if (data && !data.success) {
+        console.error("Function returned error:", data.error);
+        throw new Error(data.error || "Failed to send verification email");
+      }
 
       toast({
         title: "Email sent!",
@@ -66,10 +74,8 @@ export function VerificationReminderDialog({
   const handleChangeEmail = () => {
     localStorage.removeItem("lead_email");
     onClose();
-    toast({
-      title: "Email cleared",
-      description: "You can now enter a new email address.",
-    });
+    // The user will now be prompted to enter their email again on next download
+    window.location.reload();
   };
 
   return (
