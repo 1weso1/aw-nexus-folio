@@ -66,12 +66,10 @@ const handler = async (req: Request): Promise<Response> => {
     const eventType = eventTypesData.collection[0];
     const eventTypeUri = eventType.uri;
 
-    // Step 3: Get available times for next 7 days (Calendly max)
+    // Step 3: Get available times for next 14 days
     const startDate = new Date();
-    // Add 1 hour to ensure we're in the future
-    startDate.setHours(startDate.getHours() + 1);
-    const endDate = new Date(startDate);
-    endDate.setDate(endDate.getDate() + 7);
+    const endDate = new Date();
+    endDate.setDate(endDate.getDate() + 14);
 
     const startTime = startDate.toISOString();
     const endTime = endDate.toISOString();
