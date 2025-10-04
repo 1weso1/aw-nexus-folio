@@ -171,7 +171,7 @@ serve(async (req) => {
 
     const { data, error } = await resend.emails.send({
       from: 'Ahmed Wesam Portfolio <onboarding@resend.dev>',
-      to: ['contact@ahmedwesam.com'],
+      to: ['ahmedwesam1138@gmail.com'], // Using verified email for Resend testing mode
       replyTo: payload.email,
       subject: `📅 New Call Booking Request from ${payload.name}`,
       html: htmlContent,
