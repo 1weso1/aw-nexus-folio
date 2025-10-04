@@ -190,7 +190,7 @@ export function LeadCaptureDialog({ open, onClose, workflowId, workflowName, onS
                   value={formData.full_name || ""}
                   onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
                   placeholder="John Doe"
-                  className="bg-surface-secondary border-surface-tertiary text-text-primary"
+                  className="bg-surface-secondary border-surface-tertiary text-white placeholder:text-text-secondary focus:text-white"
                 />
               </div>
 
@@ -205,7 +205,7 @@ export function LeadCaptureDialog({ open, onClose, workflowId, workflowName, onS
                   value={formData.email || ""}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   placeholder="john@company.com"
-                  className="bg-surface-secondary border-surface-tertiary text-text-primary"
+                  className="bg-surface-secondary border-surface-tertiary text-white placeholder:text-text-secondary focus:text-white"
                 />
               </div>
 
@@ -266,7 +266,7 @@ export function LeadCaptureDialog({ open, onClose, workflowId, workflowName, onS
                   value={formData.company_name || ""}
                   onChange={(e) => setFormData({ ...formData, company_name: e.target.value })}
                   placeholder="Acme Inc. or 'Not applicable'"
-                  className="bg-surface-secondary border-surface-tertiary text-text-primary"
+                  className="bg-surface-secondary border-surface-tertiary text-white placeholder:text-text-secondary focus:text-white"
                 />
               </div>
 
@@ -302,7 +302,7 @@ export function LeadCaptureDialog({ open, onClose, workflowId, workflowName, onS
                   value={formData.automation_challenge || ""}
                   onChange={(e) => setFormData({ ...formData, automation_challenge: e.target.value })}
                   placeholder="Tell us about the workflows or tasks you'd like to automate..."
-                  className="bg-surface-secondary border-surface-tertiary text-text-primary min-h-[100px]"
+                  className="bg-surface-secondary border-surface-tertiary text-white placeholder:text-text-secondary focus:text-white min-h-[100px]"
                 />
               </div>
 
