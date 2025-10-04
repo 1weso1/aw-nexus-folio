@@ -14,3 +14,9 @@ verify_jwt = false
 
 [functions.semantic-search]
 verify_jwt = false
+
+[functions.send-contact-notification]
+verify_jwt = false
+
+[functions.send-booking-notification]
+verify_jwt = false
