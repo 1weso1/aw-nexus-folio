@@ -20,3 +20,6 @@ verify_jwt = false
 
 [functions.send-booking-notification]
 verify_jwt = false
+
+[functions.get-calendly-availability]
+verify_jwt = false

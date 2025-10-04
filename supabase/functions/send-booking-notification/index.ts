@@ -11,6 +11,7 @@ const corsHeaders = {
 interface BookingNotification {
   name: string;
   email: string;
+  phone?: string;
   window_text: string;
   notes?: string;
   created_at: string;
@@ -122,6 +123,17 @@ serve(async (req) => {
                 </a>
               </div>
             </div>
+            
+            ${payload.phone ? `
+            <div class="field">
+              <div class="label">Phone:</div>
+              <div class="value">
+                <a href="tel:${payload.phone}" style="color: #00C8FF; text-decoration: none;">
+                  ${payload.phone}
+                </a>
+              </div>
+            </div>
+            ` : ''}
             
             <div class="field">
               <div class="label">Preferred Time Window:</div>
