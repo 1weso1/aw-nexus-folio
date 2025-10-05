@@ -55,23 +55,50 @@ serve(async (req) => {
       // Batch processing: Get all workflows that need SEO
       console.log('Starting batch processing...');
       
-      // Get all existing SEO workflow IDs
-      const { data: existingSEO } = await supabase
-        .from('workflow_seo_metadata')
-        .select('workflow_id');
+      // Get all existing SEO workflow IDs (with proper pagination)
+      let existingIds = new Set();
+      let seoOffset = 0;
+      const seoPageSize = 1000;
       
-      const existingIds = new Set(existingSEO?.map(s => s.workflow_id) || []);
+      while (true) {
+        const { data: seoPage } = await supabase
+          .from('workflow_seo_metadata')
+          .select('workflow_id')
+          .range(seoOffset, seoOffset + seoPageSize - 1);
+        
+        if (!seoPage || seoPage.length === 0) break;
+        
+        seoPage.forEach(s => existingIds.add(s.workflow_id));
+        
+        if (seoPage.length < seoPageSize) break;
+        seoOffset += seoPageSize;
+      }
+      
       console.log(`Found ${existingIds.size} workflows with existing SEO`);
       
-      // Get all workflow IDs
-      const { data: allWorkflows } = await supabase
-        .from('workflows')
-        .select('id, name');
+      // Get all workflow IDs (with proper pagination)
+      let allWorkflowIds = [];
+      let workflowOffset = 0;
+      const workflowPageSize = 1000;
       
-      console.log(`Total workflows in database: ${allWorkflows?.length || 0}`);
+      while (true) {
+        const { data: workflowPage } = await supabase
+          .from('workflows')
+          .select('id, name')
+          .range(workflowOffset, workflowOffset + workflowPageSize - 1);
+        
+        if (!workflowPage || workflowPage.length === 0) break;
+        
+        allWorkflowIds = [...allWorkflowIds, ...workflowPage];
+        
+        if (workflowPage.length < workflowPageSize) break;
+        workflowOffset += workflowPageSize;
+      }
+      
+      console.log(`Total workflows in database: ${allWorkflowIds.length}`);
       
       // Filter to workflows without SEO
-      const workflowsNeedingSEO = allWorkflows?.filter(w => !existingIds.has(w.id)) || [];
+      const workflowsNeedingSEO = allWorkflowIds.filter(w => !existingIds.has(w.id));
       totalWorkflowsNeedingSEO = workflowsNeedingSEO.length;
       
       console.log(`Workflows needing SEO: ${totalWorkflowsNeedingSEO}`);
