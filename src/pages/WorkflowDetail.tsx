@@ -195,7 +195,7 @@ const WorkflowDetail = () => {
         <div className="container mx-auto px-4">
           <Button
             variant="ghost" 
-            onClick={() => navigate('/workflows')}
+            onClick={() => navigate(-1)}
             className="mb-8 text-text-mid hover:text-text-high"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
@@ -217,7 +217,7 @@ const WorkflowDetail = () => {
         <div className="flex items-center justify-between mb-8">
           <Button
             variant="ghost" 
-            onClick={() => navigate('/workflows')}
+            onClick={() => navigate(-1)}
             className="text-text-mid hover:text-text-high"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
