@@ -52,30 +52,29 @@ serve(async (req) => {
       }];
     } else {
       // Batch: find workflows without SEO metadata
-      // First get all workflow IDs that already have SEO
+      // Get all workflow IDs that already have SEO (as a Set for fast lookup)
       const { data: existingSEO } = await supabase
         .from('workflow_seo_metadata')
         .select('workflow_id');
       
-      const existingIds = existingSEO?.map(s => s.workflow_id) || [];
+      const existingIdsSet = new Set(existingSEO?.map(s => s.workflow_id) || []);
       
-      // Fetch workflows that don't have SEO
-      let query = supabase
+      // Fetch all workflows (we'll filter in memory to avoid URL length limits)
+      const { data: allWorkflows, error } = await supabase
         .from('workflows')
-        .select('*')
-        .range(offset, offset + batchSize - 1);
-      
-      if (existingIds.length > 0) {
-        query = query.not('id', 'in', `(${existingIds.join(',')})`);
-      }
-      
-      const { data: workflowData, error } = await query;
+        .select('*');
 
       if (error) throw error;
       
+      // Filter out workflows that already have SEO metadata
+      const workflowsNeedingSEO = allWorkflows?.filter(w => !existingIdsSet.has(w.id)) || [];
+      
+      // Apply pagination in memory
+      const paginatedWorkflows = workflowsNeedingSEO.slice(offset, offset + batchSize);
+      
       // Fetch descriptions for these workflows
-      if (workflowData && workflowData.length > 0) {
-        const workflowIds = workflowData.map(w => w.id);
+      if (paginatedWorkflows.length > 0) {
+        const workflowIds = paginatedWorkflows.map(w => w.id);
         const { data: descriptions } = await supabase
           .from('workflow_descriptions')
           .select('*')
@@ -83,7 +82,7 @@ serve(async (req) => {
         
         const descMap = new Map(descriptions?.map(d => [d.workflow_id, d]) || []);
         
-        workflows = workflowData.map(w => {
+        workflows = paginatedWorkflows.map(w => {
           const desc = descMap.get(w.id);
           return {
             ...w,
