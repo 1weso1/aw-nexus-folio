@@ -4,11 +4,15 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { ArrowLeft, Download, ExternalLink } from "lucide-react";
+import { ArrowLeft, Download, ExternalLink, Lock } from "lucide-react";
 import { toast } from "sonner";
 import N8nPreview from "@/components/N8nPreview";
 import { supabase } from "@/integrations/supabase/client";
 import ReactMarkdown from "react-markdown";
+import { LeadCaptureDialog } from "@/components/LeadCaptureDialog";
+import { VerificationReminderDialog } from "@/components/VerificationReminderDialog";
+import { LimitReachedDialog } from "@/components/LimitReachedDialog";
+import { UpgradeDialog } from "@/components/UpgradeDialog";
 
 // Remove old n8n-demo declarations as we're using React Flow now
 
@@ -50,8 +54,49 @@ const WorkflowDetail = () => {
   const [loading, setLoading] = useState(true);
   const [dataLoading, setDataLoading] = useState(false);
   const [previewError, setPreviewError] = useState<string | null>(null);
+  
+  // Download and tier management state
+  const [showLeadCaptureDialog, setShowLeadCaptureDialog] = useState(false);
+  const [showVerificationReminder, setShowVerificationReminder] = useState(false);
+  const [showLimitReached, setShowLimitReached] = useState(false);
+  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
+  const [downloadsRemaining, setDownloadsRemaining] = useState(10);
+  const [downloadsUsed, setDownloadsUsed] = useState(0);
+  const [downloadLimit, setDownloadLimit] = useState(10);
+  const [userAccessTier, setUserAccessTier] = useState<'free' | 'gold' | 'platinum'>('free');
+  const [canAccessExpert, setCanAccessExpert] = useState(false);
+  const [canAccessEnterprise, setCanAccessEnterprise] = useState(false);
 
-  // Remove old n8n-demo component loading logic
+  // Check download status on mount
+  const checkDownloadStatus = async () => {
+    const storedEmail = localStorage.getItem('lead_email');
+    if (!storedEmail) return;
+
+    try {
+      const ipResponse = await fetch('https://api.ipify.org?format=json');
+      const { ip } = await ipResponse.json();
+
+      const { data: eligibilityData, error } = await supabase.rpc(
+        'check_download_eligibility',
+        {
+          p_email: storedEmail,
+          p_ip_address: ip || null,
+        }
+      );
+
+      if (!error && eligibilityData && eligibilityData[0]) {
+        const eligibility = eligibilityData[0];
+        setDownloadsRemaining(eligibility.downloads_remaining);
+        setDownloadsUsed(eligibility.downloads_used);
+        setDownloadLimit(eligibility.downloads_used + eligibility.downloads_remaining);
+        setUserAccessTier((eligibility.access_tier as 'free' | 'gold' | 'platinum') || 'free');
+        setCanAccessExpert(eligibility.can_access_expert || false);
+        setCanAccessEnterprise(eligibility.can_access_enterprise || false);
+      }
+    } catch (error) {
+      console.error('Error checking download status:', error);
+    }
+  };
 
   useEffect(() => {
     if (!id) return;
@@ -144,6 +189,7 @@ const WorkflowDetail = () => {
     };
 
     fetchWorkflow();
+    checkDownloadStatus();
   }, [id]);
 
   const getComplexityColor = (complexity: string, nodeCount: number) => {
@@ -172,6 +218,128 @@ const WorkflowDetail = () => {
     if (workflow.node_count === 1) return "Manual";
     if (workflow.node_count > 10) return "Complex";
     return "Simple";
+  };
+
+  const getGranularComplexity = (nodeCount: number): 'starter' | 'basic' | 'intermediate' | 'advanced' | 'expert' | 'enterprise' => {
+    if (nodeCount <= 5) return 'starter';
+    if (nodeCount <= 15) return 'basic';
+    if (nodeCount <= 30) return 'intermediate';
+    if (nodeCount <= 50) return 'advanced';
+    if (nodeCount <= 70) return 'expert';
+    return 'enterprise';
+  };
+
+  const canDownloadWorkflow = (complexity: string): boolean => {
+    if (complexity === 'expert') return canAccessExpert;
+    if (complexity === 'enterprise') return canAccessEnterprise;
+    return true;
+  };
+
+  const isWorkflowLocked = (complexity: string): boolean => {
+    return !canDownloadWorkflow(complexity);
+  };
+
+  const getRequiredTierForComplexity = (complexity: string): 'gold' | 'platinum' | null => {
+    if (complexity === 'expert') return 'gold';
+    if (complexity === 'enterprise') return 'platinum';
+    return null;
+  };
+
+  const performDownload = async (workflow: Workflow) => {
+    const response = await fetch(workflow.raw_url);
+    if (!response.ok) throw new Error('Failed to fetch workflow');
+    
+    const workflowData = await response.json();
+    const blob = new Blob([JSON.stringify(workflowData, null, 2)], { 
+      type: 'application/json' 
+    });
+    
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${workflow.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    toast.success(`Downloaded ${workflow.name}`);
+  };
+
+  const downloadWorkflow = async () => {
+    if (!workflow) return;
+
+    try {
+      const storedEmail = localStorage.getItem('lead_email');
+      const hasDownloaded = localStorage.getItem('has_downloaded');
+      
+      const enhancedComplexity = getGranularComplexity(workflow.node_count);
+      if (!canDownloadWorkflow(enhancedComplexity)) {
+        setShowUpgradeDialog(true);
+        return;
+      }
+      
+      if (hasDownloaded === 'true' && storedEmail) {
+        const { data: eligibilityData, error: eligibilityError } = await supabase.rpc(
+          'check_download_eligibility',
+          {
+            p_email: storedEmail,
+            p_ip_address: null,
+          }
+        );
+
+        if (eligibilityError) throw eligibilityError;
+
+        const eligibility = eligibilityData[0];
+        
+        if (eligibility.requires_verification) {
+          setShowVerificationReminder(true);
+          return;
+        }
+        
+        if (!eligibility.can_download) {
+          setShowLimitReached(true);
+          return;
+        }
+        
+        await performDownload(workflow);
+        
+        const { error: downloadError } = await supabase.from('workflow_downloads').insert({
+          lead_email: storedEmail,
+          workflow_id: workflow.id,
+          user_agent: navigator.userAgent,
+        } as any);
+
+        if (downloadError) console.error('Error tracking download:', downloadError);
+
+        const { data: incrementData, error: incrementError } = await supabase.functions.invoke(
+          'increment-download-count',
+          {
+            body: { email: storedEmail }
+          }
+        );
+
+        if (incrementError) {
+          console.error('Error incrementing download count:', incrementError);
+        } else if (incrementData) {
+          console.log('Download count incremented:', incrementData);
+        }
+        
+        setDownloadsRemaining(eligibility.downloads_remaining - 1);
+        setDownloadsUsed(eligibility.downloads_used + 1);
+        return;
+      }
+      
+      if (!storedEmail) {
+        await performDownload(workflow);
+        localStorage.setItem('has_downloaded', 'true');
+        setShowLeadCaptureDialog(true);
+        return;
+      }
+    } catch (error) {
+      console.error('Error downloading workflow:', error);
+      toast.error("Failed to download workflow");
+    }
   };
 
 
@@ -228,7 +396,7 @@ const WorkflowDetail = () => {
         {/* Workflow Info */}
         <Card className="glass border-brand-primary/20 p-6 mb-8">
           <div className="flex items-start justify-between mb-4">
-            <div>
+            <div className="flex-1">
               <h1 className="text-3xl font-bold text-text-high mb-2">{workflow.name}</h1>
               <div className="flex items-center gap-3 text-sm text-text-mid">
                 <span>ID: {workflow.id}</span>
@@ -237,10 +405,39 @@ const WorkflowDetail = () => {
               </div>
             </div>
             
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               <Badge variant={workflow.has_credentials ? "destructive" : "default"}>
                 {workflow.has_credentials ? "Has Credentials" : "No Credentials"}
               </Badge>
+              
+              {(() => {
+                const enhancedComplexity = getGranularComplexity(workflow.node_count);
+                const locked = isWorkflowLocked(enhancedComplexity);
+                const requiredTier = getRequiredTierForComplexity(enhancedComplexity);
+                
+                return (
+                  <Button
+                    onClick={downloadWorkflow}
+                    className={locked ? 
+                      "gradient-primary hover:shadow-lg transition-all duration-300" : 
+                      "gradient-primary hover:shadow-lg transition-all duration-300"
+                    }
+                    size="default"
+                  >
+                    {locked ? (
+                      <>
+                        <Lock className="w-4 h-4 mr-2" />
+                        {requiredTier === 'gold' ? '👑 Gold' : '💎 Platinum'} Required
+                      </>
+                    ) : (
+                      <>
+                        <Download className="w-4 h-4 mr-2" />
+                        Download
+                      </>
+                    )}
+                  </Button>
+                );
+              })()}
             </div>
           </div>
 
@@ -387,6 +584,41 @@ const WorkflowDetail = () => {
           </div>
         </Card>
       </div>
+
+      {/* Download Dialogs */}
+      <LeadCaptureDialog
+        open={showLeadCaptureDialog}
+        onClose={() => setShowLeadCaptureDialog(false)}
+        workflowId={workflow?.id}
+        workflowName={workflow?.name}
+        onSuccess={() => {
+          toast.success("Check your email to verify and unlock 9 more downloads.");
+        }}
+      />
+
+      <VerificationReminderDialog
+        open={showVerificationReminder}
+        onClose={() => setShowVerificationReminder(false)}
+        email={localStorage.getItem('lead_email') || ''}
+        workflowId={workflow?.id}
+        workflowName={workflow?.name}
+      />
+
+      <LimitReachedDialog
+        open={showLimitReached}
+        onClose={() => setShowLimitReached(false)}
+        downloadsUsed={downloadsUsed}
+        accessTier={userAccessTier}
+      />
+
+      <UpgradeDialog
+        open={showUpgradeDialog}
+        onClose={() => setShowUpgradeDialog(false)}
+        workflowName={workflow?.name || ''}
+        requiredTier={workflow ? getRequiredTierForComplexity(getGranularComplexity(workflow.node_count)) || 'gold' : 'gold'}
+        currentTier={userAccessTier}
+        workflowComplexity={workflow ? getComplexityLabel(workflow.node_count) : ''}
+      />
     </div>
   );
 };
