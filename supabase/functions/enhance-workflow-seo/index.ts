@@ -28,19 +28,28 @@ serve(async (req) => {
     
     // Single workflow or batch processing
     if (workflowId || workflowSlug) {
-      const { data, error } = await supabase
+      const { data: workflow, error: wError } = await supabase
         .from('workflows')
-        .select(`
-          id, name, slug, category, complexity, node_count, has_credentials,
-          workflow_descriptions (description, use_cases, setup_guide)
-        `)
+        .select('*')
         .or(workflowId ? `id.eq.${workflowId}` : `slug.eq.${workflowSlug}`)
         .single();
 
-      if (error || !data) {
-        throw new Error(`Workflow not found: ${error?.message}`);
+      if (wError || !workflow) {
+        throw new Error(`Workflow not found: ${wError?.message}`);
       }
-      workflows = [data];
+
+      const { data: description } = await supabase
+        .from('workflow_descriptions')
+        .select('*')
+        .eq('workflow_id', workflow.id)
+        .single();
+
+      workflows = [{
+        ...workflow,
+        description: description?.description,
+        use_cases: description?.use_cases,
+        setup_guide: description?.setup_guide
+      }];
     } else {
       // Batch: find workflows without SEO metadata
       // First get all workflow IDs that already have SEO
@@ -53,20 +62,39 @@ serve(async (req) => {
       // Fetch workflows that don't have SEO
       let query = supabase
         .from('workflows')
-        .select(`
-          id, name, slug, category, complexity, node_count, has_credentials,
-          workflow_descriptions (description, use_cases, setup_guide)
-        `)
+        .select('*')
         .range(offset, offset + batchSize - 1);
       
       if (existingIds.length > 0) {
         query = query.not('id', 'in', `(${existingIds.join(',')})`);
       }
       
-      const { data, error } = await query;
+      const { data: workflowData, error } = await query;
 
       if (error) throw error;
-      workflows = data || [];
+      
+      // Fetch descriptions for these workflows
+      if (workflowData && workflowData.length > 0) {
+        const workflowIds = workflowData.map(w => w.id);
+        const { data: descriptions } = await supabase
+          .from('workflow_descriptions')
+          .select('*')
+          .in('workflow_id', workflowIds);
+        
+        const descMap = new Map(descriptions?.map(d => [d.workflow_id, d]) || []);
+        
+        workflows = workflowData.map(w => {
+          const desc = descMap.get(w.id);
+          return {
+            ...w,
+            description: desc?.description,
+            use_cases: desc?.use_cases,
+            setup_guide: desc?.setup_guide
+          };
+        });
+      } else {
+        workflows = [];
+      }
     }
 
     if (workflows.length === 0) {
@@ -90,8 +118,7 @@ serve(async (req) => {
       try {
         console.log(`Enhancing SEO for workflow: ${workflow.name}`);
 
-        const description = workflow.workflow_descriptions?.[0];
-        if (!description) {
+        if (!workflow.description) {
           console.log(`Skipping ${workflow.name}: No description found`);
           failCount++;
           continue;
@@ -107,9 +134,9 @@ Category: ${workflow.category}
 Complexity: ${workflow.complexity}
 Node Count: ${workflow.node_count}
 Has Credentials: ${workflow.has_credentials}
-Description: ${description.description}
-Use Cases: ${description.use_cases || 'N/A'}
-Setup Guide: ${description.setup_guide || 'N/A'}
+Description: ${workflow.description}
+Use Cases: ${workflow.use_cases || 'N/A'}
+Setup Guide: ${workflow.setup_guide || 'N/A'}
 
 Available Blog Posts for Internal Linking:
 ${blogList}
