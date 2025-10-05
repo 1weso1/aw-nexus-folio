@@ -13,6 +13,7 @@ import { LeadCaptureDialog } from "@/components/LeadCaptureDialog";
 import { VerificationReminderDialog } from "@/components/VerificationReminderDialog";
 import { LimitReachedDialog } from "@/components/LimitReachedDialog";
 import { UpgradeDialog } from "@/components/UpgradeDialog";
+import { SEO } from "@/components/SEO";
 
 // Remove old n8n-demo declarations as we're using React Flow now
 
@@ -45,12 +46,21 @@ interface WorkflowDescription {
   setup_guide: string | null;
 }
 
+interface WorkflowSEO {
+  seo_title: string;
+  meta_description: string;
+  keywords: string[];
+  schema_data: any;
+  faq_schema: any;
+}
+
 const WorkflowDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [workflow, setWorkflow] = useState<Workflow | null>(null);
   const [workflowData, setWorkflowData] = useState<WorkflowData | null>(null);
   const [workflowDescription, setWorkflowDescription] = useState<WorkflowDescription | null>(null);
+  const [workflowSEO, setWorkflowSEO] = useState<WorkflowSEO | null>(null);
   const [loading, setLoading] = useState(true);
   const [dataLoading, setDataLoading] = useState(false);
   const [previewError, setPreviewError] = useState<string | null>(null);
@@ -178,6 +188,17 @@ const WorkflowDetail = () => {
 
         if (descriptionData) {
           setWorkflowDescription(descriptionData);
+        }
+
+        // Fetch SEO metadata
+        const { data: seoData } = await supabase
+          .from('workflow_seo_metadata')
+          .select('seo_title, meta_description, keywords, schema_data, faq_schema')
+          .eq('workflow_id', id)
+          .maybeSingle();
+
+        if (seoData) {
+          setWorkflowSEO(seoData);
         }
       } catch (error) {
         console.error('Error:', error);
@@ -379,8 +400,19 @@ const WorkflowDetail = () => {
   }
 
   return (
-    <div className="min-h-screen pt-20 pb-16">
-      <div className="container mx-auto px-4">
+    <>
+      <SEO
+        title={workflowSEO?.seo_title || workflow?.name || "Workflow Detail"}
+        description={workflowSEO?.meta_description || workflowDescription?.description.slice(0, 160) || "View detailed workflow information"}
+        keywords={workflowSEO?.keywords || [workflow?.category || '', 'n8n', 'automation', 'workflow']}
+        url={`/workflows/${id}`}
+        structuredData={[
+          workflowSEO?.schema_data,
+          workflowSEO?.faq_schema
+        ].filter(Boolean)}
+      />
+      <div className="min-h-screen pt-20 pb-16">
+        <div className="container mx-auto px-4">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <Button
@@ -619,7 +651,8 @@ const WorkflowDetail = () => {
         currentTier={userAccessTier}
         workflowComplexity={workflow ? getComplexityLabel(workflow.node_count) : ''}
       />
-    </div>
+      </div>
+    </>
   );
 };
 
