@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { workflowId, workflowSlug, batchSize = 10, offset = 0 } = await req.json();
+    const { workflowId, workflowSlug, batchSize = 50, offset = 0 } = await req.json();
     
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
@@ -232,9 +232,6 @@ Return ONLY valid JSON.`;
           successCount++;
           results.push({ workflow_id: workflow.id, name: workflow.name, success: true });
         }
-
-        // Rate limiting: small delay between requests
-        await new Promise(resolve => setTimeout(resolve, 200));
 
       } catch (error) {
         console.error(`Error processing ${workflow.name}:`, error);

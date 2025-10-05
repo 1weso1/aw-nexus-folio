@@ -132,7 +132,7 @@ export default function SEOManagement() {
     setWorkflowProgress(0);
 
     try {
-      const batchSize = 20;
+      const batchSize = 50;
       let offset = 0;
       let hasMore = true;
       let totalProcessed = 0;
@@ -144,6 +144,7 @@ export default function SEOManagement() {
 
         if (error) {
           console.error('Batch error:', error);
+          toast.error(`Batch failed at offset ${offset}: ${error.message}`);
           break;
         }
 
@@ -152,13 +153,12 @@ export default function SEOManagement() {
         setWorkflowProgress(progress);
 
         console.log(`Batch complete: ${data.succeeded}/${data.processed} succeeded`);
-        toast.success(`Processed ${totalProcessed} workflows (${data.succeeded} succeeded)`);
 
         hasMore = data.hasMore;
         offset = data.nextOffset;
 
         if (hasMore) {
-          await new Promise(resolve => setTimeout(resolve, 1000)); // Rate limiting between batches
+          await new Promise(resolve => setTimeout(resolve, 500));
         }
       }
 
