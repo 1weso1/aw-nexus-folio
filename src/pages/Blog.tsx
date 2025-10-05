@@ -93,9 +93,9 @@ export default function Blog() {
 
         {/* Search & Filters */}
         <section className="py-8">
-          <div className="flex flex-col lg:flex-row gap-6 items-center justify-between">
+          <div className="flex flex-col gap-6">
             {/* Search */}
-            <div className="relative flex-1 max-w-md">
+            <div className="relative w-full max-w-2xl">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-text-secondary" />
               <input
                 type="text"
@@ -107,7 +107,7 @@ export default function Blog() {
             </div>
 
             {/* Tag Filters */}
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 justify-start">
               <Button
                 variant={selectedTag === null ? "neon" : "glass"}
                 size="sm"
