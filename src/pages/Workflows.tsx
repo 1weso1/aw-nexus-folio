@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -27,20 +27,24 @@ interface Workflow {
 }
 
 const Workflows = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  
   const [workflows, setWorkflows] = useState<Workflow[]>([]);
   const [filteredWorkflows, setFilteredWorkflows] = useState<Workflow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('all');
-  const [serviceFilter, setServiceFilter] = useState('all');
-  const [complexityFilter, setComplexityFilter] = useState('all');
-  const [credentialsFilter, setCredentialsFilter] = useState('all');
-  const [nodeCountFilter, setNodeCountFilter] = useState('all');
-  const [triggerTypeFilter, setTriggerTypeFilter] = useState('all');
-  const [fileSizeFilter, setFileSizeFilter] = useState('all');
-  const [currentPage, setCurrentPage] = useState(1);
+  
+  // Initialize filters from URL params
+  const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
+  const [categoryFilter, setCategoryFilter] = useState(searchParams.get('category') || 'all');
+  const [serviceFilter, setServiceFilter] = useState(searchParams.get('service') || 'all');
+  const [complexityFilter, setComplexityFilter] = useState(searchParams.get('complexity') || 'all');
+  const [credentialsFilter, setCredentialsFilter] = useState(searchParams.get('credentials') || 'all');
+  const [nodeCountFilter, setNodeCountFilter] = useState(searchParams.get('nodeCount') || 'all');
+  const [triggerTypeFilter, setTriggerTypeFilter] = useState(searchParams.get('trigger') || 'all');
+  const [fileSizeFilter, setFileSizeFilter] = useState(searchParams.get('fileSize') || 'all');
+  const [currentPage, setCurrentPage] = useState(parseInt(searchParams.get('page') || '1'));
   const itemsPerPage = 20;
-  const [useSemanticSearch, setUseSemanticSearch] = useState(false);
+  const [useSemanticSearch, setUseSemanticSearch] = useState(searchParams.get('semantic') === 'true');
   const [isSearching, setIsSearching] = useState(false);
   const [semanticResults, setSemanticResults] = useState<any[]>([]);
   
@@ -58,6 +62,25 @@ const Workflows = () => {
   const [userAccessTier, setUserAccessTier] = useState<'free' | 'gold' | 'platinum'>('free');
   const [canAccessExpert, setCanAccessExpert] = useState(false);
   const [canAccessEnterprise, setCanAccessEnterprise] = useState(false);
+
+  // Update URL params when filters change
+  useEffect(() => {
+    const params = new URLSearchParams();
+    
+    if (searchTerm) params.set('search', searchTerm);
+    if (categoryFilter !== 'all') params.set('category', categoryFilter);
+    if (serviceFilter !== 'all') params.set('service', serviceFilter);
+    if (complexityFilter !== 'all') params.set('complexity', complexityFilter);
+    if (credentialsFilter !== 'all') params.set('credentials', credentialsFilter);
+    if (nodeCountFilter !== 'all') params.set('nodeCount', nodeCountFilter);
+    if (triggerTypeFilter !== 'all') params.set('trigger', triggerTypeFilter);
+    if (fileSizeFilter !== 'all') params.set('fileSize', fileSizeFilter);
+    if (currentPage !== 1) params.set('page', currentPage.toString());
+    if (useSemanticSearch) params.set('semantic', 'true');
+    
+    setSearchParams(params, { replace: true });
+  }, [searchTerm, categoryFilter, serviceFilter, complexityFilter, credentialsFilter, 
+      nodeCountFilter, triggerTypeFilter, fileSizeFilter, currentPage, useSemanticSearch]);
 
   useEffect(() => {
     fetchWorkflows();
@@ -581,6 +604,8 @@ const Workflows = () => {
     setCredentialsFilter('all');
     setNodeCountFilter('all');
     setFileSizeFilter('all');
+    setCurrentPage(1);
+    setUseSemanticSearch(false);
   };
   
   const hasActiveFilters = searchTerm || categoryFilter !== 'all' || serviceFilter !== 'all' || 
