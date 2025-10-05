@@ -26,3 +26,12 @@ verify_jwt = false
 
 [functions.create-calendly-booking]
 verify_jwt = false
+
+[functions.send-lead-verification]
+verify_jwt = false
+
+[functions.increment-download-count]
+verify_jwt = false
+
+[functions.verify-lead-email]
+verify_jwt = false

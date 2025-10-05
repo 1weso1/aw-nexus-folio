@@ -56,16 +56,18 @@ export default function VerifyEmail() {
           return;
         }
 
-        // Mark email as verified
-        const { error: updateError } = await supabase
-          .from("leads")
-          .update({
-            email_verified: true,
-            verification_token: null, // Clear token after use
-          })
-          .eq("id", lead.id);
+        // Use edge function to securely verify email
+        const { data: verifyData, error: updateError } = await supabase.functions.invoke(
+          'verify-lead-email',
+          {
+            body: { token }
+          }
+        );
 
-        if (updateError) throw updateError;
+        if (updateError) {
+          console.error('Verification error:', updateError);
+          throw updateError;
+        }
 
         // Store email in localStorage
         localStorage.setItem("lead_email", lead.email);

@@ -348,12 +348,19 @@ const Workflows = () => {
 
         if (downloadError) console.error('Error tracking download:', downloadError);
 
-        const { error: updateError } = await supabase
-          .from('leads')
-          .update({ download_count: eligibility.downloads_used + 1 })
-          .eq('email', storedEmail);
+        // Use edge function to securely increment download count
+        const { data: incrementData, error: incrementError } = await supabase.functions.invoke(
+          'increment-download-count',
+          {
+            body: { email: storedEmail }
+          }
+        );
 
-        if (updateError) console.error('Error updating download count:', updateError);
+        if (incrementError) {
+          console.error('Error incrementing download count:', incrementError);
+        } else if (incrementData) {
+          console.log('Download count incremented:', incrementData);
+        }
         
         setDownloadsRemaining(eligibility.downloads_remaining - 1);
         setDownloadsUsed(eligibility.downloads_used + 1);
