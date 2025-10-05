@@ -43,15 +43,27 @@ serve(async (req) => {
       workflows = [data];
     } else {
       // Batch: find workflows without SEO metadata
-      const { data, error } = await supabase
+      // First get all workflow IDs that already have SEO
+      const { data: existingSEO } = await supabase
+        .from('workflow_seo_metadata')
+        .select('workflow_id');
+      
+      const existingIds = existingSEO?.map(s => s.workflow_id) || [];
+      
+      // Fetch workflows that don't have SEO
+      let query = supabase
         .from('workflows')
         .select(`
           id, name, slug, category, complexity, node_count, has_credentials,
           workflow_descriptions (description, use_cases, setup_guide)
         `)
-        .is('workflow_seo_metadata.id', null)
-        .range(offset, offset + batchSize - 1)
-        .limit(batchSize);
+        .range(offset, offset + batchSize - 1);
+      
+      if (existingIds.length > 0) {
+        query = query.not('id', 'in', `(${existingIds.join(',')})`);
+      }
+      
+      const { data, error } = await query;
 
       if (error) throw error;
       workflows = data || [];
@@ -148,7 +160,10 @@ Return ONLY valid JSON.`;
         }
 
         const aiData = await aiResponse.json();
-        const content = aiData.choices[0].message.content;
+        let content = aiData.choices[0].message.content;
+        
+        // Strip markdown code blocks if present
+        content = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
         
         let seoData;
         try {
