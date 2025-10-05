@@ -22,6 +22,7 @@ import GenerateDescriptions from "./pages/GenerateDescriptions";
 import GenerateEmbeddings from "./pages/admin/GenerateEmbeddings";
 import Leads from "./pages/admin/Leads";
 import Users from "./pages/admin/Users";
+import SEOManagement from "./pages/admin/SEOManagement";
 import VerifyEmail from "./pages/VerifyEmail";
 import NotFound from "./pages/NotFound";
 
@@ -53,6 +54,7 @@ const App = () => (
           <Route path="/admin/generate-embeddings" element={<GenerateEmbeddings />} />
           <Route path="/admin/leads" element={<Leads />} />
           <Route path="/admin/users" element={<Users />} />
+          <Route path="/admin/seo" element={<SEOManagement />} />
               <Route path="/verify-email" element={<VerifyEmail />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
