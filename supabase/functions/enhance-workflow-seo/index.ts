@@ -52,7 +52,7 @@ serve(async (req) => {
         setup_guide: description?.setup_guide
       }];
     } else {
-      // Batch: Get workflows without SEO metadata
+      // Batch: Get list of all workflow IDs that need SEO
       // First, get all workflow IDs that already have SEO
       const { data: existingSEO } = await supabase
         .from('workflow_seo_metadata')
@@ -60,47 +60,36 @@ serve(async (req) => {
       
       const existingIdsSet = new Set(existingSEO?.map(s => s.workflow_id) || []);
       
-      // Fetch all workflows and filter client-side (Supabase doesn't support NOT IN subquery easily)
-      // We need to fetch enough to get batchSize workflows without SEO
-      const fetchSize = Math.min(batchSize * 5, 500); // Fetch 5x to account for already-processed ones
-      let currentOffset = offset;
-      let collected = [];
+      // Get all workflow IDs (just IDs, not full records)
+      const { data: allWorkflowIds } = await supabase
+        .from('workflows')
+        .select('id');
       
-      // Keep fetching until we have enough workflows without SEO or run out
-      while (collected.length < batchSize && currentOffset < 10000) {
-        const { data: batch, error } = await supabase
+      // Filter to IDs that don't have SEO
+      const workflowIdsNeedingSEO = allWorkflowIds?.filter(w => !existingIdsSet.has(w.id)).map(w => w.id) || [];
+      totalNeedingSEO = workflowIdsNeedingSEO.length;
+      
+      // Paginate through the filtered IDs
+      const idsForThisBatch = workflowIdsNeedingSEO.slice(offset, offset + batchSize);
+      
+      if (idsForThisBatch.length > 0) {
+        // Fetch full workflow data for this batch of IDs
+        const { data: workflowsData, error } = await supabase
           .from('workflows')
           .select('*')
-          .range(currentOffset, currentOffset + fetchSize - 1);
+          .in('id', idsForThisBatch);
         
         if (error) throw error;
-        if (!batch || batch.length === 0) break;
         
-        // Filter to workflows without SEO
-        const needingSEO = batch.filter(w => !existingIdsSet.has(w.id));
-        collected = [...collected, ...needingSEO];
-        
-        currentOffset += fetchSize;
-        
-        // If we got a partial batch, we've reached the end
-        if (batch.length < fetchSize) break;
-      }
-      
-      // Take only what we need
-      const workflowsToProcess = collected.slice(0, batchSize);
-      totalNeedingSEO = collected.length; // Approximate
-      
-      // Fetch descriptions for these workflows
-      if (workflowsToProcess.length > 0) {
-        const workflowIds = workflowsToProcess.map(w => w.id);
+        // Fetch descriptions for these workflows
         const { data: descriptions } = await supabase
           .from('workflow_descriptions')
           .select('*')
-          .in('workflow_id', workflowIds);
+          .in('workflow_id', idsForThisBatch);
         
         const descMap = new Map(descriptions?.map(d => [d.workflow_id, d]) || []);
         
-        workflows = workflowsToProcess.map(w => {
+        workflows = workflowsData?.map(w => {
           const desc = descMap.get(w.id);
           return {
             ...w,
@@ -108,7 +97,7 @@ serve(async (req) => {
             use_cases: desc?.use_cases,
             setup_guide: desc?.setup_guide
           };
-        });
+        }) || [];
       } else {
         workflows = [];
       }
@@ -271,7 +260,7 @@ Return ONLY valid JSON.`;
     }
 
     // Determine if there are more workflows to process
-    const hasMore = totalNeedingSEO > (offset + batchSize);
+    const hasMore = (offset + batchSize) < totalNeedingSEO;
     
     return new Response(
       JSON.stringify({ 
