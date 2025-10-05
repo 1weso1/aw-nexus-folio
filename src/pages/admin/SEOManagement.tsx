@@ -6,6 +6,7 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Sparkles, FileText, Workflow, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
+import { BLOG_ARTICLES } from "@/data/blogArticles";
 
 export default function SEOManagement() {
   const [importing, setImporting] = useState(false);
@@ -368,41 +369,4 @@ export default function SEOManagement() {
   );
 }
 
-// Blog articles data (27 articles from the document)
-const BLOG_ARTICLES = [
-  {
-    slug: "beginners-guide-crm-automation",
-    title: "The Beginner's Guide to CRM Automation: From Zero to HubSpot Hero",
-    excerpt: "Many businesses in Egypt and the Gulf still rely on spreadsheets for customer management. Learn how CRM automation with HubSpot can transform your business operations.",
-    content: `In Egypt and across the Gulf, many businesses still rely on spreadsheets or manual processes to manage customer relationships. While these tools can work for a few contacts, they quickly become unmanageable as a business scales. Customer Relationship Management (CRM) platforms streamline data entry, track interactions and automate tasks. HubSpot CRM is free to start and provides a single dashboard for sales, marketing and service.
 
-## What is CRM automation?
-
-Automation in a CRM context refers to turning repetitive manual tasks – such as lead assignment, follow-up emails or updating deal stages – into workflows that run automatically. These workflows trigger based on events (e.g., a form submission), conditions (e.g., a lead's location) or schedules (e.g., a weekly email). Automations free up human time to focus on relationship building and strategy.
-
-## Why adopt a CRM?
-
-1. **Centralized data**: All contact information, deals and activities live in one place.
-2. **Consistency**: Automated workflows ensure leads receive timely follow-ups, regardless of workload or staffing.
-3. **Reporting**: Sales and marketing teams can see conversion rates, revenue forecasts and other metrics at a glance.
-4. **Customer experience**: Automations like instant confirmation emails and personalized nurture sequences help prospects feel valued.
-
-## Steps to get started
-
-1. **Define your process** – Write down how you currently acquire leads, follow up and close deals. Identify where tasks repeat.
-2. **Choose a CRM** – HubSpot is popular because it's free for basic usage and scales into paid plans. Other options include Zoho CRM and Odoo.
-3. **Create workflows** – Use built-in automation tools such as HubSpot's Workflows or n8n (an open-source automation tool) to build the sequences.
-4. **Integrate forms** – Connect website forms (e.g., on WordPress or Webflow) to your CRM to automatically create contacts.
-5. **Test and adjust** – Start small by automating one process (like sending a welcome email after a form submission). Measure results and adjust triggers and conditions.
-6. **Train your team** – Ensure staff understand the CRM's pipeline stages and who owns each part of the workflow.
-
-## Conclusion
-
-CRM automation isn't just for large enterprises. Small businesses and startups in Cairo, Riyadh or Dubai can level up customer management with the right combination of tools. By starting with a clear process and iterating on simple workflows, you can turn your CRM into a growth engine while maintaining a personal touch.`,
-    category: "CRM Automation",
-    tags: ["CRM", "HubSpot", "Automation", "Business"],
-    is_featured: true,
-    read_time: 8,
-  },
-  // Continue with remaining 26 articles... (truncated for brevity in this response)
-];
