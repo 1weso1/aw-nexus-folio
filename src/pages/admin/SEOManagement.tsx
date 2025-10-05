@@ -132,7 +132,7 @@ export default function SEOManagement() {
     setWorkflowProgress(0);
 
     try {
-      const batchSize = 50;
+      const batchSize = 10; // Reduced to prevent timeouts
       let offset = 0;
       let hasMore = true;
       let totalProcessed = 0;

@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { workflowId, workflowSlug, batchSize = 50, offset = 0 } = await req.json();
+    const { workflowId, workflowSlug, batchSize = 10, offset = 0 } = await req.json();
     
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
@@ -65,12 +65,20 @@ serve(async (req) => {
         .from('workflows')
         .select('id');
       
+      console.log(`Total workflows in DB: ${allWorkflowIds?.length || 0}`);
+      console.log(`Workflows with existing SEO: ${existingSEO?.length || 0}`);
+      
       // Filter to IDs that don't have SEO
       const workflowIdsNeedingSEO = allWorkflowIds?.filter(w => !existingIdsSet.has(w.id)).map(w => w.id) || [];
       totalNeedingSEO = workflowIdsNeedingSEO.length;
       
+      console.log(`Workflows needing SEO: ${totalNeedingSEO}`);
+      console.log(`Current offset: ${offset}, batch size: ${batchSize}`);
+      
       // Paginate through the filtered IDs
       const idsForThisBatch = workflowIdsNeedingSEO.slice(offset, offset + batchSize);
+      
+      console.log(`Processing ${idsForThisBatch.length} workflows in this batch`);
       
       if (idsForThisBatch.length > 0) {
         // Fetch full workflow data for this batch of IDs
@@ -138,6 +146,7 @@ serve(async (req) => {
 
         if (!workflow.description) {
           console.log(`Skipping ${workflow.name}: No description found`);
+          results.push({ workflow_id: workflow.id, name: workflow.name, success: false, error: 'No description' });
           failCount++;
           continue;
         }
@@ -199,7 +208,9 @@ Return ONLY valid JSON.`;
         });
 
         if (!aiResponse.ok) {
-          console.error(`AI API error for ${workflow.name}:`, aiResponse.status);
+          const errorText = await aiResponse.text();
+          console.error(`AI API error for ${workflow.name}:`, aiResponse.status, errorText);
+          results.push({ workflow_id: workflow.id, name: workflow.name, success: false, error: `AI API error: ${aiResponse.status}` });
           failCount++;
           continue;
         }
