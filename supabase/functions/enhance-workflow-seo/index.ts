@@ -25,6 +25,7 @@ serve(async (req) => {
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
     let workflows = [];
+    let workflowsNeedingSEO = [];
     
     // Single workflow or batch processing
     if (workflowId || workflowSlug) {
@@ -67,7 +68,7 @@ serve(async (req) => {
       if (error) throw error;
       
       // Filter out workflows that already have SEO metadata
-      const workflowsNeedingSEO = allWorkflows?.filter(w => !existingIdsSet.has(w.id)) || [];
+      workflowsNeedingSEO = allWorkflows?.filter(w => !existingIdsSet.has(w.id)) || [];
       
       // Apply pagination in memory
       const paginatedWorkflows = workflowsNeedingSEO.slice(offset, offset + batchSize);
@@ -96,9 +97,21 @@ serve(async (req) => {
       }
     }
 
+    // Track how many workflows we checked vs processed
+    const workflowsChecked = workflows.length;
+    
     if (workflows.length === 0) {
       return new Response(
-        JSON.stringify({ success: true, processed: 0, message: 'No workflows to process' }),
+        JSON.stringify({ 
+          success: true, 
+          processed: 0, 
+          succeeded: 0,
+          failed: 0,
+          results: [],
+          nextOffset: offset + batchSize,
+          hasMore: false,
+          message: 'No workflows to process' 
+        }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -240,15 +253,21 @@ Return ONLY valid JSON.`;
       }
     }
 
+    // Determine if there are more workflows to process
+    // We have more if we found a full batch of workflows needing SEO
+    const totalWorkflowsNeedingSEO = workflowsNeedingSEO?.length || 0;
+    const hasMore = offset + batchSize < totalWorkflowsNeedingSEO;
+    
     return new Response(
       JSON.stringify({ 
         success: true,
-        processed: workflows.length,
+        processed: workflowsChecked,
         succeeded: successCount,
         failed: failCount,
         results,
         nextOffset: offset + batchSize,
-        hasMore: workflows.length === batchSize,
+        hasMore,
+        totalRemaining: Math.max(0, totalWorkflowsNeedingSEO - (offset + batchSize)),
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
