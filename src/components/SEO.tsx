@@ -35,8 +35,8 @@ export function SEO({
   breadcrumbs,
 }: SEOProps) {
   const fullTitle = title === "Ahmed Wesam" ? title : `${title} | Ahmed Wesam`;
-  const fullUrl = url.startsWith('http') ? url : `https://ahmedwesam.com${url}`;
-  const fullImage = image.startsWith('http') ? image : `https://ahmedwesam.com${image}`;
+  const fullUrl = url?.startsWith('http') ? url : `https://ahmedwesam.com${url}`;
+  const fullImage = image?.startsWith('http') ? image : (image ? `https://ahmedwesam.com${image}` : `https://ahmedwesam.com/lovable-uploads/d565c3d6-458e-41eb-8e16-a1ddcfbdc719.png`);
 
   // Organization Schema
   const organizationSchema = {
