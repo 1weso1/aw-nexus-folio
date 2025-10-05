@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { workflowId, workflowSlug, batchSize = 10, offset = 0 } = await req.json();
+    const { workflowId, workflowSlug, batchSize = 25, offset = 0 } = await req.json();
     
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
@@ -24,19 +24,19 @@ serve(async (req) => {
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-    let workflows = [];
-    let totalNeedingSEO = 0;
+    let workflowsToProcess = [];
+    let totalWorkflowsNeedingSEO = 0;
     
-    // Single workflow or batch processing
+    // Single workflow processing
     if (workflowId || workflowSlug) {
-      const { data: workflow, error: wError } = await supabase
+      const { data: workflow, error } = await supabase
         .from('workflows')
         .select('*')
         .or(workflowId ? `id.eq.${workflowId}` : `slug.eq.${workflowSlug}`)
         .single();
 
-      if (wError || !workflow) {
-        throw new Error(`Workflow not found: ${wError?.message}`);
+      if (error || !workflow) {
+        throw new Error(`Workflow not found: ${error?.message}`);
       }
 
       const { data: description } = await supabase
@@ -45,89 +45,82 @@ serve(async (req) => {
         .eq('workflow_id', workflow.id)
         .single();
 
-      workflows = [{
+      workflowsToProcess = [{
         ...workflow,
         description: description?.description,
         use_cases: description?.use_cases,
         setup_guide: description?.setup_guide
       }];
     } else {
-      // Batch: Get list of all workflow IDs that need SEO
-      // First, get all workflow IDs that already have SEO
+      // Batch processing: Get all workflows that need SEO
+      console.log('Starting batch processing...');
+      
+      // Get all existing SEO workflow IDs
       const { data: existingSEO } = await supabase
         .from('workflow_seo_metadata')
         .select('workflow_id');
       
-      const existingIdsSet = new Set(existingSEO?.map(s => s.workflow_id) || []);
+      const existingIds = new Set(existingSEO?.map(s => s.workflow_id) || []);
+      console.log(`Found ${existingIds.size} workflows with existing SEO`);
       
-      // Get all workflow IDs (just IDs, not full records)
-      const { data: allWorkflowIds } = await supabase
+      // Get all workflow IDs
+      const { data: allWorkflows } = await supabase
         .from('workflows')
-        .select('id');
+        .select('id, name');
       
-      console.log(`Total workflows in DB: ${allWorkflowIds?.length || 0}`);
-      console.log(`Workflows with existing SEO: ${existingSEO?.length || 0}`);
+      console.log(`Total workflows in database: ${allWorkflows?.length || 0}`);
       
-      // Filter to IDs that don't have SEO
-      const workflowIdsNeedingSEO = allWorkflowIds?.filter(w => !existingIdsSet.has(w.id)).map(w => w.id) || [];
-      totalNeedingSEO = workflowIdsNeedingSEO.length;
+      // Filter to workflows without SEO
+      const workflowsNeedingSEO = allWorkflows?.filter(w => !existingIds.has(w.id)) || [];
+      totalWorkflowsNeedingSEO = workflowsNeedingSEO.length;
       
-      console.log(`Workflows needing SEO: ${totalNeedingSEO}`);
-      console.log(`Current offset: ${offset}, batch size: ${batchSize}`);
+      console.log(`Workflows needing SEO: ${totalWorkflowsNeedingSEO}`);
+      console.log(`Offset: ${offset}, Batch size: ${batchSize}`);
       
-      // Paginate through the filtered IDs
-      const idsForThisBatch = workflowIdsNeedingSEO.slice(offset, offset + batchSize);
+      // Get the batch for this request
+      const batchIds = workflowsNeedingSEO.slice(offset, offset + batchSize).map(w => w.id);
       
-      console.log(`Processing ${idsForThisBatch.length} workflows in this batch`);
+      console.log(`Processing ${batchIds.length} workflows in this batch`);
       
-      if (idsForThisBatch.length > 0) {
-        // Fetch full workflow data for this batch of IDs
-        const { data: workflowsData, error } = await supabase
-          .from('workflows')
-          .select('*')
-          .in('id', idsForThisBatch);
-        
-        if (error) throw error;
-        
-        // Fetch descriptions for these workflows
-        const { data: descriptions } = await supabase
-          .from('workflow_descriptions')
-          .select('*')
-          .in('workflow_id', idsForThisBatch);
-        
-        const descMap = new Map(descriptions?.map(d => [d.workflow_id, d]) || []);
-        
-        workflows = workflowsData?.map(w => {
-          const desc = descMap.get(w.id);
-          return {
-            ...w,
-            description: desc?.description,
-            use_cases: desc?.use_cases,
-            setup_guide: desc?.setup_guide
-          };
-        }) || [];
-      } else {
-        workflows = [];
+      if (batchIds.length === 0) {
+        return new Response(
+          JSON.stringify({ 
+            success: true, 
+            processed: 0, 
+            succeeded: 0,
+            failed: 0,
+            results: [],
+            nextOffset: offset,
+            hasMore: false,
+            totalRemaining: 0,
+            message: 'No workflows to process - all workflows have SEO metadata' 
+          }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
       }
-    }
-
-    // Track how many workflows we checked vs processed
-    const workflowsChecked = workflows.length;
-    
-    if (workflows.length === 0) {
-      return new Response(
-        JSON.stringify({ 
-          success: true, 
-          processed: 0, 
-          succeeded: 0,
-          failed: 0,
-          results: [],
-          nextOffset: offset + batchSize,
-          hasMore: false,
-          message: 'No workflows to process' 
-        }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      
+      // Fetch full workflow data
+      const { data: workflows, error } = await supabase
+        .from('workflows')
+        .select('*')
+        .in('id', batchIds);
+      
+      if (error) throw error;
+      
+      // Fetch descriptions
+      const { data: descriptions } = await supabase
+        .from('workflow_descriptions')
+        .select('*')
+        .in('workflow_id', batchIds);
+      
+      const descMap = new Map(descriptions?.map(d => [d.workflow_id, d]) || []);
+      
+      workflowsToProcess = workflows?.map(w => ({
+        ...w,
+        description: descMap.get(w.id)?.description,
+        use_cases: descMap.get(w.id)?.use_cases,
+        setup_guide: descMap.get(w.id)?.setup_guide
+      })) || [];
     }
 
     // Fetch blog posts for internal linking
@@ -140,13 +133,19 @@ serve(async (req) => {
     let successCount = 0;
     let failCount = 0;
 
-    for (const workflow of workflows) {
+    // Process each workflow
+    for (const workflow of workflowsToProcess) {
       try {
-        console.log(`Enhancing SEO for workflow: ${workflow.name}`);
+        console.log(`Processing: ${workflow.name}`);
 
         if (!workflow.description) {
-          console.log(`Skipping ${workflow.name}: No description found`);
-          results.push({ workflow_id: workflow.id, name: workflow.name, success: false, error: 'No description' });
+          console.log(`Skipping ${workflow.name}: No description`);
+          results.push({ 
+            workflow_id: workflow.id, 
+            name: workflow.name, 
+            success: false, 
+            error: 'No description available' 
+          });
           failCount++;
           continue;
         }
@@ -203,14 +202,18 @@ Return ONLY valid JSON.`;
               { role: 'system', content: 'You are an SEO expert. Return only valid JSON.' },
               { role: 'user', content: prompt }
             ],
-            temperature: 0.7,
           }),
         });
 
         if (!aiResponse.ok) {
           const errorText = await aiResponse.text();
           console.error(`AI API error for ${workflow.name}:`, aiResponse.status, errorText);
-          results.push({ workflow_id: workflow.id, name: workflow.name, success: false, error: `AI API error: ${aiResponse.status}` });
+          results.push({ 
+            workflow_id: workflow.id, 
+            name: workflow.name, 
+            success: false, 
+            error: `AI API error: ${aiResponse.status}` 
+          });
           failCount++;
           continue;
         }
@@ -218,14 +221,20 @@ Return ONLY valid JSON.`;
         const aiData = await aiResponse.json();
         let content = aiData.choices[0].message.content;
         
-        // Strip markdown code blocks if present
+        // Clean up markdown code blocks
         content = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
         
         let seoData;
         try {
           seoData = JSON.parse(content);
         } catch (e) {
-          console.error(`JSON parse error for ${workflow.name}:`, content);
+          console.error(`JSON parse error for ${workflow.name}:`, e.message);
+          results.push({ 
+            workflow_id: workflow.id, 
+            name: workflow.name, 
+            success: false, 
+            error: 'Invalid JSON response from AI' 
+          });
           failCount++;
           continue;
         }
@@ -246,7 +255,7 @@ Return ONLY valid JSON.`;
             workflow_id: workflow.id,
             seo_title: seoData.seo_title,
             meta_description: seoData.meta_description,
-            keywords: seoData.keywords,
+            keywords: seoData.keywords || [],
             related_blog_post_ids: relatedBlogIds,
             schema_type: seoData.schema_type || 'SoftwareApplication',
             schema_data: seoData.schema_data,
@@ -256,6 +265,12 @@ Return ONLY valid JSON.`;
 
         if (upsertError) {
           console.error(`DB error for ${workflow.name}:`, upsertError);
+          results.push({ 
+            workflow_id: workflow.id, 
+            name: workflow.name, 
+            success: false, 
+            error: upsertError.message 
+          });
           failCount++;
         } else {
           console.log(`✓ SEO enhanced for: ${workflow.name}`);
@@ -265,24 +280,33 @@ Return ONLY valid JSON.`;
 
       } catch (error) {
         console.error(`Error processing ${workflow.name}:`, error);
+        results.push({ 
+          workflow_id: workflow.id, 
+          name: workflow.name, 
+          success: false, 
+          error: error.message 
+        });
         failCount++;
-        results.push({ workflow_id: workflow.id, name: workflow.name, success: false, error: error.message });
       }
     }
 
-    // Determine if there are more workflows to process
-    const hasMore = (offset + batchSize) < totalNeedingSEO;
+    // Calculate progress
+    const hasMore = (offset + batchSize) < totalWorkflowsNeedingSEO;
+    const totalRemaining = Math.max(0, totalWorkflowsNeedingSEO - (offset + batchSize));
+    
+    console.log(`Batch complete: ${successCount} succeeded, ${failCount} failed`);
+    console.log(`Has more: ${hasMore}, Remaining: ${totalRemaining}`);
     
     return new Response(
       JSON.stringify({ 
         success: true,
-        processed: workflowsChecked,
+        processed: workflowsToProcess.length,
         succeeded: successCount,
         failed: failCount,
         results,
         nextOffset: offset + batchSize,
         hasMore,
-        totalRemaining: Math.max(0, totalNeedingSEO - (offset + batchSize)),
+        totalRemaining,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
