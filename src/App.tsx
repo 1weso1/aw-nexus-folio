@@ -11,6 +11,7 @@ import About from "./pages/About";
 import Projects from "./pages/Projects";
 import Apps from "./pages/Apps";
 import Blog from "./pages/Blog";
+import BlogPost from "./pages/BlogPost";
 import Contact from "./pages/Contact";
 import Auth from "./pages/Auth";
 import ProjectDetail from "./pages/ProjectDetail";
@@ -46,6 +47,7 @@ const App = () => (
               <Route path="/workflows/:id" element={<WorkflowDetail />} />
               <Route path="/apps" element={<Apps />} />
               <Route path="/blog" element={<Blog />} />
+              <Route path="/blog/:slug" element={<BlogPost />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/book" element={<Book />} />
               <Route path="/auth" element={<Auth />} />
