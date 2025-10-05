@@ -1,5 +1,11 @@
 project_id = "ugjeubqwmgnqvohmrkyv"
 
+[functions.generate-blog-seo]
+verify_jwt = false
+
+[functions.enhance-workflow-seo]
+verify_jwt = false
+
 [functions.sync-workflows]
 verify_jwt = false
 

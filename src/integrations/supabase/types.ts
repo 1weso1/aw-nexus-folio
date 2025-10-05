@@ -14,6 +14,113 @@ export type Database = {
   }
   public: {
     Tables: {
+      blog_posts: {
+        Row: {
+          author_bio: string | null
+          author_image: string | null
+          author_name: string
+          category: string | null
+          content: string
+          created_at: string | null
+          excerpt: string
+          featured_image: string | null
+          id: string
+          is_featured: boolean | null
+          published_at: string | null
+          read_time: number | null
+          slug: string
+          tags: string[] | null
+          title: string
+          updated_at: string | null
+          view_count: number | null
+        }
+        Insert: {
+          author_bio?: string | null
+          author_image?: string | null
+          author_name?: string
+          category?: string | null
+          content: string
+          created_at?: string | null
+          excerpt: string
+          featured_image?: string | null
+          id?: string
+          is_featured?: boolean | null
+          published_at?: string | null
+          read_time?: number | null
+          slug: string
+          tags?: string[] | null
+          title: string
+          updated_at?: string | null
+          view_count?: number | null
+        }
+        Update: {
+          author_bio?: string | null
+          author_image?: string | null
+          author_name?: string
+          category?: string | null
+          content?: string
+          created_at?: string | null
+          excerpt?: string
+          featured_image?: string | null
+          id?: string
+          is_featured?: boolean | null
+          published_at?: string | null
+          read_time?: number | null
+          slug?: string
+          tags?: string[] | null
+          title?: string
+          updated_at?: string | null
+          view_count?: number | null
+        }
+        Relationships: []
+      }
+      blog_seo_metadata: {
+        Row: {
+          blog_post_id: string
+          faq_schema: Json | null
+          generated_at: string | null
+          id: string
+          internal_links: Json | null
+          keywords: string[] | null
+          meta_description: string
+          related_workflow_ids: string[] | null
+          seo_title: string
+          updated_at: string | null
+        }
+        Insert: {
+          blog_post_id: string
+          faq_schema?: Json | null
+          generated_at?: string | null
+          id?: string
+          internal_links?: Json | null
+          keywords?: string[] | null
+          meta_description: string
+          related_workflow_ids?: string[] | null
+          seo_title: string
+          updated_at?: string | null
+        }
+        Update: {
+          blog_post_id?: string
+          faq_schema?: Json | null
+          generated_at?: string | null
+          id?: string
+          internal_links?: Json | null
+          keywords?: string[] | null
+          meta_description?: string
+          related_workflow_ids?: string[] | null
+          seo_title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blog_seo_metadata_blog_post_id_fkey"
+            columns: ["blog_post_id"]
+            isOneToOne: true
+            referencedRelation: "blog_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       booking_requests: {
         Row: {
           created_at: string
@@ -400,6 +507,56 @@ export type Database = {
             foreignKeyName: "workflow_favorites_workflow_id_fkey"
             columns: ["workflow_id"]
             isOneToOne: false
+            referencedRelation: "workflows"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workflow_seo_metadata: {
+        Row: {
+          faq_schema: Json | null
+          generated_at: string | null
+          id: string
+          keywords: string[] | null
+          meta_description: string
+          related_blog_post_ids: string[] | null
+          schema_data: Json | null
+          schema_type: string | null
+          seo_title: string
+          updated_at: string | null
+          workflow_id: string
+        }
+        Insert: {
+          faq_schema?: Json | null
+          generated_at?: string | null
+          id?: string
+          keywords?: string[] | null
+          meta_description: string
+          related_blog_post_ids?: string[] | null
+          schema_data?: Json | null
+          schema_type?: string | null
+          seo_title: string
+          updated_at?: string | null
+          workflow_id: string
+        }
+        Update: {
+          faq_schema?: Json | null
+          generated_at?: string | null
+          id?: string
+          keywords?: string[] | null
+          meta_description?: string
+          related_blog_post_ids?: string[] | null
+          schema_data?: Json | null
+          schema_type?: string | null
+          seo_title?: string
+          updated_at?: string | null
+          workflow_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workflow_seo_metadata_workflow_id_fkey"
+            columns: ["workflow_id"]
+            isOneToOne: true
             referencedRelation: "workflows"
             referencedColumns: ["id"]
           },
