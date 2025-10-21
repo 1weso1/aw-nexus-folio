@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Loader2, Lock, CreditCard, Repeat } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
+import awLogo from "@/assets/aw-logo.png";
 
 const customerSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(100, "Name too long"),
@@ -118,7 +119,15 @@ export default function PaymentPage() {
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Edge function error:", error);
+        throw new Error(error.message || "Failed to create payment");
+      }
+
+      if (data?.error) {
+        console.error("Payment creation error:", data.error);
+        throw new Error(data.error);
+      }
 
       if (data?.payment_url) {
         // Redirect to Paymob payment page
@@ -126,11 +135,11 @@ export default function PaymentPage() {
       } else {
         throw new Error("No payment URL received");
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Payment error:", err);
       toast({
         title: "Payment Failed",
-        description: "Unable to process payment. Please try again.",
+        description: err.message || "Unable to process payment. Please contact support at contact@ahmedwesam.com",
         variant: "destructive",
       });
       setProcessing(false);
@@ -183,8 +192,8 @@ export default function PaymentPage() {
       <div className="max-w-2xl mx-auto space-y-6">
         {/* Header */}
         <div className="text-center">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-neon-primary to-neon-accent flex items-center justify-center">
-            <span className="text-2xl font-bold text-hero-bg">AW</span>
+          <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-white/5 backdrop-blur-sm flex items-center justify-center p-3">
+            <img src={awLogo} alt="AW Logo" className="w-full h-full object-contain" />
           </div>
           <h1 className="text-3xl font-bold text-text-primary mb-2">Payment Invoice</h1>
           <p className="text-text-secondary">Secure payment powered by Paymob Egypt</p>

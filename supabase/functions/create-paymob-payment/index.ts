@@ -167,8 +167,14 @@ Deno.serve(async (req) => {
     });
 
     if (!paymentKeyResponse.ok) {
-      console.error('Paymob payment key generation failed:', await paymentKeyResponse.text());
-      throw new Error('Failed to generate payment key');
+      const errorText = await paymentKeyResponse.text();
+      console.error('Paymob payment key generation failed:', errorText);
+      return new Response(
+        JSON.stringify({ 
+          error: `Paymob payment key failed: ${errorText}. Please verify PAYMOB_INTEGRATION_ID is correct.` 
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     const paymentKeyData: PaymobPaymentKeyResponse = await paymentKeyResponse.json();
@@ -199,7 +205,16 @@ Deno.serve(async (req) => {
     console.log('Transaction record created:', transaction.id);
 
     // Return payment URL
-    const paymentUrl = `https://accept.paymob.com/api/acceptance/iframes/${Deno.env.get('PAYMOB_IFRAME_ID') || ''}?payment_token=${paymentKeyData.token}`;
+    const iframeId = Deno.env.get('PAYMOB_IFRAME_ID');
+    if (!iframeId) {
+      console.error('PAYMOB_IFRAME_ID is not set');
+      return new Response(
+        JSON.stringify({ error: 'Payment configuration incomplete. Please contact support.' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    const paymentUrl = `https://accept.paymob.com/api/acceptance/iframes/${iframeId}?payment_token=${paymentKeyData.token}`;
 
     return new Response(
       JSON.stringify({
