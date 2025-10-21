@@ -178,6 +178,30 @@ export type Database = {
         }
         Relationships: []
       }
+      exchange_rates: {
+        Row: {
+          from_currency: string
+          id: string
+          rate: number
+          to_currency: string
+          updated_at: string
+        }
+        Insert: {
+          from_currency: string
+          id?: string
+          rate: number
+          to_currency?: string
+          updated_at?: string
+        }
+        Update: {
+          from_currency?: string
+          id?: string
+          rate?: number
+          to_currency?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       leads: {
         Row: {
           access_tier: string | null
@@ -243,6 +267,205 @@ export type Database = {
           verification_token?: string | null
         }
         Relationships: []
+      }
+      payment_links: {
+        Row: {
+          admin_user_id: string | null
+          amount: number
+          client_email: string
+          client_name: string
+          created_at: string
+          currency: string
+          current_uses: number
+          description: string
+          expires_at: string | null
+          id: string
+          link_slug: string
+          max_uses: number | null
+          metadata: Json | null
+          payment_type: Database["public"]["Enums"]["payment_type"]
+          status: Database["public"]["Enums"]["payment_link_status"]
+          updated_at: string
+        }
+        Insert: {
+          admin_user_id?: string | null
+          amount: number
+          client_email: string
+          client_name: string
+          created_at?: string
+          currency?: string
+          current_uses?: number
+          description: string
+          expires_at?: string | null
+          id?: string
+          link_slug: string
+          max_uses?: number | null
+          metadata?: Json | null
+          payment_type?: Database["public"]["Enums"]["payment_type"]
+          status?: Database["public"]["Enums"]["payment_link_status"]
+          updated_at?: string
+        }
+        Update: {
+          admin_user_id?: string | null
+          amount?: number
+          client_email?: string
+          client_name?: string
+          created_at?: string
+          currency?: string
+          current_uses?: number
+          description?: string
+          expires_at?: string | null
+          id?: string
+          link_slug?: string
+          max_uses?: number | null
+          metadata?: Json | null
+          payment_type?: Database["public"]["Enums"]["payment_type"]
+          status?: Database["public"]["Enums"]["payment_link_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_links_admin_user_id_fkey"
+            columns: ["admin_user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      payment_transactions: {
+        Row: {
+          amount: number
+          amount_in_egp: number | null
+          created_at: string
+          currency: string
+          customer_email: string
+          customer_name: string
+          customer_phone: string | null
+          error_message: string | null
+          id: string
+          paid_at: string | null
+          payment_link_id: string
+          payment_method: string | null
+          paymob_order_id: string | null
+          paymob_response: Json | null
+          paymob_transaction_id: string | null
+          status: Database["public"]["Enums"]["transaction_status"]
+        }
+        Insert: {
+          amount: number
+          amount_in_egp?: number | null
+          created_at?: string
+          currency: string
+          customer_email: string
+          customer_name: string
+          customer_phone?: string | null
+          error_message?: string | null
+          id?: string
+          paid_at?: string | null
+          payment_link_id: string
+          payment_method?: string | null
+          paymob_order_id?: string | null
+          paymob_response?: Json | null
+          paymob_transaction_id?: string | null
+          status?: Database["public"]["Enums"]["transaction_status"]
+        }
+        Update: {
+          amount?: number
+          amount_in_egp?: number | null
+          created_at?: string
+          currency?: string
+          customer_email?: string
+          customer_name?: string
+          customer_phone?: string | null
+          error_message?: string | null
+          id?: string
+          paid_at?: string | null
+          payment_link_id?: string
+          payment_method?: string | null
+          paymob_order_id?: string | null
+          paymob_response?: Json | null
+          paymob_transaction_id?: string | null
+          status?: Database["public"]["Enums"]["transaction_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_transactions_payment_link_id_fkey"
+            columns: ["payment_link_id"]
+            isOneToOne: false
+            referencedRelation: "payment_links"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      recurring_subscriptions: {
+        Row: {
+          cancellation_reason: string | null
+          cancelled_at: string | null
+          created_at: string
+          customer_email: string
+          customer_name: string
+          customer_phone: string | null
+          id: string
+          last_payment_transaction_id: string | null
+          next_payment_date: string | null
+          payment_link_id: string
+          retry_count: number
+          started_at: string
+          status: Database["public"]["Enums"]["subscription_status"]
+          total_payments_made: number
+          updated_at: string
+        }
+        Insert: {
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          created_at?: string
+          customer_email: string
+          customer_name: string
+          customer_phone?: string | null
+          id?: string
+          last_payment_transaction_id?: string | null
+          next_payment_date?: string | null
+          payment_link_id: string
+          retry_count?: number
+          started_at?: string
+          status?: Database["public"]["Enums"]["subscription_status"]
+          total_payments_made?: number
+          updated_at?: string
+        }
+        Update: {
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          created_at?: string
+          customer_email?: string
+          customer_name?: string
+          customer_phone?: string | null
+          id?: string
+          last_payment_transaction_id?: string | null
+          next_payment_date?: string | null
+          payment_link_id?: string
+          retry_count?: number
+          started_at?: string
+          status?: Database["public"]["Enums"]["subscription_status"]
+          total_payments_made?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recurring_subscriptions_last_payment_transaction_id_fkey"
+            columns: ["last_payment_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "payment_transactions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recurring_subscriptions_payment_link_id_fkey"
+            columns: ["payment_link_id"]
+            isOneToOne: false
+            referencedRelation: "payment_links"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       subscribers: {
         Row: {
@@ -839,6 +1062,10 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
+      payment_link_status: "active" | "expired" | "completed" | "cancelled"
+      payment_type: "one_time" | "monthly"
+      subscription_status: "active" | "paused" | "cancelled" | "payment_failed"
+      transaction_status: "pending" | "success" | "failed" | "refunded"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -967,6 +1194,10 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "moderator", "user"],
+      payment_link_status: ["active", "expired", "completed", "cancelled"],
+      payment_type: ["one_time", "monthly"],
+      subscription_status: ["active", "paused", "cancelled", "payment_failed"],
+      transaction_status: ["pending", "success", "failed", "refunded"],
     },
   },
 } as const
