@@ -18,12 +18,9 @@ interface PaymobAuthResponse {
   token: string;
 }
 
-interface PaymobOrderResponse {
+interface PaymobPaymentLinkResponse {
   id: number;
-}
-
-interface PaymobPaymentKeyResponse {
-  token: string;
+  url: string;
 }
 
 Deno.serve(async (req) => {
@@ -97,7 +94,7 @@ Deno.serve(async (req) => {
     console.log(`Amount: ${paymentLink.amount} ${paymentLink.currency} = ${amountInEGP} EGP (${amountCents} cents)`);
 
     // Step 1: Authenticate with Paymob
-    const authResponse = await fetch('https://accept.paymobsolutions.com/api/auth/tokens', {
+    const authResponse = await fetch('https://accept.paymob.com/api/auth/tokens', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -113,40 +110,26 @@ Deno.serve(async (req) => {
     const authData: PaymobAuthResponse = await authResponse.json();
     console.log('Paymob authentication successful');
 
-    // Step 2: Create order
-    const orderResponse = await fetch('https://accept.paymobsolutions.com/api/ecommerce/orders', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        auth_token: authData.token,
-        delivery_needed: 'false',
-        amount_cents: amountCents.toString(),
-        currency: 'EGP',
-        items: [],
-      }),
-    });
-
-    if (!orderResponse.ok) {
-      console.error('Paymob order creation failed:', await orderResponse.text());
-      throw new Error('Failed to create Paymob order');
-    }
-
-    const orderData: PaymobOrderResponse = await orderResponse.json();
-    console.log('Paymob order created:', orderData.id);
-
-    // Step 3: Generate payment key
+    // Step 2: Create Payment Link using Invoice API
     const [firstName, ...lastNameParts] = customer.name.split(' ');
     const lastName = lastNameParts.join(' ') || firstName;
 
     const integrationId = parseInt(Deno.env.get('PAYMOB_INTEGRATION_ID') || '0');
     console.log('Using integration_id:', integrationId);
 
-    const paymentKeyPayload = {
+    const paymentLinkPayload = {
       auth_token: authData.token,
+      api_source: 'INVOICE',
       amount_cents: amountCents.toString(),
-      expiration: 3600,
-      order_id: orderData.id.toString(),
-      billing_data: {
+      currency: 'EGP',
+      delivery_needed: 'false',
+      integrations: [integrationId],
+      items: [{
+        name: paymentLink.description,
+        amount_cents: amountCents.toString(),
+        quantity: 1
+      }],
+      shipping_data: {
         email: customer.email,
         first_name: firstName,
         last_name: lastName,
@@ -160,39 +143,37 @@ Deno.serve(async (req) => {
         city: 'NA',
         country: 'EG',
         state: 'NA',
-      },
-      currency: 'EGP',
-      integration_id: integrationId,
+      }
     };
 
-    console.log('Payment key request:', JSON.stringify(paymentKeyPayload, null, 2));
+    console.log('Payment link request:', JSON.stringify(paymentLinkPayload, null, 2));
 
-    const paymentKeyResponse = await fetch('https://accept.paymobsolutions.com/api/acceptance/payment_keys', {
+    const paymentLinkResponse = await fetch('https://accept.paymob.com/api/ecommerce/orders', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(paymentKeyPayload),
+      body: JSON.stringify(paymentLinkPayload),
     });
 
-    if (!paymentKeyResponse.ok) {
-      const errorText = await paymentKeyResponse.text();
-      console.error('Paymob payment key generation failed:', errorText);
+    if (!paymentLinkResponse.ok) {
+      const errorText = await paymentLinkResponse.text();
+      console.error('Paymob payment link creation failed:', errorText);
       return new Response(
         JSON.stringify({ 
-          error: `Paymob payment key failed: ${errorText}. Please verify PAYMOB_INTEGRATION_ID is correct.` 
+          error: `Paymob payment link failed: ${errorText}` 
         }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const paymentKeyData: PaymobPaymentKeyResponse = await paymentKeyResponse.json();
-    console.log('Payment key generated successfully');
+    const paymentLinkData = await paymentLinkResponse.json();
+    console.log('Payment link created:', paymentLinkData.id, paymentLinkData.url);
 
-    // Step 4: Create transaction record
+    // Step 3: Create transaction record
     const { data: transaction, error: txError } = await supabaseClient
       .from('payment_transactions')
       .insert({
         payment_link_id: paymentLink.id,
-        paymob_order_id: orderData.id.toString(),
+        paymob_order_id: paymentLinkData.id.toString(),
         amount: paymentLink.amount,
         currency: paymentLink.currency,
         amount_in_egp: amountInEGP,
@@ -211,14 +192,11 @@ Deno.serve(async (req) => {
 
     console.log('Transaction record created:', transaction.id);
 
-    // Use Paymob's direct payment URL (works without iframe ID)
-    const paymentUrl = `https://accept.paymobsolutions.com/api/acceptance/post_pay?token=${paymentKeyData.token}`;
-
     return new Response(
       JSON.stringify({
-        payment_url: paymentUrl,
+        payment_url: paymentLinkData.url,
         transaction_id: transaction.id,
-        order_id: orderData.id,
+        order_id: paymentLinkData.id,
       }),
       {
         status: 200,
