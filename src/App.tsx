@@ -24,7 +24,11 @@ import GenerateEmbeddings from "./pages/admin/GenerateEmbeddings";
 import Leads from "./pages/admin/Leads";
 import Users from "./pages/admin/Users";
 import SEOManagement from "./pages/admin/SEOManagement";
+import PaymentLinks from "./pages/admin/PaymentLinks";
 import VerifyEmail from "./pages/VerifyEmail";
+import PaymentPage from "./pages/PaymentPage";
+import PaymentSuccess from "./pages/PaymentSuccess";
+import PaymentFailed from "./pages/PaymentFailed";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -57,7 +61,11 @@ const App = () => (
           <Route path="/admin/leads" element={<Leads />} />
           <Route path="/admin/users" element={<Users />} />
           <Route path="/admin/seo" element={<SEOManagement />} />
+          <Route path="/admin/payment-links" element={<PaymentLinks />} />
               <Route path="/verify-email" element={<VerifyEmail />} />
+              <Route path="/pay/:slug" element={<PaymentPage />} />
+              <Route path="/pay/:slug/success" element={<PaymentSuccess />} />
+              <Route path="/pay/:slug/failed" element={<PaymentFailed />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

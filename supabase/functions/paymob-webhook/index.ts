@@ -1,5 +1,9 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { createHmac } from 'https://deno.land/std@0.177.0/node/crypto.ts';
+import React from 'npm:react@18.3.1';
+import { renderAsync } from 'npm:@react-email/components@0.0.22';
+import { PaymentConfirmationEmail } from '../_shared/email-templates/payment-confirmation.tsx';
+import { AdminNotificationEmail } from '../_shared/email-templates/admin-notification.tsx';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -216,8 +220,25 @@ Deno.serve(async (req) => {
         }
       }
 
-      // Send confirmation email (using Resend)
+      // Send confirmation email using React Email
       try {
+        const nextPaymentDate = transaction.payment_links.payment_type === 'monthly'
+          ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString()
+          : undefined;
+
+        const emailHtml = await renderAsync(
+          React.createElement(PaymentConfirmationEmail, {
+            customer_name: transaction.customer_name,
+            amount: transaction.amount,
+            currency: transaction.currency,
+            transaction_id: payload.obj.id.toString(),
+            payment_method: payload.obj.source_data?.type || 'Card',
+            date: new Date().toLocaleString(),
+            is_recurring: transaction.payment_links.payment_type === 'monthly',
+            next_payment_date: nextPaymentDate,
+          })
+        );
+
         await fetch('https://api.resend.com/emails', {
           method: 'POST',
           headers: {
@@ -225,26 +246,10 @@ Deno.serve(async (req) => {
             'Authorization': `Bearer ${Deno.env.get('RESEND_API_KEY')}`,
           },
           body: JSON.stringify({
-            from: 'noreply@ahmedwesam.com',
+            from: 'Ahmed Wesam <noreply@ahmedwesam.com>',
             to: transaction.customer_email,
             subject: 'Payment Confirmed - Thank You!',
-            html: `
-              <h2>✅ Payment Successful!</h2>
-              <p>Hi ${transaction.customer_name},</p>
-              <p>Your payment has been successfully processed.</p>
-              <hr />
-              <p><strong>Amount Paid:</strong> ${transaction.amount} ${transaction.currency}</p>
-              <p><strong>Transaction ID:</strong> ${payload.obj.id}</p>
-              <p><strong>Date:</strong> ${new Date().toLocaleString()}</p>
-              <p><strong>Payment Method:</strong> ${payload.obj.source_data?.type || 'Card'}</p>
-              <hr />
-              ${transaction.payment_links.payment_type === 'monthly' ? `
-                <p>Your next payment of ${transaction.amount} ${transaction.currency} will be processed on ${new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString()}.</p>
-                <p>To cancel your subscription, please email contact@ahmedwesam.com</p>
-              ` : ''}
-              <p>Thank you for your payment!</p>
-              <p>Best regards,<br/>Ahmed Wesam</p>
-            `,
+            html: emailHtml,
           }),
         });
         console.log('Confirmation email sent to customer');
@@ -254,6 +259,20 @@ Deno.serve(async (req) => {
 
       // Send admin notification
       try {
+        const adminEmailHtml = await renderAsync(
+          React.createElement(AdminNotificationEmail, {
+            customer_name: transaction.customer_name,
+            customer_email: transaction.customer_email,
+            amount: transaction.amount,
+            currency: transaction.currency,
+            payment_type: transaction.payment_links.payment_type,
+            transaction_id: payload.obj.id.toString(),
+            status: 'success',
+            payment_method: payload.obj.source_data?.type || 'Card',
+            date: new Date().toLocaleString(),
+          })
+        );
+
         await fetch('https://api.resend.com/emails', {
           method: 'POST',
           headers: {
@@ -261,22 +280,10 @@ Deno.serve(async (req) => {
             'Authorization': `Bearer ${Deno.env.get('RESEND_API_KEY')}`,
           },
           body: JSON.stringify({
-            from: 'noreply@ahmedwesam.com',
+            from: 'Payment System <noreply@ahmedwesam.com>',
             to: 'contact@ahmedwesam.com',
             subject: `💰 New Payment: ${transaction.amount} ${transaction.currency} from ${transaction.customer_name}`,
-            html: `
-              <h2>💰 New Payment Received!</h2>
-              <hr />
-              <p><strong>Client:</strong> ${transaction.customer_name}</p>
-              <p><strong>Email:</strong> ${transaction.customer_email}</p>
-              <p><strong>Amount:</strong> ${transaction.amount} ${transaction.currency}</p>
-              <p><strong>Type:</strong> ${transaction.payment_links.payment_type === 'monthly' ? 'Monthly Subscription' : 'One-time Payment'}</p>
-              <p><strong>Transaction ID:</strong> ${payload.obj.id}</p>
-              <p><strong>Status:</strong> ✅ Success</p>
-              <p><strong>Payment Method:</strong> ${payload.obj.source_data?.type || 'Card'}</p>
-              <hr />
-              <p>View details in your admin dashboard.</p>
-            `,
+            html: adminEmailHtml,
           }),
         });
         console.log('Admin notification sent');
