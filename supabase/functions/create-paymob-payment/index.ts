@@ -97,7 +97,7 @@ Deno.serve(async (req) => {
     console.log(`Amount: ${paymentLink.amount} ${paymentLink.currency} = ${amountInEGP} EGP (${amountCents} cents)`);
 
     // Step 1: Authenticate with Paymob
-    const authResponse = await fetch('https://accept.paymob.com/api/auth/tokens', {
+    const authResponse = await fetch('https://accept.paymobsolutions.com/api/auth/tokens', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -114,7 +114,7 @@ Deno.serve(async (req) => {
     console.log('Paymob authentication successful');
 
     // Step 2: Create order
-    const orderResponse = await fetch('https://accept.paymob.com/api/ecommerce/orders', {
+    const orderResponse = await fetch('https://accept.paymobsolutions.com/api/ecommerce/orders', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -167,7 +167,7 @@ Deno.serve(async (req) => {
 
     console.log('Payment key request:', JSON.stringify(paymentKeyPayload, null, 2));
 
-    const paymentKeyResponse = await fetch('https://accept.paymob.com/api/acceptance/payment_keys', {
+    const paymentKeyResponse = await fetch('https://accept.paymobsolutions.com/api/acceptance/payment_keys', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(paymentKeyPayload),
@@ -212,7 +212,7 @@ Deno.serve(async (req) => {
     console.log('Transaction record created:', transaction.id);
 
     // Use Paymob's redirect URL instead of iframe (modern approach)
-    const paymentUrl = `https://accept.paymob.com/api/acceptance/payment_key?token=${paymentKeyData.token}`;
+    const paymentUrl = `https://accept.paymobsolutions.com/api/acceptance/iframes/${Deno.env.get('PAYMOB_IFRAME_ID')}?payment_token=${paymentKeyData.token}`;
 
     return new Response(
       JSON.stringify({
