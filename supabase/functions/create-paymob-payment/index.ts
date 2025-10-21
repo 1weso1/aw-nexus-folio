@@ -211,8 +211,8 @@ Deno.serve(async (req) => {
 
     console.log('Transaction record created:', transaction.id);
 
-    // Use Paymob's redirect URL instead of iframe (modern approach)
-    const paymentUrl = `https://accept.paymobsolutions.com/api/acceptance/iframes/${Deno.env.get('PAYMOB_IFRAME_ID')}?payment_token=${paymentKeyData.token}`;
+    // Use Paymob's direct payment URL (works without iframe ID)
+    const paymentUrl = `https://accept.paymobsolutions.com/api/acceptance/post_pay?token=${paymentKeyData.token}`;
 
     return new Response(
       JSON.stringify({
