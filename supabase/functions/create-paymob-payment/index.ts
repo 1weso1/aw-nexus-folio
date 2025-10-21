@@ -204,17 +204,8 @@ Deno.serve(async (req) => {
 
     console.log('Transaction record created:', transaction.id);
 
-    // Return payment URL
-    const iframeId = Deno.env.get('PAYMOB_IFRAME_ID');
-    if (!iframeId) {
-      console.error('PAYMOB_IFRAME_ID is not set');
-      return new Response(
-        JSON.stringify({ error: 'Payment configuration incomplete. Please contact support.' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-    
-    const paymentUrl = `https://accept.paymob.com/api/acceptance/iframes/${iframeId}?payment_token=${paymentKeyData.token}`;
+    // Use Paymob's redirect URL instead of iframe (modern approach)
+    const paymentUrl = `https://accept.paymob.com/api/acceptance/payment_key?token=${paymentKeyData.token}`;
 
     return new Response(
       JSON.stringify({
