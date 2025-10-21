@@ -35,22 +35,22 @@ export function UpgradeDialog({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px] max-h-[85vh] glass border-neon-primary/20">
-        <DialogHeader className="pb-2">
-          <div className="flex justify-center mb-2">
-            <div className="w-12 h-12 rounded-full bg-neon-primary/10 flex items-center justify-center">
-              <Lock className="w-6 h-6 text-neon-primary" />
+      <DialogContent className="sm:max-w-[420px] max-h-[90vh] glass border-neon-primary/20 p-4 sm:p-6">
+        <DialogHeader className="pb-1">
+          <div className="flex justify-center mb-1">
+            <div className="w-10 h-10 rounded-full bg-neon-primary/10 flex items-center justify-center">
+              <Lock className="w-5 h-5 text-neon-primary" />
             </div>
           </div>
-          <DialogTitle className="text-xl font-bold text-center text-text-primary">
+          <DialogTitle className="text-lg font-bold text-center text-text-primary">
             {getTierIcon(requiredTier)} {requiredTier === 'gold' ? 'Gold' : 'Platinum'} Tier Required
           </DialogTitle>
-          <DialogDescription className="text-center text-text-secondary text-sm">
+          <DialogDescription className="text-center text-text-secondary text-xs">
             "{workflowName}" is an {workflowComplexity} level workflow
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 py-2 overflow-y-auto max-h-[calc(85vh-180px)]">
+        <div className="space-y-3 py-1 overflow-y-auto max-h-[calc(90vh-160px)]">
           {/* Current Workflow Info */}
           <div className="bg-surface-secondary/30 rounded-lg p-3 border border-neon-primary/10">
             <div className="flex items-center justify-between">
@@ -68,8 +68,8 @@ export function UpgradeDialog({
           </div>
 
           {/* Tier Comparison */}
-          <div className="space-y-2">
-            <h3 className="text-sm font-semibold text-text-primary text-center mb-2">Tier Comparison</h3>
+          <div className="space-y-1.5">
+            <h3 className="text-xs font-semibold text-text-primary text-center mb-1">Tier Comparison</h3>
             
             {/* Free Tier */}
             <div className={`p-3 rounded-lg border ${currentTier === 'free' ? 'border-green-500/50 bg-green-500/5' : 'border-surface-secondary/50 bg-surface-secondary/20'}`}>

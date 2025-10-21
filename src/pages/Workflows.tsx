@@ -392,6 +392,15 @@ const Workflows = () => {
       
       // First download - no email stored yet
       if (!storedEmail) {
+        // Check if they already downloaded once
+        if (hasDownloaded === 'true') {
+          // They closed the dialog without submitting email - show dialog again
+          setPendingWorkflow(workflow);
+          setShowLeadCaptureDialog(true);
+          return;
+        }
+        
+        // First time download
         await performDownload(workflow);
         localStorage.setItem('has_downloaded', 'true');
         setPendingWorkflow(workflow);
