@@ -138,32 +138,39 @@ Deno.serve(async (req) => {
     const [firstName, ...lastNameParts] = customer.name.split(' ');
     const lastName = lastNameParts.join(' ') || firstName;
 
+    const integrationId = parseInt(Deno.env.get('PAYMOB_INTEGRATION_ID') || '0');
+    console.log('Using integration_id:', integrationId);
+
+    const paymentKeyPayload = {
+      auth_token: authData.token,
+      amount_cents: amountCents.toString(),
+      expiration: 3600,
+      order_id: orderData.id.toString(),
+      billing_data: {
+        email: customer.email,
+        first_name: firstName,
+        last_name: lastName,
+        phone_number: customer.phone,
+        apartment: 'NA',
+        floor: 'NA',
+        street: 'NA',
+        building: 'NA',
+        shipping_method: 'NA',
+        postal_code: 'NA',
+        city: 'NA',
+        country: 'EG',
+        state: 'NA',
+      },
+      currency: 'EGP',
+      integration_id: integrationId,
+    };
+
+    console.log('Payment key request:', JSON.stringify(paymentKeyPayload, null, 2));
+
     const paymentKeyResponse = await fetch('https://accept.paymob.com/api/acceptance/payment_keys', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        auth_token: authData.token,
-        amount_cents: amountCents.toString(),
-        expiration: 3600,
-        order_id: orderData.id.toString(),
-        billing_data: {
-          email: customer.email,
-          first_name: firstName,
-          last_name: lastName,
-          phone_number: customer.phone,
-          apartment: 'NA',
-          floor: 'NA',
-          street: 'NA',
-          building: 'NA',
-          shipping_method: 'NA',
-          postal_code: 'NA',
-          city: 'NA',
-          country: 'EG',
-          state: 'NA',
-        },
-        currency: 'EGP',
-        integration_id: parseInt(Deno.env.get('PAYMOB_INTEGRATION_ID') || '0'),
-      }),
+      body: JSON.stringify(paymentKeyPayload),
     });
 
     if (!paymentKeyResponse.ok) {
