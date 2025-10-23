@@ -218,7 +218,7 @@ export type Database = {
           full_name: string
           id: string
           interests: string[] | null
-          ip_address: unknown | null
+          ip_address: unknown
           role: string
           updated_at: string | null
           verification_sent_at: string | null
@@ -239,7 +239,7 @@ export type Database = {
           full_name: string
           id?: string
           interests?: string[] | null
-          ip_address?: unknown | null
+          ip_address?: unknown
           role: string
           updated_at?: string | null
           verification_sent_at?: string | null
@@ -260,7 +260,7 @@ export type Database = {
           full_name?: string
           id?: string
           interests?: string[] | null
-          ip_address?: unknown | null
+          ip_address?: unknown
           role?: string
           updated_at?: string | null
           verification_sent_at?: string | null
@@ -665,7 +665,7 @@ export type Database = {
         Row: {
           downloaded_at: string | null
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           lead_email: string | null
           user_agent: string | null
           user_id: string
@@ -674,7 +674,7 @@ export type Database = {
         Insert: {
           downloaded_at?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           lead_email?: string | null
           user_agent?: string | null
           user_id: string
@@ -683,7 +683,7 @@ export type Database = {
         Update: {
           downloaded_at?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           lead_email?: string | null
           user_agent?: string | null
           user_id?: string
@@ -819,7 +819,9 @@ export type Database = {
         Row: {
           created_at: string
           description_text: string
-          embedding: string | null
+          embedding_deepseek: string | null
+          embedding_gemini: string | null
+          embedding_model: string | null
           id: string
           updated_at: string
           workflow_id: string
@@ -827,7 +829,9 @@ export type Database = {
         Insert: {
           created_at?: string
           description_text: string
-          embedding?: string | null
+          embedding_deepseek?: string | null
+          embedding_gemini?: string | null
+          embedding_model?: string | null
           id?: string
           updated_at?: string
           workflow_id: string
@@ -835,7 +839,9 @@ export type Database = {
         Update: {
           created_at?: string
           description_text?: string
-          embedding?: string | null
+          embedding_deepseek?: string | null
+          embedding_gemini?: string | null
+          embedding_model?: string | null
           id?: string
           updated_at?: string
           workflow_id?: string
@@ -861,7 +867,7 @@ export type Database = {
           node_count: number | null
           path: string
           raw_url: string
-          search_tsv: unknown | null
+          search_tsv: unknown
           size_bytes: number | null
           slug: string
           updated_at: string | null
@@ -876,7 +882,7 @@ export type Database = {
           node_count?: number | null
           path: string
           raw_url: string
-          search_tsv?: unknown | null
+          search_tsv?: unknown
           size_bytes?: number | null
           slug: string
           updated_at?: string | null
@@ -891,7 +897,7 @@ export type Database = {
           node_count?: number | null
           path?: string
           raw_url?: string
-          search_tsv?: unknown | null
+          search_tsv?: unknown
           size_bytes?: number | null
           slug?: string
           updated_at?: string | null
@@ -903,10 +909,6 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      binary_quantize: {
-        Args: { "": string } | { "": unknown }
-        Returns: unknown
-      }
       check_download_eligibility: {
         Args: { p_email?: string; p_ip_address?: unknown }
         Returns: {
@@ -920,22 +922,6 @@ export type Database = {
           requires_verification: boolean
         }[]
       }
-      halfvec_avg: {
-        Args: { "": number[] }
-        Returns: unknown
-      }
-      halfvec_out: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      halfvec_send: {
-        Args: { "": unknown }
-        Returns: string
-      }
-      halfvec_typmod_in: {
-        Args: { "": unknown[] }
-        Returns: number
-      }
       has_any_role: {
         Args: { _roles: Database["public"]["Enums"]["app_role"][] }
         Returns: boolean
@@ -947,54 +933,9 @@ export type Database = {
         }
         Returns: boolean
       }
-      hnsw_bit_support: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      hnsw_halfvec_support: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      hnsw_sparsevec_support: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      hnswhandler: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      is_admin: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      is_moderator: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      is_site_admin: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      ivfflat_bit_support: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      ivfflat_halfvec_support: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      ivfflathandler: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      l2_norm: {
-        Args: { "": unknown } | { "": unknown }
-        Returns: number
-      }
-      l2_normalize: {
-        Args: { "": string } | { "": unknown } | { "": unknown }
-        Returns: unknown
-      }
+      is_admin: { Args: never; Returns: boolean }
+      is_moderator: { Args: never; Returns: boolean }
+      is_site_admin: { Args: never; Returns: boolean }
       match_workflows: {
         Args: {
           match_count?: number
@@ -1007,17 +948,17 @@ export type Database = {
           workflow_id: string
         }[]
       }
-      sparsevec_out: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      sparsevec_send: {
-        Args: { "": unknown }
-        Returns: string
-      }
-      sparsevec_typmod_in: {
-        Args: { "": unknown[] }
-        Returns: number
+      match_workflows_deepseek: {
+        Args: {
+          match_count?: number
+          match_threshold?: number
+          query_embedding: string
+        }
+        Returns: {
+          description_text: string
+          similarity: number
+          workflow_id: string
+        }[]
       }
       upsert_workflow: {
         Args: {
@@ -1034,30 +975,6 @@ export type Database = {
           p_updated: string
         }
         Returns: string
-      }
-      vector_avg: {
-        Args: { "": number[] }
-        Returns: string
-      }
-      vector_dims: {
-        Args: { "": string } | { "": unknown }
-        Returns: number
-      }
-      vector_norm: {
-        Args: { "": string }
-        Returns: number
-      }
-      vector_out: {
-        Args: { "": string }
-        Returns: unknown
-      }
-      vector_send: {
-        Args: { "": string }
-        Returns: string
-      }
-      vector_typmod_in: {
-        Args: { "": unknown[] }
-        Returns: number
       }
     }
     Enums: {

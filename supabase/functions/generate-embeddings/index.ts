@@ -63,11 +63,12 @@ serve(async (req) => {
       (descriptions || []).map(d => [d.workflow_id, d])
     );
 
-    // Check which workflows already have embeddings
+    // Check which workflows already have Deepseek embeddings (skip those, keep Gemini embeddings)
     const { data: existingEmbeddings } = await supabase
       .from('workflow_vectors')
       .select('workflow_id')
-      .in('workflow_id', workflowIds);
+      .in('workflow_id', workflowIds)
+      .not('embedding_deepseek', 'is', null);
 
     const existingIds = new Set(existingEmbeddings?.map(e => e.workflow_id) || []);
     
@@ -140,12 +141,13 @@ serve(async (req) => {
           continue;
         }
 
-        // Store embedding in workflow_vectors table
+        // Store Deepseek embedding in workflow_vectors table (preserving Gemini embeddings)
         const { error: insertError } = await supabase
           .from('workflow_vectors')
           .upsert({
             workflow_id: workflow.id,
-            embedding: embedding,
+            embedding_deepseek: embedding,
+            embedding_model: 'deepseek',
             description_text: textForEmbedding.substring(0, 1000), // Store first 1000 chars for reference
           });
 

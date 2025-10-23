@@ -18,11 +18,12 @@ serve(async (req) => {
       throw new Error('Search query is required');
     }
 
-    const GOOGLE_API_KEY = Deno.env.get('GOOGLE_API_KEY');
+    const OLLAMA_API_KEY = Deno.env.get('OLLAMA_API_KEY');
+    const OLLAMA_CLOUD_ENDPOINT = Deno.env.get('OLLAMA_CLOUD_ENDPOINT');
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
-    if (!GOOGLE_API_KEY || !SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+    if (!OLLAMA_API_KEY || !OLLAMA_CLOUD_ENDPOINT || !SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
       throw new Error('Missing required environment variables');
     }
 
@@ -30,18 +31,18 @@ serve(async (req) => {
 
     console.log('Generating embedding for query:', query);
 
-    // Generate embedding for the search query using Google's Gemini embedding API
+    // Generate embedding for the search query using Ollama Cloud with Deepseek model
     const embeddingResponse = await fetch(
-      `https://generativelanguage.googleapis.com/v1/models/text-embedding-004:embedContent?key=${GOOGLE_API_KEY}`,
+      `${OLLAMA_CLOUD_ENDPOINT}/v1/embeddings`,
       {
         method: 'POST',
         headers: {
+          'Authorization': `Bearer ${OLLAMA_API_KEY}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          content: {
-            parts: [{ text: query }]
-          }
+          model: 'deepseek-v3.1:671b-cloud',
+          input: query
         }),
       }
     );
@@ -53,18 +54,18 @@ serve(async (req) => {
     }
 
     const embeddingData = await embeddingResponse.json();
-    const queryEmbedding = embeddingData.embedding?.values;
+    const queryEmbedding = embeddingData.data?.[0]?.embedding;
 
     if (!queryEmbedding) {
       throw new Error('No embedding returned for query');
     }
 
-    console.log('Performing vector similarity search...');
+    console.log('Performing vector similarity search with Deepseek embeddings...');
 
-    // Perform cosine similarity search using pgvector
+    // Perform cosine similarity search using pgvector with Deepseek embeddings
     // Note: Using RPC call to perform vector similarity search
     const { data: results, error: searchError } = await supabase.rpc(
-      'match_workflows',
+      'match_workflows_deepseek',
       {
         query_embedding: queryEmbedding,
         match_threshold: 0.3,
