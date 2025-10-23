@@ -109,7 +109,7 @@ serve(async (req) => {
 
         // Generate embedding using Ollama Cloud with Deepseek model
         const embeddingResponse = await fetch(
-          `${OLLAMA_CLOUD_ENDPOINT}/v1/embeddings`,
+          `${OLLAMA_CLOUD_ENDPOINT}/api/embed`,
           {
             method: 'POST',
             headers: {
@@ -132,7 +132,7 @@ serve(async (req) => {
         }
 
         const embeddingData = await embeddingResponse.json();
-        const embedding = embeddingData.data?.[0]?.embedding;
+        const embedding = embeddingData.embeddings?.[0];
 
         if (!embedding) {
           console.error(`No embedding returned for workflow ${workflow.id}`);

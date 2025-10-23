@@ -33,7 +33,7 @@ serve(async (req) => {
 
     // Generate embedding for the search query using Ollama Cloud with Deepseek model
     const embeddingResponse = await fetch(
-      `${OLLAMA_CLOUD_ENDPOINT}/v1/embeddings`,
+      `${OLLAMA_CLOUD_ENDPOINT}/api/embed`,
       {
         method: 'POST',
         headers: {
@@ -54,7 +54,7 @@ serve(async (req) => {
     }
 
     const embeddingData = await embeddingResponse.json();
-    const queryEmbedding = embeddingData.data?.[0]?.embedding;
+    const queryEmbedding = embeddingData.embeddings?.[0];
 
     if (!queryEmbedding) {
       throw new Error('No embedding returned for query');
@@ -79,7 +79,8 @@ serve(async (req) => {
       
       const { data: workflows, error: manualError } = await supabase
         .from('workflow_vectors')
-        .select('workflow_id, description_text, embedding')
+        .select('workflow_id, description_text, embedding_deepseek')
+        .not('embedding_deepseek', 'is', null)
         .limit(1000);
 
       if (manualError) {
@@ -88,7 +89,7 @@ serve(async (req) => {
 
       // Calculate cosine similarity manually
       const workflowScores = workflows.map(wf => {
-        const similarity = cosineSimilarity(queryEmbedding, wf.embedding);
+        const similarity = cosineSimilarity(queryEmbedding, wf.embedding_deepseek);
         return {
           workflow_id: wf.workflow_id,
           similarity,
