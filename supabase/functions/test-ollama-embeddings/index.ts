@@ -40,7 +40,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'deepseek-v3.1:671b-cloud',
+        model: 'mxbai-embed-large',
         input: testText
       }),
     });
