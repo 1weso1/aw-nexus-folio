@@ -14,12 +14,11 @@ serve(async (req) => {
   try {
     const { offset = 0, limit = 50 } = await req.json();
     
-    const OLLAMA_API_KEY = Deno.env.get('OLLAMA_API_KEY');
-    const OLLAMA_CLOUD_ENDPOINT = Deno.env.get('OLLAMA_CLOUD_ENDPOINT');
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
-    if (!OLLAMA_API_KEY || !OLLAMA_CLOUD_ENDPOINT || !SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+    if (!LOVABLE_API_KEY || !SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
       throw new Error('Missing required environment variables');
     }
 
@@ -63,12 +62,12 @@ serve(async (req) => {
       (descriptions || []).map(d => [d.workflow_id, d])
     );
 
-    // Check which workflows already have Deepseek embeddings (skip those, keep Gemini embeddings)
+    // Check which workflows already have Gemini embeddings
     const { data: existingEmbeddings } = await supabase
       .from('workflow_vectors')
       .select('workflow_id')
       .in('workflow_id', workflowIds)
-      .not('embedding_deepseek', 'is', null);
+      .not('embedding_gemini', 'is', null);
 
     const existingIds = new Set(existingEmbeddings?.map(e => e.workflow_id) || []);
     
@@ -107,17 +106,17 @@ serve(async (req) => {
         // Create compact text for embedding
         const textForEmbedding = `${workflow.name}\n\n${desc.description}\n\nUse Cases:\n${desc.use_cases || ''}\n\nSetup:\n${desc.setup_guide || ''}`;
 
-        // Generate embedding using Ollama Cloud with Deepseek model
+        // Generate embedding using Lovable AI with Gemini
         const embeddingResponse = await fetch(
-          `${OLLAMA_CLOUD_ENDPOINT}/api/embed`,
+          'https://ai.gateway.lovable.dev/v1/embeddings',
           {
             method: 'POST',
             headers: {
-              'Authorization': `Bearer ${OLLAMA_API_KEY}`,
+              'Authorization': `Bearer ${LOVABLE_API_KEY}`,
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-              model: 'deepseek-v3.1:671b-cloud',
+              model: 'text-embedding-004',
               input: textForEmbedding
             }),
           }
@@ -132,7 +131,7 @@ serve(async (req) => {
         }
 
         const embeddingData = await embeddingResponse.json();
-        const embedding = embeddingData.embeddings?.[0];
+        const embedding = embeddingData.data?.[0]?.embedding;
 
         if (!embedding) {
           console.error(`No embedding returned for workflow ${workflow.id}`);
@@ -141,13 +140,13 @@ serve(async (req) => {
           continue;
         }
 
-        // Store Deepseek embedding in workflow_vectors table (preserving Gemini embeddings)
+        // Store Gemini embedding in workflow_vectors table
         const { error: insertError } = await supabase
           .from('workflow_vectors')
           .upsert({
             workflow_id: workflow.id,
-            embedding_deepseek: embedding,
-            embedding_model: 'deepseek',
+            embedding_gemini: embedding,
+            embedding_model: 'gemini',
             description_text: textForEmbedding.substring(0, 1000), // Store first 1000 chars for reference
           });
 
