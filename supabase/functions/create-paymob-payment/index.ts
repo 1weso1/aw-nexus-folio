@@ -138,11 +138,11 @@ Deno.serve(async (req) => {
         floor: 'NA',
         street: 'NA',
         building: 'NA',
-        shipping_method: 'NA',
+        shipping_method: 'PKG',
         postal_code: 'NA',
-        city: 'NA',
+        city: 'Cairo',
         country: 'EG',
-        state: 'NA',
+        state: 'Cairo',
       }
     };
 
