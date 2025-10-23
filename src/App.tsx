@@ -21,6 +21,7 @@ import Book from "./pages/Book";
 import CV from "./pages/CV";
 import GenerateDescriptions from "./pages/GenerateDescriptions";
 import GenerateEmbeddings from "./pages/admin/GenerateEmbeddings";
+import TestOllamaEmbeddings from "./pages/admin/TestOllamaEmbeddings";
 import Leads from "./pages/admin/Leads";
 import Users from "./pages/admin/Users";
 import SEOManagement from "./pages/admin/SEOManagement";
@@ -58,6 +59,7 @@ const App = () => (
               <Route path="/cv" element={<CV />} />
               <Route path="/generate-descriptions" element={<GenerateDescriptions />} />
           <Route path="/admin/generate-embeddings" element={<GenerateEmbeddings />} />
+          <Route path="/admin/test-ollama" element={<TestOllamaEmbeddings />} />
           <Route path="/admin/leads" element={<Leads />} />
           <Route path="/admin/users" element={<Users />} />
           <Route path="/admin/seo" element={<SEOManagement />} />
