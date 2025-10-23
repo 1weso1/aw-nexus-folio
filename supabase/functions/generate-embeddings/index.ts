@@ -14,11 +14,12 @@ serve(async (req) => {
   try {
     const { offset = 0, limit = 50 } = await req.json();
     
-    const GOOGLE_API_KEY = Deno.env.get('GOOGLE_API_KEY');
+    const OLLAMA_API_KEY = Deno.env.get('OLLAMA_API_KEY');
+    const OLLAMA_CLOUD_ENDPOINT = Deno.env.get('OLLAMA_CLOUD_ENDPOINT');
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
-    if (!GOOGLE_API_KEY || !SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+    if (!OLLAMA_API_KEY || !OLLAMA_CLOUD_ENDPOINT || !SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
       throw new Error('Missing required environment variables');
     }
 
@@ -105,18 +106,18 @@ serve(async (req) => {
         // Create compact text for embedding
         const textForEmbedding = `${workflow.name}\n\n${desc.description}\n\nUse Cases:\n${desc.use_cases || ''}\n\nSetup:\n${desc.setup_guide || ''}`;
 
-        // Generate embedding using Google's text-embedding-004 model (free)
+        // Generate embedding using Ollama Cloud with Deepseek model
         const embeddingResponse = await fetch(
-          `https://generativelanguage.googleapis.com/v1/models/text-embedding-004:embedContent?key=${GOOGLE_API_KEY}`,
+          `${OLLAMA_CLOUD_ENDPOINT}/v1/embeddings`,
           {
             method: 'POST',
             headers: {
+              'Authorization': `Bearer ${OLLAMA_API_KEY}`,
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-              content: {
-                parts: [{ text: textForEmbedding }]
-              }
+              model: 'deepseek-v3.1:671b-cloud',
+              input: textForEmbedding
             }),
           }
         );
@@ -130,7 +131,7 @@ serve(async (req) => {
         }
 
         const embeddingData = await embeddingResponse.json();
-        const embedding = embeddingData.embedding?.values;
+        const embedding = embeddingData.data?.[0]?.embedding;
 
         if (!embedding) {
           console.error(`No embedding returned for workflow ${workflow.id}`);
